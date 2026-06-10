@@ -30,6 +30,21 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isCollapsed && window.innerWidth >= 992) {
             sidebar?.classList.add('collapsed');
             mainContent?.classList.add('sidebar-collapsed');
+            updateCollapseBtnIcon(true);
+        } else {
+            updateCollapseBtnIcon(false);
+        }
+    }
+
+    // Update the chevron icon class on the collapse button
+    function updateCollapseBtnIcon(isCollapsed) {
+        const icon = collapseBtn?.querySelector('i');
+        if (icon) {
+            if (isCollapsed) {
+                icon.className = 'bi bi-chevron-right';
+            } else {
+                icon.className = 'bi bi-chevron-left';
+            }
         }
     }
 
@@ -38,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const isCollapsed = sidebar?.classList.toggle('collapsed');
         mainContent?.classList.toggle('sidebar-collapsed', isCollapsed);
         localStorage.setItem(STORAGE_KEY, isCollapsed ? 'true' : 'false');
+        updateCollapseBtnIcon(isCollapsed);
     }
 
     // Initialize on page load
@@ -62,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (window.innerWidth < 992) {
             sidebar?.classList.remove('collapsed');
             mainContent?.classList.remove('sidebar-collapsed');
+            updateCollapseBtnIcon(false);
         } else {
             loadSidebarState();
         }

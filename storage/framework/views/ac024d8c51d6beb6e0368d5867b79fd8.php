@@ -71,7 +71,7 @@ body:has(.impersonation-bar) .main-content {
                 <img src="<?php echo e(asset('icons/logo png.png')); ?>" alt="Logo" class="brand-logo-img">
             </div>
             <div class="brand-text">
-                <span class="brand-name">PUREPOS</span>
+                <span class="brand-name"><span class="text-gold">PURE</span>POS</span>
                 <span class="brand-tagline">by PURETEC</span>
             </div>
         </div>

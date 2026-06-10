@@ -10,7 +10,7 @@
             <div class="auth-logo">
                 <img src="{{ asset('icons/logo png.png') }}" alt="Logo" class="auth-logo-img">
             </div>
-            <h1 class="auth-title">PUREPOS</h1>
+            <h1 class="auth-title"><span class="text-gold">PURE</span>POS</h1>
             <p class="auth-subtitle">by <strong>PURETEC</strong> — The Art of Refined Technology</p>
         </div>
 
@@ -77,7 +77,7 @@
                 <i class="bi bi-shield-check"></i>
             </div>
             <div class="trademark-text">
-                <span class="trademark-brand">PUREPOS</span> &copy; {{ date('Y') }} <strong>PURETEC</strong>
+                <span class="trademark-brand"><span class="text-gold">PURE</span>POS</span> &copy; {{ date('Y') }} <strong>PURETEC</strong>
                 <br>
                 <small>All Rights Reserved. Licensed Software.</small>
             </div>
