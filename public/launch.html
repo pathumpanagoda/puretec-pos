@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceyloan POS — Launch</title>
+    <link rel="icon" href="/icons/icon-192.png">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a3d52 0%, #0f2940 50%, #0d5470 100%);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+        }
+        .launcher {
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(255,255,255,.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 28px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 24px 80px rgba(0,0,0,.4);
+        }
+        .logo {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #1a9bc1, #0d9488);
+            border-radius: 22px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 38px;
+            margin: 0 auto 24px;
+            box-shadow: 0 12px 32px rgba(26,155,193,.4);
+        }
+        h1 { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+        .by { font-size: 14px; opacity: .5; margin-bottom: 32px; }
+        .btn-launch {
+            display: block; width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #1a9bc1, #0d9488);
+            color: #fff; text-decoration: none; border-radius: 14px;
+            font-size: 18px; font-weight: 800; transition: all .2s;
+            margin-bottom: 12px; cursor: pointer; border: none;
+        }
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px rgba(26,155,193,.5);
+        }
+        .version { font-size: 12px; opacity: .3; margin-top: 20px; }
+        .shapes { position: fixed; inset:0; pointer-events:none; }
+        .s { position:absolute; border-radius:50%; }
+        .s1 { width:300px; height:300px; background:radial-gradient(circle,rgba(26,155,193,.15),transparent); top:-100px; right:-100px; }
+        .s2 { width:200px; height:200px; background:radial-gradient(circle,rgba(13,148,136,.1),transparent); bottom:-50px; left:-50px; }
+    </style>
+</head>
+<body>
+    <div class="shapes"><div class="s s1"></div><div class="s s2"></div></div>
+    <div class="launcher">
+        <div class="logo">🏪</div>
+        <h1>Ceyloan POS</h1>
+        <div class="by">by <strong>Nexfloit</strong></div>
+        <button class="btn-launch" onclick="openPOS()">
+            🚀 Launch Ceyloan POS
+        </button>
+        <div class="version">Version 1.0.0 • Professional POS System</div>
+    </div>
+    <script>
+        function openPOS() {
+            window.location.href = '/';
+        }
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+        // Auto-launch after 1.5 seconds if not clicked
+        setTimeout(() => { window.location.href = '/'; }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# ==============================================================================
+# Ceylon POS - Root .htaccess File
+# ==============================================================================
+#
+# INSTRUCTIONS:
+# 1. Rename this file to ".htaccess" (remove .example)
+# 2. Place in your main folder (public_html or domain folder)
+# 3. This redirects all requests to the public folder for security
+#
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect all requests to public folder
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Deny access to sensitive files
+<FilesMatch "^\.env|composer\.(json|lock)|artisan$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Deny access to sensitive directories
+<IfModule mod_rewrite.c>
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|vendor)/ - [F,L]
+</IfModule>

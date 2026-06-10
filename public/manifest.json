@@ -1,0 +1,21 @@
+{
+    "name": "Ceyloan POS",
+    "short_name": "Ceyloan POS",
+    "description": "Professional Point of Sale System by Nexfloit",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0d1929",
+    "theme_color": "#0d6e8a",
+    "orientation": "any",
+    "icons": [
+        { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+        { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    ],
+    "screenshots": [
+        { "src": "/images/screenshot-pos.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide" }
+    ],
+    "shortcuts": [
+        { "name": "Open POS", "url": "/pos", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+        { "name": "Dashboard", "url": "/dashboard", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    ]
+}

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceylon POS - Live Server Deployment Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1em; }
+        .content { padding: 40px; }
+        .step { background: #f8f9fa; border-radius: 15px; padding: 25px; margin-bottom: 25px; border-left: 5px solid #667eea; }
+        .step-number { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 40px; height: 40px; border-radius: 50%; text-align: center; line-height: 40px; font-weight: bold; margin-right: 15px; }
+        .step h3 { display: inline-block; color: #1e3c72; font-size: 1.3em; vertical-align: middle; }
+        .step-content { margin-top: 15px; padding-left: 55px; }
+        .note { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 15px; margin: 15px 0; }
+        .note-title { color: #856404; font-weight: bold; margin-bottom: 5px; }
+        .danger { background: #f8d7da; border: 1px solid #f5c6cb; }
+        .danger .note-title { color: #721c24; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .success .note-title { color: #155724; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; }
+        .info .note-title { color: #0c5460; }
+        code { background: #e9ecef; padding: 3px 8px; border-radius: 5px; font-family: 'Courier New', monospace; color: #d63384; }
+        pre { background: #2d3748; color: #e2e8f0; padding: 20px; border-radius: 10px; overflow-x: auto; margin: 15px 0; }
+        .checklist { list-style: none; }
+        .checklist li { padding: 10px 0; border-bottom: 1px solid #eee; }
+        .checklist li:before { content: "[ ] "; color: #667eea; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #1e3c72; }
+        .folder-structure { background: #1a1a2e; color: #16c79a; padding: 20px; border-radius: 10px; font-family: monospace; }
+        .folder-structure .folder { color: #f9ca24; }
+        .folder-structure .file { color: #74b9ff; }
+        .folder-structure .important { color: #ff6b6b; font-weight: bold; }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+            .step { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ceylon POS</h1>
+            <p>Live Server Deployment Guide</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Browser-Only Method - No SSH/Command Line Required</p>
+        </div>
+
+        <div class="content">
+            <!-- Introduction -->
+            <div class="note info">
+                <div class="note-title">About This Guide</div>
+                This guide will help you deploy Ceylon POS to a live hosting server so your clients can access it from anywhere via the internet. No SSH, command line, PowerShell, or root access is required - only a web browser and cPanel file manager.
+            </div>
+
+            <!-- Prerequisites -->
+            <div class="step">
+                <span class="step-number">0</span>
+                <h3>Prerequisites - Requirements</h3>
+                <div class="step-content">
+                    <p><strong>Hosting Requirements:</strong></p>
+                    <ul class="checklist">
+                        <li>cPanel access (Shared hosting, VPS, or dedicated server)</li>
+                        <li>PHP 8.1 or higher</li>
+                        <li>MySQL 8.0 or MariaDB 10.3+</li>
+                        <li>Minimum 256MB PHP memory limit</li>
+                        <li>Storage: 500MB+ (files + database)</li>
+                    </ul>
+
+                    <div class="note">
+                        <div class="note-title">Required PHP Extensions</div>
+                        Most hosting providers have these enabled by default:
+                        <code>BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML, GD, Zip</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Prepare Files -->
+            <div class="step">
+                <span class="step-number">1</span>
+                <h3>Prepare Files (On Your Local Computer)</h3>
+                <div class="step-content">
+                    <p><strong>1.1 Create a ZIP archive of your project:</strong></p>
+                    <ol>
+                        <li>Open your project folder</li>
+                        <li>Select all files and folders</li>
+                        <li>Right-click > "Send to" > "Compressed (zipped) folder"</li>
+                        <li>Name it <code>ceylon-pos.zip</code></li>
+                    </ol>
+
+                    <div class="note danger">
+                        <div class="note-title">IMPORTANT - Do NOT Include These Files/Folders in ZIP!</div>
+                        <ul>
+                            <li><code>vendor/</code> folder - (Will be installed on server)</li>
+                            <li><code>node_modules/</code> folder - (Not needed)</li>
+                            <li><code>.env</code> file - (Will create production version on server)</li>
+                            <li><code>storage/logs/*.log</code> files</li>
+                            <li><code>storage/framework/cache/*</code> files</li>
+                            <li><code>storage/framework/sessions/*</code> files</li>
+                            <li><code>storage/framework/views/*</code> files</li>
+                        </ul>
+                    </div>
+
+                    <p><strong>Files That MUST Be Included in ZIP:</strong></p>
+                    <div class="folder-structure">
+<span class="folder">ceylon-pos/</span>
+├── <span class="folder">app/</span>                 [OK] (Application code)
+├── <span class="folder">bootstrap/</span>           [OK]
+├── <span class="folder">config/</span>              [OK]
+├── <span class="folder">database/</span>            [OK]
+├── <span class="folder">public/</span>              [OK] <span class="important">(VERY IMPORTANT)</span>
+├── <span class="folder">resources/</span>           [OK]
+├── <span class="folder">routes/</span>              [OK]
+├── <span class="folder">storage/</span>             [OK] (empty subfolders only)
+├── <span class="file">.env.production</span>       [OK]
+├── <span class="file">artisan</span>               [OK]
+├── <span class="file">composer.json</span>         [OK]
+├── <span class="file">composer.lock</span>         [OK]
+├── <span class="file">setup.php</span>             [OK] <span class="important">(INSTALLER SCRIPT)</span>
+└── <span class="file">package.json</span>          [OK]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: cPanel Login -->
+            <div class="step">
+                <span class="step-number">2</span>
+                <h3>Login to cPanel</h3>
+                <div class="step-content">
+                    <p><strong>2.1 cPanel URL:</strong></p>
+                    <p>Usually accessible at one of these URLs:</p>
+                    <pre>https://yourdomain.com:2083
+OR
+https://yourdomain.com/cpanel</pre>
+
+                    <p><strong>2.2 Login credentials:</strong></p>
+                    <p>Your hosting provider sent these via email when you purchased hosting.</p>
+
+                    <div class="note info">
+                        <div class="note-title">Common Hosting Provider cPanel URLs</div>
+                        <table>
+                            <tr><th>Provider</th><th>cPanel Access</th></tr>
+                            <tr><td>Hostinger</td><td>hpanel.hostinger.com</td></tr>
+                            <tr><td>Namecheap</td><td>yourdomain.com:2083</td></tr>
+                            <tr><td>SiteGround</td><td>Site Tools Dashboard</td></tr>
+                            <tr><td>Bluehost</td><td>my.bluehost.com</td></tr>
+                            <tr><td>GoDaddy</td><td>myh.godaddy.com</td></tr>
+                            <tr><td>Other</td><td>Check your welcome email</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Create Database -->
+            <div class="step">
+                <span class="step-number">3</span>
+                <h3>Create Database</h3>
+                <div class="step-content">
+                    <p><strong>3.1 Open MySQL Databases:</strong></p>
+                    <p>In cPanel, click the "MySQL Databases" icon.</p>
+
+                    <p><strong>3.2 Create New Database:</strong></p>
+                    <ol>
+                        <li>In the "Create New Database" section</li>
+                        <li>Enter database name: <code>ceylon_pos</code></li>
+                        <li>Click "Create Database" button</li>
+                    </ol>
+                    <div class="note">
+                        <div class="note-title">Note</div>
+                        cPanel automatically adds a prefix. Example: <code>username_ceylon_pos</code>
+                        <br>Write down this full name - you need it for the .env file!
+                    </div>
+
+                    <p><strong>3.3 Create Database User:</strong></p>
+                    <ol>
+                        <li>Scroll to "MySQL Users" section</li>
+                        <li>Username: <code>pos_user</code></li>
+                        <li>Password: Click "Password Generator" for a strong password</li>
+                        <li>Click "Create User"</li>
+                        <li><strong>Copy and save the password somewhere safe!</strong></li>
+                    </ol>
+
+                    <p><strong>3.4 Add User to Database:</strong></p>
+                    <ol>
+                        <li>Go to "Add User To Database" section</li>
+                        <li>Select the user you created</li>
+                        <li>Select the database you created</li>
+                        <li>Click "Add"</li>
+                        <li>On the next page, check <strong>"ALL PRIVILEGES"</strong></li>
+                        <li>Click "Make Changes"</li>
+                    </ol>
+
+                    <div class="note success">
+                        <div class="note-title">Write Down These Details!</div>
+                        <table>
+                            <tr><td>Database Name:</td><td><code>username_ceylon_pos</code></td></tr>
+                            <tr><td>Database User:</td><td><code>username_pos_user</code></td></tr>
+                            <tr><td>Database Password:</td><td><code>your_generated_password</code></td></tr>
+                            <tr><td>Database Host:</td><td><code>localhost</code></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Upload Files -->
+            <div class="step">
+                <span class="step-number">4</span>
+                <h3>Upload Files</h3>
+                <div class="step-content">
+                    <p><strong>4.1 Open File Manager:</strong></p>
+                    <p>In cPanel, click the "File Manager" icon.</p>
+
+                    <p><strong>4.2 Navigate to Correct Folder:</strong></p>
+                    <div class="note info">
+                        <div class="note-title">Where to Upload</div>
+                        <table>
+                            <tr><th>Scenario</th><th>Upload Folder</th></tr>
+                            <tr><td>Main domain (yourdomain.com)</td><td><code>public_html/</code></td></tr>
+                            <tr><td>Subdomain (pos.yourdomain.com)</td><td><code>pos.yourdomain.com/</code></td></tr>
+                            <tr><td>Addon domain</td><td><code>addondomain.com/</code></td></tr>
+                        </table>
+                    </div>
+
+                    <p><strong>4.3 Upload ZIP File:</strong></p>
+                    <ol>
+                        <li>Open the correct folder</li>
+                        <li>Click "Upload" in the top menu</li>
+                        <li>Drag & drop your ZIP file OR click "Select File"</li>
+                        <li>Wait for upload to complete (may take several minutes)</li>
+                    </ol>
+
+                    <p><strong>4.4 Extract ZIP File:</strong></p>
+                    <ol>
+                        <li>Right-click on the uploaded ZIP file</li>
+                        <li>Click "Extract"</li>
+                        <li>Keep extract location as same folder</li>
+                        <li>Click "Extract Files"</li>
+                    </ol>
+
+                    <div class="note danger">
+                        <div class="note-title">IMPORTANT - Verify File Structure!</div>
+                        After extracting, verify this structure exists:
+                        <div class="folder-structure" style="margin-top: 10px;">
+<span class="folder">public_html/</span>
+├── <span class="folder">app/</span>
+├── <span class="folder">bootstrap/</span>
+├── <span class="folder">config/</span>
+├── <span class="folder">database/</span>
+├── <span class="folder">public/</span>              <span class="important">-- index.php must be here</span>
+├── <span class="folder">resources/</span>
+├── <span class="folder">routes/</span>
+├── <span class="folder">storage/</span>
+├── <span class="file">artisan</span>
+├── <span class="file">composer.json</span>
+└── <span class="file">setup.php</span>
+                        </div>
+                        <br>
+                        If files extracted into a subfolder, MOVE them to public_html!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Create .env File -->
+            <div class="step">
+                <span class="step-number">5</span>
+                <h3>Create .env Configuration File</h3>
+                <div class="step-content">
+                    <p><strong>5.1 Copy .env.production file:</strong></p>
+                    <ol>
+                        <li>In File Manager, select <code>.env.production</code> file</li>
+                        <li>Right-click > "Copy"</li>
+                        <li>Paste in the same folder</li>
+                        <li>Rename the new file to <code>.env</code></li>
+                    </ol>
+
+                    <p><strong>5.2 Edit .env file:</strong></p>
+                    <ol>
+                        <li>Right-click on <code>.env</code> file</li>
+                        <li>Click "Edit"</li>
+                        <li>Update these values:</li>
+                    </ol>
+
+                    <pre>
+APP_NAME="Your Business Name"
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=username_ceylon_pos
+DB_USERNAME=username_pos_user
+DB_PASSWORD=your_database_password
+
+POS_CURRENCY=LKR
+POS_CURRENCY_SYMBOL=Rs.
+POS_BUSINESS_NAME="Your Business Name"
+POS_TIMEZONE=Asia/Colombo</pre>
+
+                    <div class="note success">
+                        <div class="note-title">About APP_KEY</div>
+                        Leave APP_KEY empty for now. The setup.php script will generate it automatically in Step 6.
+                    </div>
+
+                    <p><strong>5.3 Save the file:</strong></p>
+                    <p>Click "Save Changes" button.</p>
+                </div>
+            </div>
+
+            <!-- Step 6: Run Setup Script -->
+            <div class="step">
+                <span class="step-number">6</span>
+                <h3>Run Setup Script (Most Important Step!)</h3>
+                <div class="step-content">
+                    <div class="note info">
+                        <div class="note-title">What This Does</div>
+                        The setup.php file performs all the tasks that normally require SSH commands:
+                        installing Composer packages, running database migrations, seeding default data,
+                        creating storage links, and optimizing the application.
+                    </div>
+
+                    <p><strong>6.1 Open setup.php in your browser:</strong></p>
+                    <pre>https://yourdomain.com/setup.php</pre>
+
+                    <p><strong>6.2 Follow the Setup Steps:</strong></p>
+                    <ol>
+                        <li><strong>Check Requirements</strong> - Verifies PHP version and extensions</li>
+                        <li><strong>Install Dependencies</strong> - Installs Composer packages</li>
+                        <li><strong>Generate App Key</strong> - Creates security encryption key</li>
+                        <li><strong>Run Migrations</strong> - Creates database tables</li>
+                        <li><strong>Seed Database</strong> - Adds default data (categories, users, etc.)</li>
+                        <li><strong>Create Storage Link</strong> - Enables file uploads</li>
+                        <li><strong>Finalize</strong> - Cleanup and optimization</li>
+                    </ol>
+
+                    <div class="note danger">
+                        <div class="note-title">If You Get Errors</div>
+                        <ul>
+                            <li><strong>Database Connection Error:</strong> Check .env database credentials</li>
+                            <li><strong>Permission Denied:</strong> Check storage/ folder permissions (Step 7)</li>
+                            <li><strong>Memory Error:</strong> Contact hosting support to increase PHP memory limit</li>
+                            <li><strong>Timeout Error:</strong> Refresh the page and continue from where it stopped</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Set Permissions -->
+            <div class="step">
+                <span class="step-number">7</span>
+                <h3>Set File Permissions</h3>
+                <div class="step-content">
+                    <p><strong>7.1 Set storage/ folder permissions:</strong></p>
+                    <ol>
+                        <li>In File Manager, right-click on <code>storage</code> folder</li>
+                        <li>Click "Change Permissions"</li>
+                        <li>Set permission value to: <code>755</code> or <code>775</code></li>
+                        <li>Check "Recurse into subdirectories"</li>
+                        <li>Click "Change Permissions"</li>
+                    </ol>
+
+                    <p><strong>7.2 Set bootstrap/cache/ folder permissions:</strong></p>
+                    <p>Repeat the same process for <code>bootstrap/cache</code> folder with <code>755</code> permissions.</p>
+
+                    <p><strong>7.3 Set .env file permission:</strong></p>
+                    <ol>
+                        <li>Right-click on <code>.env</code> file</li>
+                        <li>Click "Change Permissions"</li>
+                        <li>Set permission to: <code>644</code></li>
+                    </ol>
+
+                    <div class="note">
+                        <div class="note-title">Permission Numbers Explained</div>
+                        <table>
+                            <tr><th>Value</th><th>Meaning</th><th>Use For</th></tr>
+                            <tr><td>755</td><td>Read/Execute for all, Write for owner</td><td>Folders</td></tr>
+                            <tr><td>644</td><td>Read for all, Write for owner</td><td>Config files</td></tr>
+                            <tr><td>775</td><td>Read/Write/Execute for owner/group</td><td>Storage folders</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 8: Configure Document Root -->
+            <div class="step">
+                <span class="step-number">8</span>
+                <h3>Configure Document Root (MUST DO!)</h3>
+                <div class="step-content">
+                    <div class="note danger">
+                        <div class="note-title">Security Warning!</div>
+                        For Laravel projects, only the <code>public/</code> folder should be web-accessible.
+                        Without this configuration, your .env file and source code could be exposed!
+                    </div>
+
+                    <p><strong>Option A: .htaccess Method (Easiest)</strong></p>
+                    <p>Create a <code>.htaccess</code> file in the main folder (public_html):</p>
+                    <pre>
+&lt;IfModule mod_rewrite.c&gt;
+    RewriteEngine On
+
+    # Redirect all requests to public folder
+    RewriteRule ^(.*)$ public/$1 [L]
+&lt;/IfModule&gt;</pre>
+
+                    <p><strong>Option B: Change Document Root in cPanel (Better Security)</strong></p>
+                    <ol>
+                        <li>Go to cPanel > "Domains" or "Subdomains"</li>
+                        <li>Click "Manage" or "Edit" for your domain</li>
+                        <li>Change Document Root to: <code>/public_html/public</code></li>
+                        <li>Save changes</li>
+                    </ol>
+
+                    <div class="note info">
+                        <div class="note-title">Need Help?</div>
+                        Contact your hosting provider's support via live chat.
+                        Say: "I need to change the document root to the public folder for my Laravel application"
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 9: Test -->
+            <div class="step">
+                <span class="step-number">9</span>
+                <h3>Test Your Installation</h3>
+                <div class="step-content">
+                    <p><strong>9.1 Open your website:</strong></p>
+                    <pre>https://yourdomain.com</pre>
+
+                    <p><strong>9.2 Login with default credentials:</strong></p>
+                    <table>
+                        <tr><th>User Type</th><th>Email</th><th>Password</th><th>PIN</th></tr>
+                        <tr><td>Super Admin</td><td><code>admin@ceylonpos.lk</code></td><td><code>admin123</code></td><td><code>1234</code></td></tr>
+                        <tr><td>Cashier</td><td><code>cashier@ceylonpos.lk</code></td><td><code>cashier123</code></td><td><code>5678</code></td></tr>
+                    </table>
+
+                    <div class="note danger">
+                        <div class="note-title">IMPORTANT - Do This Immediately After Login!</div>
+                        <ol>
+                            <li>Go to Settings > Users and change all default passwords!</li>
+                            <li>Delete or disable the default test users</li>
+                            <li>Create your own admin and staff accounts</li>
+                        </ol>
+                    </div>
+
+                    <p><strong>9.3 Test these features:</strong></p>
+                    <ul class="checklist">
+                        <li>Login is working</li>
+                        <li>POS page loads correctly</li>
+                        <li>Can add products</li>
+                        <li>Can process a sale</li>
+                        <li>Receipt prints or downloads as PDF</li>
+                        <li>Reports generate correctly</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Step 10: SSL/HTTPS -->
+            <div class="step">
+                <span class="step-number">10</span>
+                <h3>Enable SSL Certificate (HTTPS)</h3>
+                <div class="step-content">
+                    <p><strong>10.1 Install Free SSL (Let's Encrypt):</strong></p>
+                    <ol>
+                        <li>In cPanel, find "SSL/TLS Status" or "Let's Encrypt SSL"</li>
+                        <li>Select your domain</li>
+                        <li>Click "Issue" or "Run AutoSSL"</li>
+                        <li>Wait a few minutes for certificate installation</li>
+                    </ol>
+
+                    <p><strong>10.2 Force HTTPS Redirect:</strong></p>
+                    <p>Option 1: In cPanel > "Domains" > Enable "Force HTTPS Redirect"</p>
+                    <p>Option 2: Add this to the top of public/.htaccess:</p>
+                    <pre>
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]</pre>
+                </div>
+            </div>
+
+            <!-- Step 11: Delete Setup File -->
+            <div class="step">
+                <span class="step-number">11</span>
+                <h3>DELETE Setup File (Security Critical!)</h3>
+                <div class="step-content">
+                    <div class="note danger">
+                        <div class="note-title">SECURITY - YOU MUST DO THIS!</div>
+                        After setup is complete, you MUST delete the <code>setup.php</code> file!
+                        If you leave it, anyone could access it and wipe your database.
+                    </div>
+
+                    <ol>
+                        <li>Open File Manager</li>
+                        <li>Find the <code>setup.php</code> file</li>
+                        <li>Right-click > "Delete"</li>
+                        <li>Confirm deletion</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Troubleshooting -->
+            <div class="step">
+                <span class="step-number">?</span>
+                <h3>Troubleshooting Common Problems</h3>
+                <div class="step-content">
+                    <table>
+                        <tr>
+                            <th style="width: 30%;">Problem</th>
+                            <th>Solution</th>
+                        </tr>
+                        <tr>
+                            <td>500 Internal Server Error</td>
+                            <td>
+                                1. Check if .env file exists<br>
+                                2. Check storage/ folder permissions<br>
+                                3. Check error log: storage/logs/laravel.log
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>404 Page Not Found</td>
+                            <td>
+                                1. Check if .htaccess file exists<br>
+                                2. mod_rewrite may be disabled (contact hosting support)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Database Connection Error</td>
+                            <td>
+                                1. Verify database credentials in .env<br>
+                                2. Check if database user has ALL PRIVILEGES
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Images Not Loading</td>
+                            <td>
+                                1. Check if storage link was created (run setup.php again)<br>
+                                2. Check if public/storage folder exists
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Session Expires Too Quickly</td>
+                            <td>
+                                1. Increase SESSION_LIFETIME in .env<br>
+                                2. Check if storage/framework/sessions/ is writable
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Blank White Page</td>
+                            <td>
+                                1. Temporarily set APP_DEBUG=true to see the error<br>
+                                2. Fix the error, then set APP_DEBUG=false
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Final Checklist -->
+            <div class="step">
+                <span class="step-number">!</span>
+                <h3>Final Checklist</h3>
+                <div class="step-content">
+                    <ul class="checklist">
+                        <li>Database created and user has ALL PRIVILEGES</li>
+                        <li>Files uploaded and extracted correctly</li>
+                        <li>.env file configured with correct database details</li>
+                        <li>setup.php ran successfully</li>
+                        <li>File permissions set correctly (storage: 755, .env: 644)</li>
+                        <li>Document root configured to public folder</li>
+                        <li>SSL/HTTPS enabled</li>
+                        <li>Login is working</li>
+                        <li>Default passwords have been changed</li>
+                        <li><strong>setup.php file has been DELETED</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            <div class="note success" style="text-align: center; margin-top: 30px;">
+                <div class="note-title">Congratulations!</div>
+                <p>Your Ceylon POS system is now live!</p>
+                <p style="margin-top: 15px;">If you encounter any problems, contact your hosting provider's support team.</p>
+                <p style="margin-top: 10px; font-size: 0.9em;">Made with love for Sri Lankan businesses</p>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

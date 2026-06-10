@@ -1,0 +1,1009 @@
+/*
+|--------------------------------------------------------------------------
+| Nexfloit Admin Panel Styles
+|--------------------------------------------------------------------------
+| Rich Dark Blue Theme - Professional & Beautiful
+*/
+
+:root {
+    /* Rich Dark Blue Palette */
+    --nf-primary: #e9eef5;            /* Light blue-gray background */
+    --nf-secondary: #ffffff;           /* White cards */
+    --nf-accent: #2563eb;              /* Rich blue */
+    --nf-accent-light: #3b82f6;        /* Bright blue */
+    --nf-accent-dark: #1d4ed8;         /* Deep blue */
+    --nf-success: #059669;             /* Emerald green */
+    --nf-warning: #d97706;             /* Amber */
+    --nf-danger: #dc2626;              /* Red */
+    --nf-info: #0891b2;                /* Cyan */
+    --nf-light: #f1f5f9;               /* Slate light */
+    --nf-dark: #1e293b;                /* Slate dark */
+    --nf-text: #334155;                /* Slate text */
+    --nf-text-muted: #64748b;          /* Slate muted */
+    --nf-border: #cbd5e1;              /* Slate border */
+    --nf-sidebar-width: 260px;
+    --nf-navbar-height: 60px;
+    --nf-sidebar-bg: #1e3a5f;          /* Deep navy blue */
+    --nf-sidebar-dark: #0f2744;        /* Darker navy */
+    --nf-card-shadow: 0 4px 15px rgba(30, 58, 95, 0.08);
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(145deg, #e2e8f0 0%, #f1f5f9 50%, #e9eef5 100%);
+    min-height: 100vh;
+    color: var(--nf-text);
+}
+
+a {
+    color: var(--nf-accent);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--nf-accent-dark);
+}
+
+/* ============================================
+   Layout Wrapper
+   ============================================ */
+.nexfloit-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ============================================
+   Sidebar Styles - Deep Navy Blue
+   ============================================ */
+.nexfloit-sidebar {
+    width: var(--nf-sidebar-width);
+    background: linear-gradient(180deg, var(--nf-sidebar-bg) 0%, var(--nf-sidebar-dark) 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 25px rgba(15, 39, 68, 0.3);
+}
+
+.sidebar-header {
+    padding: 22px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, transparent 100%);
+}
+
+.sidebar-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-header .brand-icon {
+    font-size: 1.9rem;
+    color: #60a5fa;
+    filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.4));
+}
+
+.sidebar-header .brand-text {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-close {
+    display: none;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+.sidebar-nav .nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav .nav-section {
+    padding: 18px 20px 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(96, 165, 250, 0.6);
+}
+
+.sidebar-nav .nav-item {
+    margin: 3px 12px;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.sidebar-nav .nav-link:hover {
+    background: rgba(96, 165, 250, 0.15);
+    color: #fff;
+    transform: translateX(3px);
+}
+
+.sidebar-nav .nav-link.active {
+    background: linear-gradient(135deg, var(--nf-accent) 0%, var(--nf-accent-light) 100%);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+}
+
+.sidebar-nav .nav-link i {
+    font-size: 1.15rem;
+    width: 24px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    padding: 18px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-footer .system-info {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================
+   Main Content Area
+   ============================================ */
+.nexfloit-main {
+    flex: 1;
+    margin-left: var(--nf-sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================
+   Top Navbar
+   ============================================ */
+.nexfloit-navbar {
+    height: var(--nf-navbar-height);
+    background: var(--nf-secondary);
+    border-bottom: 1px solid var(--nf-border);
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 15px rgba(30, 58, 95, 0.06);
+}
+
+.sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--nf-text);
+    font-size: 1.5rem;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.nexfloit-navbar .navbar-brand {
+    display: none;
+}
+
+.user-dropdown {
+    color: var(--nf-text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.user-dropdown:hover {
+    color: var(--nf-accent);
+}
+
+/* ============================================
+   Content Area
+   ============================================ */
+.nexfloit-content {
+    flex: 1;
+    padding: 28px;
+}
+
+/* ============================================
+   Page Header
+   ============================================ */
+.page-header {
+    margin-bottom: 28px;
+}
+
+.page-title {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--nf-dark);
+    margin-bottom: 5px;
+}
+
+.page-header .text-muted {
+    color: var(--nf-text-muted) !important;
+}
+
+.breadcrumb {
+    background: none;
+    padding: 0;
+    margin-bottom: 10px;
+}
+
+.breadcrumb-item a {
+    color: var(--nf-text-muted);
+}
+
+.breadcrumb-item a:hover {
+    color: var(--nf-accent);
+}
+
+.breadcrumb-item.active {
+    color: var(--nf-text);
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+.card {
+    background: var(--nf-secondary);
+    border: 1px solid var(--nf-border);
+    border-radius: 14px;
+    box-shadow: var(--nf-card-shadow);
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid var(--nf-border);
+    padding: 16px 22px;
+    color: var(--nf-dark);
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 22px;
+    color: var(--nf-text);
+}
+
+.card-footer {
+    background: var(--nf-light);
+    border-top: 1px solid var(--nf-border);
+    padding: 16px 22px;
+}
+
+/* ============================================
+   Stat Cards
+   ============================================ */
+.stat-card {
+    background: var(--nf-secondary);
+    border: 1px solid var(--nf-border);
+    border-radius: 14px;
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+    box-shadow: var(--nf-card-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--nf-accent), var(--nf-accent-light));
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(30, 58, 95, 0.12);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+}
+
+.stat-card-primary .stat-icon {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+}
+
+.stat-card-success .stat-icon {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
+}
+
+.stat-card-warning .stat-icon {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35);
+}
+
+.stat-card-danger .stat-icon {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
+}
+
+.stat-card-info .stat-icon {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(8, 145, 178, 0.35);
+}
+
+.stat-value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--nf-dark);
+    margin-bottom: 2px;
+}
+
+.stat-label {
+    color: var(--nf-text-muted);
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+.table {
+    color: var(--nf-text);
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e9eef5 100%);
+    border-bottom: 2px solid var(--nf-accent);
+    color: var(--nf-dark);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.8px;
+    padding: 14px 16px;
+}
+
+.table tbody td {
+    padding: 16px;
+    border-bottom: 1px solid var(--nf-border);
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.04) 0%, transparent 100%);
+}
+
+/* ============================================
+   Forms
+   ============================================ */
+.form-control, .form-select {
+    background: var(--nf-secondary);
+    border: 2px solid var(--nf-border);
+    color: var(--nf-text);
+    border-radius: 10px;
+    padding: 11px 16px;
+    transition: all 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--nf-secondary);
+    border-color: var(--nf-accent);
+    color: var(--nf-text);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.form-control::placeholder {
+    color: var(--nf-text-muted);
+}
+
+.form-label {
+    color: var(--nf-dark);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.form-text {
+    color: var(--nf-text-muted);
+}
+
+.input-group-text {
+    background: var(--nf-light);
+    border: 2px solid var(--nf-border);
+    color: var(--nf-text-muted);
+}
+
+.form-check-input:checked {
+    background-color: var(--nf-accent);
+    border-color: var(--nf-accent);
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+.btn-primary {
+    background: linear-gradient(135deg, var(--nf-accent), var(--nf-accent-light));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    padding: 11px 22px;
+    border-radius: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--nf-accent-dark), var(--nf-accent));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #059669, #10b981);
+    border: none;
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.25);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #047857, #059669);
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.35);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #b45309, #d97706);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.35);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    border: none;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #b91c1c, #dc2626);
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.35);
+}
+
+.btn-outline-primary {
+    color: var(--nf-accent);
+    border: 2px solid var(--nf-accent);
+    background: transparent;
+    font-weight: 600;
+}
+
+.btn-outline-primary:hover {
+    background: var(--nf-accent);
+    border-color: var(--nf-accent);
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: var(--nf-text-muted);
+    border: 2px solid var(--nf-border);
+    font-weight: 600;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--nf-light);
+    color: var(--nf-text);
+    border-color: var(--nf-text-muted);
+}
+
+.btn-outline-success {
+    color: var(--nf-success);
+    border: 2px solid var(--nf-success);
+}
+
+.btn-outline-success:hover {
+    background: var(--nf-success);
+    color: #fff;
+}
+
+.btn-outline-warning {
+    color: var(--nf-warning);
+    border: 2px solid var(--nf-warning);
+}
+
+.btn-outline-warning:hover {
+    background: var(--nf-warning);
+    color: #fff;
+}
+
+.btn-outline-danger {
+    color: var(--nf-danger);
+    border: 2px solid var(--nf-danger);
+}
+
+.btn-outline-danger:hover {
+    background: var(--nf-danger);
+    color: #fff;
+}
+
+/* ============================================
+   Badges
+   ============================================ */
+.badge {
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 8px;
+    letter-spacing: 0.3px;
+}
+
+.badge-success, .bg-success {
+    background: linear-gradient(135deg, #059669, #10b981) !important;
+    color: #fff;
+}
+
+.badge-danger, .bg-danger {
+    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+    color: #fff;
+}
+
+.badge-warning, .bg-warning {
+    background: linear-gradient(135deg, #d97706, #f59e0b) !important;
+    color: #fff;
+}
+
+.badge-info, .bg-info {
+    background: linear-gradient(135deg, #0891b2, #06b6d4) !important;
+    color: #fff;
+}
+
+/* Subscription Plan Badges - Rich Blues */
+.badge-plan-basic {
+    background: linear-gradient(135deg, #64748b, #94a3b8) !important;
+    color: #fff !important;
+}
+
+.badge-plan-standard {
+    background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+    color: #fff !important;
+}
+
+.badge-plan-premium {
+    background: linear-gradient(135deg, #1e3a5f, #2563eb) !important;
+    color: #fff !important;
+}
+
+.badge-plan-trial {
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6) !important;
+    color: #fff !important;
+}
+
+.badge-secondary, .bg-secondary {
+    background: linear-gradient(135deg, #cbd5e1, #e2e8f0) !important;
+    color: var(--nf-text);
+}
+
+.badge-dark, .bg-dark {
+    background: linear-gradient(135deg, #1e293b, #334155) !important;
+    color: #fff;
+}
+
+/* ============================================
+   Alerts
+   ============================================ */
+.alert {
+    border: none;
+    border-radius: 12px;
+    padding: 16px 22px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border-left: 4px solid var(--nf-success);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border-left: 4px solid var(--nf-danger);
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border-left: 4px solid var(--nf-warning);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+    color: #155e75;
+    border-left: 4px solid var(--nf-info);
+}
+
+/* ============================================
+   List Groups
+   ============================================ */
+.list-group-item {
+    background: transparent;
+    border-color: var(--nf-border);
+    color: var(--nf-text);
+}
+
+/* ============================================
+   Modals
+   ============================================ */
+.modal-content {
+    background: var(--nf-secondary);
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 25px 80px rgba(30, 58, 95, 0.25);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--nf-border);
+    color: var(--nf-dark);
+    padding: 20px 24px;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--nf-border);
+    padding: 16px 24px;
+}
+
+/* ============================================
+   Dropdown Menus
+   ============================================ */
+.dropdown-menu {
+    background: var(--nf-secondary);
+    border: 1px solid var(--nf-border);
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(30, 58, 95, 0.15);
+    padding: 8px;
+}
+
+.dropdown-item {
+    color: var(--nf-text);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.dropdown-item:hover {
+    background: var(--nf-light);
+    color: var(--nf-accent);
+}
+
+.dropdown-divider {
+    border-color: var(--nf-border);
+    margin: 8px 0;
+}
+
+/* ============================================
+   Pagination
+   ============================================ */
+.pagination {
+    gap: 6px;
+}
+
+.page-link {
+    background: var(--nf-secondary);
+    border: 2px solid var(--nf-border);
+    color: var(--nf-text);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 600;
+}
+
+.page-link:hover {
+    background: var(--nf-light);
+    border-color: var(--nf-accent);
+    color: var(--nf-accent);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, var(--nf-accent), var(--nf-accent-light));
+    border-color: var(--nf-accent);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.page-item.disabled .page-link {
+    background: var(--nf-light);
+    color: var(--nf-text-muted);
+}
+
+/* ============================================
+   Login Page - Rich Blue Gradient
+   ============================================ */
+.nexfloit-login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #1e40af 100%);
+    position: relative;
+}
+
+.nexfloit-login-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(96, 165, 250, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(37, 99, 235, 0.2) 0%, transparent 50%);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+}
+
+.login-card {
+    background: var(--nf-secondary);
+    border: none;
+    border-radius: 24px;
+    padding: 45px;
+    box-shadow: 0 30px 80px rgba(15, 39, 68, 0.35);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.login-header .brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.login-header .brand-icon {
+    font-size: 2.8rem;
+    color: var(--nf-accent);
+    filter: drop-shadow(0 4px 8px rgba(37, 99, 235, 0.3));
+}
+
+.login-header .brand-text {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--nf-dark);
+}
+
+.btn-login {
+    background: linear-gradient(135deg, var(--nf-accent), var(--nf-accent-light));
+    border: none;
+    padding: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+}
+
+.btn-login:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(37, 99, 235, 0.4);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--nf-border);
+}
+
+/* ============================================
+   Sidebar Overlay (Mobile)
+   ============================================ */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 39, 68, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+/* Tablet */
+@media (max-width: 992px) {
+    .nexfloit-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .nexfloit-sidebar.active {
+        transform: translateX(0);
+    }
+
+    .sidebar-close {
+        display: block;
+    }
+
+    .nexfloit-main {
+        margin-left: 0;
+    }
+
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .nexfloit-navbar .navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--nf-dark);
+    }
+
+    .nexfloit-navbar .brand-text {
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+    .nexfloit-content {
+        padding: 18px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .stat-card {
+        padding: 18px;
+    }
+
+    .stat-icon {
+        width: 54px;
+        height: 54px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .login-card {
+        padding: 28px;
+    }
+
+    .card-body {
+        padding: 18px;
+    }
+
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+
+    .btn-group {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.text-primary { color: var(--nf-accent) !important; }
+.text-success { color: var(--nf-success) !important; }
+.text-warning { color: var(--nf-warning) !important; }
+.text-danger { color: var(--nf-danger) !important; }
+.text-info { color: var(--nf-info) !important; }
+.text-muted { color: var(--nf-text-muted) !important; }
+
+.bg-primary { background: var(--nf-accent) !important; }
+.bg-light { background: var(--nf-light) !important; }
+.border-danger { border-color: var(--nf-danger) !important; }
+
+code {
+    background: #e0e7ff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: var(--nf-accent-dark);
+    font-weight: 500;
+}
+
+/* Form control for readonly fields */
+.form-control.bg-dark {
+    background: var(--nf-light) !important;
+    color: var(--nf-text) !important;
+    border-color: var(--nf-border);
+}
+
+/* Custom scrollbar - Blue theme */
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(96, 165, 250, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(96, 165, 250, 0.5);
+}
+
+/* Selection color */
+::selection {
+    background: rgba(37, 99, 235, 0.2);
+    color: var(--nf-dark);
+}
