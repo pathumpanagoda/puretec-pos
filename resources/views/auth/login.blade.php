@@ -7,9 +7,11 @@
 <div class="auth-wrapper">
     <div class="auth-card">
         <div class="auth-brand">
-            <div class="auth-logo"><i class="bi bi-shop-window"></i></div>
-            <h1 class="auth-title">Ceyloan POS</h1>
-            <p class="auth-subtitle">by <strong>Nexfloit</strong> — Professional Point of Sale</p>
+            <div class="auth-logo">
+                <img src="{{ asset('icons/logo png.png') }}" alt="Logo" class="auth-logo-img">
+            </div>
+            <h1 class="auth-title">PUREPOS</h1>
+            <p class="auth-subtitle">by <strong>PURETEC</strong> — The Art of Refined Technology</p>
         </div>
 
         @if($errors->any())
@@ -75,7 +77,7 @@
                 <i class="bi bi-shield-check"></i>
             </div>
             <div class="trademark-text">
-                <span class="trademark-brand">Ceyloan POS</span> &copy; {{ date('Y') }} <strong>Nexfloit</strong>
+                <span class="trademark-brand">PUREPOS</span> &copy; {{ date('Y') }} <strong>PURETEC</strong>
                 <br>
                 <small>All Rights Reserved. Licensed Software.</small>
             </div>

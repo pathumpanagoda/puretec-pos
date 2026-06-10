@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#0d6e8a">
-    <title>@yield('title', 'Dashboard') — Ceyloan POS</title>
+    <meta name="theme-color" content="#0d0d0d">
+    <title>@yield('title', 'Dashboard') — PUREPOS</title>
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <link rel="icon" type="image/png" href="{{ asset('icons/icon-192.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
@@ -67,10 +67,12 @@ body:has(.impersonation-bar) .main-content {
 <nav id="sidebar" class="cpos-sidebar">
     <div class="sidebar-header">
         <div class="brand">
-            <div class="brand-icon"><i class="bi bi-shop-window"></i></div>
+            <div class="brand-icon">
+                <img src="{{ asset('icons/logo png.png') }}" alt="Logo" class="brand-logo-img">
+            </div>
             <div class="brand-text">
-                <span class="brand-name">Ceyloan POS</span>
-                <span class="brand-tagline">by Nexfloit</span>
+                <span class="brand-name">PUREPOS</span>
+                <span class="brand-tagline">by PURETEC</span>
             </div>
         </div>
         <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Toggle sidebar">
@@ -82,7 +84,7 @@ body:has(.impersonation-bar) .main-content {
     <div class="sidebar-store">
         <div class="store-avatar"><i class="bi bi-building"></i></div>
         <div class="store-info">
-            <div class="store-name">{{ auth()->user()->store?->name ?? 'Ceyloan POS' }}</div>
+            <div class="store-name">{{ auth()->user()->store?->name ?? 'PUREPOS' }}</div>
             <div class="store-role">{{ ucfirst(str_replace('_', ' ', auth()->user()->role)) }}</div>
         </div>
     </div>
@@ -291,7 +293,7 @@ setInterval(updateClock, 1000); updateClock();
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon   = document.getElementById('themeIcon');
 const html        = document.documentElement;
-const savedTheme  = localStorage.getItem('ceylon-pos-theme') || 'light';
+const savedTheme  = localStorage.getItem('ceylon-pos-theme') || 'dark';
 html.setAttribute('data-theme', savedTheme);
 if (themeIcon) themeIcon.className = savedTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
 

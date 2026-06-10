@@ -147,4 +147,4 @@ document.getElementById('largeFormat').addEventListener('change', function() {
 });
 </script>
 </body></html>
-<?php /**PATH /home3/motobeatceyloanp/public_html/resources/views/orders/receipt.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\pathu\Desktop\puretec pos\resources\views/orders/receipt.blade.php ENDPATH**/ ?>

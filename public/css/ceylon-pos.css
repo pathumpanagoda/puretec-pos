@@ -68,7 +68,7 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* Dark Theme - matches default since whole app is dark */
+/* Dark Theme */
 [data-theme="dark"] {
   --cp-bg:            #0d0d0d;
   --cp-bg-alt:        #141414;
@@ -79,6 +79,38 @@
   --cp-text-muted:    #888888;
   --cp-text-light:    #666666;
   --cp-sidebar-bg:    linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+}
+
+/* Light + Gold Theme */
+[data-theme="light"] {
+  --cp-primary: #b8941e;
+  --cp-primary-dark: #9a7c18;
+  --cp-primary-light: #c9a227;
+  --cp-primary-soft: #d4a843;
+
+  --cp-bg:            #f5f0e8;
+  --cp-bg-alt:        #ede7db;
+  --cp-surface:       #ffffff;
+  --cp-surface-alt:   #faf7f0;
+  --cp-border:        #e0d5c0;
+  --cp-border-light:  #eae2d2;
+  --cp-text:          #2c2417;
+  --cp-text-muted:    #7a6e5d;
+  --cp-text-light:    #a09585;
+
+  --cp-sidebar-bg:    linear-gradient(180deg, #1a1508 0%, #0f0d05 100%);
+  --cp-sidebar-text:  #a09585;
+  --cp-sidebar-active:#c9a227;
+  --cp-sidebar-hover: rgba(201, 162, 39, 0.08);
+
+  --cp-success-light: #e6f7ef;
+  --cp-warning-light: #fef6e0;
+  --cp-danger-light:  #fde8e8;
+
+  --cp-shadow-sm:  0 1px 3px rgba(44, 36, 23, 0.06);
+  --cp-shadow-md:  0 4px 12px rgba(44, 36, 23, 0.08);
+  --cp-shadow-lg:  0 8px 24px rgba(44, 36, 23, 0.12);
+  --cp-shadow-xl:  0 16px 48px rgba(44, 36, 23, 0.16);
 }
 
 /* ── Reset & Base ──────────────────────────────────────────────────── */
@@ -1222,3 +1254,155 @@ a:hover { color: var(--cp-blue-400); }
     transform: scale(0.98);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT + GOLD THEME OVERRIDES
+   Overrides hardcoded dark colors for the light theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-theme="light"] .cpos-sidebar {
+  border-right: 1px solid #2a2510;
+}
+[data-theme="light"] .brand-icon {
+  color: #0d0d0d;
+}
+[data-theme="light"] .brand-name { color: #f0f0f0; }
+[data-theme="light"] .sidebar-store {
+  background: rgba(201, 162, 39, 0.08);
+  border: 1px solid rgba(201, 162, 39, 0.12);
+}
+[data-theme="light"] .store-name { color: #f0f0f0; }
+[data-theme="light"] .user-avatar {
+  color: #0d0d0d;
+}
+[data-theme="light"] .user-name { color: #f0f0f0; }
+
+/* Topbar light overrides */
+[data-theme="light"] .topbar-clock {
+  background: linear-gradient(135deg, #faf7f0, #f5f0e8);
+  border: 1px solid #e0d5c0;
+  color: #b8941e;
+}
+[data-theme="light"] .btn-pos-quick {
+  color: #fff;
+  background: #b8941e;
+  box-shadow: 0 4px 12px rgba(184, 148, 30, 0.3);
+}
+[data-theme="light"] .btn-pos-quick:hover {
+  background: #9a7c18;
+}
+[data-theme="light"] .notif-header {
+  background: #faf7f0;
+  color: #b8941e;
+}
+[data-theme="light"] .notif-dropdown {
+  background: #fff;
+}
+[data-theme="light"] .btn-cpos.btn-primary {
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(184, 148, 30, 0.25);
+}
+[data-theme="light"] .nav-badge {
+  color: #fff;
+}
+
+/* Card title */
+[data-theme="light"] .card-title {
+  color: #2c2417;
+}
+
+/* Stat card icons - light bg */
+[data-theme="light"] .stat-blue .stat-icon   { background: #fef6e0; }
+[data-theme="light"] .stat-teal .stat-icon   { background: #fef6e0; }
+[data-theme="light"] .stat-purple .stat-icon { background: #fef6e0; }
+
+/* Badges */
+[data-theme="light"] .status-completed { background: #e6f7ef; color: #065f46; }
+[data-theme="light"] .status-pending   { background: #fef6e0; color: #92400e; }
+[data-theme="light"] .status-cancelled { background: #fde8e8; color: #b91c1c; }
+[data-theme="light"] .status-refunded  { background: #fef6e0; color: #b8941e; }
+[data-theme="light"] .status-on_hold   { background: #fef6e0; color: #c9a227; }
+[data-theme="light"] .status-processing{ background: #fef6e0; color: #b8941e; }
+
+/* Action buttons */
+[data-theme="light"] .action-btn:hover {
+  background: #fef6e0;
+}
+
+/* Forms */
+[data-theme="light"] .form-control:focus, [data-theme="light"] .form-select:focus {
+  background: #fff;
+}
+[data-theme="light"] .image-upload-zone {
+  background: linear-gradient(135deg, #faf7f0, #fff);
+  border-color: rgba(184, 148, 30, 0.3);
+}
+[data-theme="light"] .image-upload-zone:hover {
+  background: #fef6e0;
+  border-color: #b8941e;
+}
+
+/* Dashboard */
+[data-theme="light"] .top-product-item:hover { background: #fef6e0; }
+[data-theme="light"] .top-rank {
+  background: #fef6e0;
+}
+[data-theme="light"] .top-revenue {
+  background: #e6f7ef;
+}
+
+/* Product thumbnails */
+[data-theme="light"] .product-thumb {
+  background: linear-gradient(135deg, #faf7f0, #fef6e0);
+}
+
+/* Auth page - keep dark for premium feel */
+[data-theme="light"] .auth-body {
+  background: linear-gradient(135deg, #1a1508 0%, #0f0d05 100%);
+}
+[data-theme="light"] .auth-logo {
+  color: #0d0d0d;
+}
+[data-theme="light"] .btn-auth {
+  color: #fff;
+}
+
+/* Scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-track { background: #f5f0e8; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #d5cbb5; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #c0b49d; }
+
+/* Selection */
+[data-theme="light"] ::selection { background: rgba(184, 148, 30, 0.2); color: #2c2417; }
+
+/* Glass effect */
+[data-theme="light"] .glass-effect {
+  background: rgba(255,255,255,.7);
+}
+
+/* Toast */
+[data-theme="light"] .toast-info { color: #fff; }
+
+/* Sidebar collapsed hover restore - light theme */
+@media (min-width: 992px) {
+  [data-theme="light"] .cpos-sidebar.collapsed:hover .sidebar-store {
+    background: rgba(201, 162, 39, 0.08);
+    border: 1px solid rgba(201, 162, 39, 0.12);
+  }
+}
+
+/* Brand & Auth Logo Images */
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.auth-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+
+
