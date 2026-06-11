@@ -1,4 +1,4 @@
-# 🏪 Ceylon POS v1.0.0
+# 🏪 Pure POS v1.0.0
 **Professional Point of Sale System** by **Nexfloit**
 
 A full-featured, web-based POS system built with Laravel, Bootstrap & MySQL.
@@ -70,7 +70,7 @@ A full-featured, web-based POS system built with Laravel, Bootstrap & MySQL.
 
 ```bash
 # 1. Extract & enter directory
-cd ceylon-pos
+cd pure-pos
 
 # 2. Install PHP dependencies
 composer install
@@ -83,7 +83,7 @@ cp .env.example .env
 php artisan key:generate
 
 # 5. Configure database in .env
-DB_DATABASE=ceylon_pos
+DB_DATABASE=pure_pos
 DB_USERNAME=root
 DB_PASSWORD=your_password
 
@@ -102,8 +102,8 @@ php artisan serve
 
 ### 🌐 Access
 - URL: `http://localhost:8000`
-- Admin: `admin@ceylonpos.lk` / `admin123`
-- Cashier: `cashier@ceylonpos.lk` / `cashier123`
+- Admin: `admin@purepos.lk` / `admin123`
+- Cashier: `cashier@purepos.lk` / `cashier123`
 
 ---
 
@@ -143,7 +143,7 @@ To install as a desktop application:
 ## 📁 Project Structure
 
 ```
-ceylon-pos/
+pure-pos/
 ├── app/
 │   ├── Http/Controllers/     # Controllers per module
 │   ├── Models/               # Eloquent models
@@ -166,14 +166,14 @@ ceylon-pos/
 │   │   └── settings/                # System settings
 │   └── scss/                        # Sass source files
 ├── public/
-│   ├── css/ceylon-pos.css   # Main stylesheet (blue/green theme)
+│   ├── css/pure-pos.css     # Main stylesheet (blue/green theme)
 │   ├── css/pos.css          # POS screen styles
-│   ├── js/ceylon-pos.js     # Core JavaScript
+│   ├── js/pure-pos.js       # Core JavaScript
 │   ├── manifest.json        # PWA manifest
 │   ├── sw.js                # Service worker
 │   └── launch.html          # Desktop launcher
 ├── routes/web.php           # All application routes
-└── config/ceylonpos.php     # App configuration
+└── config/purepos.php       # App configuration
 ```
 
 ---

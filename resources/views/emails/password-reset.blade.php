@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset - Ceyloan POS</title>
+    <title>Password Reset - Pure POS</title>
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
     <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #0d6e8a, #084c61); padding: 30px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Ceyloan POS</h1>
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Pure POS</h1>
             <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0; font-size: 14px;">Password Reset Request</p>
         </div>
 
@@ -20,7 +20,7 @@
             </p>
 
             <p style="color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 25px;">
-                We received a request to reset your password for your Ceyloan POS account. Click the button below to create a new password:
+                We received a request to reset your password for your Pure POS account. Click the button below to create a new password:
             </p>
 
             <!-- Button -->
@@ -48,7 +48,7 @@
         <!-- Footer -->
         <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
             <p style="color: #888; font-size: 12px; margin: 0;">
-                &copy; {{ date('Y') }} Ceyloan POS by Nexfloit. All rights reserved.
+                &copy; {{ date('Y') }} Pure POS by Nexfloit. All rights reserved.
             </p>
         </div>
     </div>

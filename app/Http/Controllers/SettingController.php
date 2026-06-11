@@ -349,7 +349,7 @@ class SettingController extends Controller
             $data['taxes'] = Tax::where('store_id', $storeId)->get()->toArray();
         }
 
-        $filename = 'ceylon_pos_backup_' . now()->format('Y-m-d_His') . '.json';
+        $filename = 'pure_pos_backup_' . now()->format('Y-m-d_His') . '.json';
         return response()->json($data)
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->header('Content-Type', 'application/json');

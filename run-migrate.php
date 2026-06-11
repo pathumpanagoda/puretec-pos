@@ -8,7 +8,7 @@
 // Prevent timeout
 set_time_limit(300);
 
-echo "<h2>Ceylon POS - Database Migration</h2>";
+echo "<h2>Pure POS - Database Migration</h2>";
 echo "<pre>";
 
 try {

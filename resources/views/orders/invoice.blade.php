@@ -542,7 +542,7 @@
             <div class="thank-you">Thank You for Your Business!</div>
             <p>{{ $order->store?->receipt_footer ?? 'We appreciate your purchase.' }}</p>
             <div class="powered-by">
-                Powered by Ceylon POS | Generated on {{ now()->format('d/m/Y H:i:s') }}
+                Powered by Pure POS | Generated on {{ now()->format('d/m/Y H:i:s') }}
             </div>
         </div>
     </div>

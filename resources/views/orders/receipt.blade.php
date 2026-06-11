@@ -85,7 +85,7 @@ hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
 <hr>
 <div class="text-center">
 <p>{{ $order->store?->receipt_footer ?? 'Thank you for your business!' }}</p>
-<p class="branding">Ceyloan POS &bull; Powered by Nexfloit</p>
+<p class="branding">Pure POS &bull; Powered by Nexfloit</p>
 </div>
 <script>
 function printReceipt() {

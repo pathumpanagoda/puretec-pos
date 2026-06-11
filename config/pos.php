@@ -1,11 +1,11 @@
 <?php
 /*
 |--------------------------------------------------------------------------
-| Ceyloan POS – Configuration
+| Pure POS – Configuration
 |--------------------------------------------------------------------------
 */
 return [
-    'name'             => env('POS_BUSINESS_NAME', 'Ceyloan POS'),
+    'name'             => env('POS_BUSINESS_NAME', 'Pure POS'),
     'version'          => '1.0.0',
     'currency'         => env('POS_CURRENCY', 'LKR'),
     'currency_symbol'  => env('POS_CURRENCY_SYMBOL', 'Rs.'),

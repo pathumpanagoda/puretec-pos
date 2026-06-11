@@ -19,17 +19,17 @@ class DatabaseSeeder extends Seeder
     {
         // Create default store
         $store = Store::create([
-            'name'           => 'Ceyloan POS - Main Store',
+            'name'           => 'Pure POS - Main Store',
             'code'           => 'MAIN',
             'address'        => 'No. 1, Main Street',
             'city'           => 'Colombo',
             'country'        => 'Sri Lanka',
             'phone'          => '+94 11 000 0000',
-            'email'          => 'info@ceylonpos.lk',
+            'email'          => 'info@purepos.lk',
             'currency'       => 'LKR',
             'currency_symbol'=> 'Rs.',
             'tax_rate'       => 0,
-            'receipt_header' => "Ceyloan POS\nNo. 1, Main Street, Colombo",
+            'receipt_header' => "Pure POS\nNo. 1, Main Street, Colombo",
             'receipt_footer' => 'Thank you for your business!',
         ]);
 
@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'store_id' => $store->id,
             'name'     => 'Super Admin',
-            'email'    => 'admin@ceylonpos.lk',
+            'email'    => 'admin@purepos.lk',
             'username' => 'admin',
             'role'     => 'super_admin',
             'password' => Hash::make('admin123'),
@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'store_id' => $store->id,
             'name'     => 'Cashier One',
-            'email'    => 'cashier@ceylonpos.lk',
+            'email'    => 'cashier@purepos.lk',
             'username' => 'cashier',
             'role'     => 'cashier',
             'password' => Hash::make('cashier123'),
@@ -61,7 +61,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'store_id' => $store->id,
             'name'     => 'Store Manager',
-            'email'    => 'manager@ceylonpos.lk',
+            'email'    => 'manager@purepos.lk',
             'username' => 'manager',
             'role'     => 'manager',
             'password' => Hash::make('manager123'),
@@ -164,9 +164,9 @@ class DatabaseSeeder extends Seeder
         // Seed Nexfloit Platform Admin
         $this->call(PlatformUserSeeder::class);
 
-        $this->command->info('✅ Ceyloan POS database seeded successfully!');
-        $this->command->info('📧 Admin Login: admin@ceylonpos.lk / admin123');
-        $this->command->info('📧 Cashier Login: cashier@ceylonpos.lk / cashier123');
+        $this->command->info('✅ Pure POS database seeded successfully!');
+        $this->command->info('📧 Admin Login: admin@purepos.lk / admin123');
+        $this->command->info('📧 Cashier Login: cashier@purepos.lk / cashier123');
         $this->command->info('🔧 Nexfloit Admin: admin@nexfloit.com / admin123');
     }
 }

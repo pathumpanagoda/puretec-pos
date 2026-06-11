@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Display - {{ $store?->name ?? 'Ceyloan POS' }}</title>
+    <title>Customer Display - {{ $store?->name ?? 'Pure POS' }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -300,7 +300,7 @@
     </style>
 </head>
 <body>
-    <div class="header">{{ $store?->name ?? 'Ceyloan POS' }}</div>
+    <div class="header">{{ $store?->name ?? 'Pure POS' }}</div>
 
     <div class="main" id="mainContent">
         <!-- Content will be dynamically updated -->
@@ -312,8 +312,8 @@
     </div>
 
     <script>
-        const storeName = @json($store?->name ?? 'Ceyloan POS');
-        const STORAGE_KEY = 'ceylon_pos_customer_display';
+        const storeName = @json($store?->name ?? 'Pure POS');
+        const STORAGE_KEY = 'pure_pos_customer_display';
         let lastUpdate = 0;
         let currentState = 'ready';
 

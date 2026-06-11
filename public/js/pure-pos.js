@@ -1,5 +1,5 @@
 /* =====================================================================
-   CEYLON POS — Core JavaScript
+   PURE POS — Core JavaScript
    by Nexfloit
    ===================================================================== */
 'use strict';
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Sidebar Collapse (Desktop) ────────────────────────────────────
     const collapseBtn   = document.getElementById('sidebarCollapseBtn');
     const mainContent   = document.getElementById('mainContent');
-    const STORAGE_KEY   = 'ceylon-pos-sidebar-collapsed';
+    const STORAGE_KEY   = 'pure-pos-sidebar-collapsed';
 
     // Load saved preference
     function loadSidebarState() {
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ── AJAX Form Helpers ─────────────────────────────────────────────
-    window.CeylonPOS = {
+    window.PurePOS = {
         csrf: document.querySelector('meta[name="csrf-token"]')?.content,
 
         async post(url, data) {
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Number formatting ─────────────────────────────────────────────
     document.querySelectorAll('[data-format="currency"]').forEach(el => {
         const num = parseFloat(el.textContent);
-        if (!isNaN(num)) el.textContent = CeylonPOS.formatCurrency(num);
+        if (!isNaN(num)) el.textContent = PurePOS.formatCurrency(num);
     });
 
     // ── Table row click nav ───────────────────────────────────────────

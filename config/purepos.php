@@ -1,17 +1,17 @@
 <?php
 /**
- * Ceyloan POS — Application Configuration
+ * Pure POS — Application Configuration
  * by Nexfloit
  */
 return [
-    'name'           => env('APP_NAME', 'Ceyloan POS'),
+    'name'           => env('APP_NAME', 'Pure POS'),
     'version'        => '1.0.0',
     'currency'       => env('POS_CURRENCY', 'LKR'),
     'currency_symbol'=> env('POS_CURRENCY_SYMBOL', 'Rs.'),
     'tax_rate'       => env('POS_TAX_RATE', 0),
     'receipt_footer' => env('POS_RECEIPT_FOOTER', 'Thank you for your business!'),
     'timezone'       => env('POS_TIMEZONE', 'Asia/Colombo'),
-    'business_name'  => env('POS_BUSINESS_NAME', 'Ceyloan POS'),
+    'business_name'  => env('POS_BUSINESS_NAME', 'Pure POS'),
 
     /*
      * Supported payment methods

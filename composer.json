@@ -1,7 +1,7 @@
 {
-    "name": "nexfloit/ceylon-pos",
-    "description": "Ceyloan POS - Professional Point of Sale System by Nexfloit",
-    "keywords": ["pos", "point-of-sale", "ceylon", "nexfloit"],
+    "name": "nexfloit/pure-pos",
+    "description": "Pure POS - Professional Point of Sale System by Nexfloit",
+    "keywords": ["pos", "point-of-sale", "pure", "nexfloit"],
     "license": "proprietary",
     "type": "project",
     "require": {

@@ -323,7 +323,7 @@
                                             <hr class="receipt-divider">
                                             <div class="receipt-footer">
                                                 <p class="footer-thanks">{{ $store->receipt_footer ?? 'Thank you for your business!' }}</p>
-                                                <p class="receipt-powered">Ceyloan POS</p>
+                                                <p class="receipt-powered">Pure POS</p>
                                             </div>
                                         </div>
                                     </div>
@@ -355,7 +355,7 @@
                         <div class="card-body p-4">
                             <div class="alert alert-info mb-4">
                                 <i class="bi bi-info-circle me-2"></i>
-                                Configure your printers below. Ceyloan POS supports USB, Network/IP, Bluetooth, and WiFi printers.
+                                Configure your printers below. Pure POS supports USB, Network/IP, Bluetooth, and WiFi printers.
                             </div>
 
                             <form action="{{ route('settings.devices') }}" method="POST" id="printerForm">

@@ -777,8 +777,8 @@ async function saveQuickCategory() {
             categoryModal.hide();
 
             // Show success message
-            if (typeof CeylonPOS !== 'undefined') {
-                CeylonPOS.showToast('Category "' + name + '" added!', 'success');
+            if (typeof PurePOS !== 'undefined') {
+                PurePOS.showToast('Category "' + name + '" added!', 'success');
             }
         } else {
             errorEl.textContent = data.message || 'Failed to add category';

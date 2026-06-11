@@ -1,6 +1,6 @@
 <?php
 // =============================================================
-// CEYLON POS - DATABASE MIGRATION RUNNER
+// PURE POS - DATABASE MIGRATION RUNNER
 // Run: php artisan migrate (from project root)
 // =============================================================
 

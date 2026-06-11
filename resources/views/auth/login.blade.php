@@ -31,7 +31,7 @@
                 <label class="form-label">Email or Username</label>
                 <div class="input-icon-wrap">
                     <i class="bi bi-person input-icon"></i>
-                    <input type="text" name="login" class="form-control form-control-auth" placeholder="admin@ceylonpos.lk" value="{{ old('login') }}" required autofocus>
+                    <input type="text" name="login" class="form-control form-control-auth" placeholder="admin@purepos.lk" value="{{ old('login') }}" required autofocus>
                 </div>
             </div>
             <div class="form-group mb-3">

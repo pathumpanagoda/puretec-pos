@@ -1,6 +1,6 @@
 /**
  * =============================================================
- * CEYLON POS — Point of Sale Terminal JavaScript
+ * PURE POS — Point of Sale Terminal JavaScript
  * Author: Nexfloit | Version: 1.0.0
  * =============================================================
  *
@@ -38,7 +38,7 @@ const POSState = {
 };
 
 // ── MAIN INIT ────────────────────────────────────────────────
-window.CeylonPOS = {
+window.PurePOS = {
     init(config) {
         POSState.config = config;
         this._bindEvents();
@@ -200,7 +200,7 @@ window.CeylonPOS = {
         }
         // Create a quick modal-like dropdown
         const variantHtml = product.variants.map(v =>
-            `<div class="customer-dropdown-item" onclick="CeylonPOS._addVariant(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${v.id})">
+            `<div class="customer-dropdown-item" onclick="PurePOS._addVariant(${JSON.stringify(product).replace(/"/g, '&quot;')}, ${v.id})">
                 <div class="cdi-name">${v.name}</div>
                 <div class="cdi-pts">${formatCurrency(v.price)}</div>
             </div>`
@@ -293,20 +293,20 @@ window.CeylonPOS = {
                 <span class="oir-price">${formatCurrency(item.unitPrice)} / ${item.unit}</span>
             </div>
             <div class="oir-qty-control">
-                <button class="oir-qty-btn remove" onclick="CeylonPOS.updateQty(${i}, -1)" title="Decrease">
+                <button class="oir-qty-btn remove" onclick="PurePOS.updateQty(${i}, -1)" title="Decrease">
                     <i class="bi bi-dash"></i>
                 </button>
                 <input type="number" class="oir-qty-val" value="${item.qty}"
                     style="width:44px;border:1.5px solid var(--border);border-radius:var(--radius-sm);text-align:center;background:var(--bg-input);color:var(--text-primary);font-weight:700;font-size:.875rem;padding:2px;"
                     min="0.001" step="any"
-                    onchange="CeylonPOS.setQtyDirect(${i}, this.value)"
+                    onchange="PurePOS.setQtyDirect(${i}, this.value)"
                     onclick="this.select()">
-                <button class="oir-qty-btn" onclick="CeylonPOS.updateQty(${i}, 1)" title="Increase">
+                <button class="oir-qty-btn" onclick="PurePOS.updateQty(${i}, 1)" title="Increase">
                     <i class="bi bi-plus"></i>
                 </button>
             </div>
             <div class="oir-total">${formatCurrency(item.unitPrice * item.qty - item.discount)}</div>
-            <button class="oir-del" onclick="CeylonPOS.removeItem(${i})" title="Remove">
+            <button class="oir-del" onclick="PurePOS.removeItem(${i})" title="Remove">
                 <i class="bi bi-x"></i>
             </button>
         </div>`).join('');
@@ -376,7 +376,7 @@ window.CeylonPOS = {
         ].filter((v, i, a) => a.indexOf(v) === i && v >= total).slice(0, 8);
 
         grid.innerHTML = roundUps.map(v =>
-            `<button onclick="CeylonPOS._setCash(${v})">Rs. ${formatNumber(v)}</button>`
+            `<button onclick="PurePOS._setCash(${v})">Rs. ${formatNumber(v)}</button>`
         ).join('');
     },
 
@@ -414,7 +414,7 @@ window.CeylonPOS = {
             if (customers.length === 0) { dd.classList.add('d-none'); return; }
 
             dd.innerHTML = customers.map(c => `
-            <div class="customer-dropdown-item" onclick="CeylonPOS.selectCustomer(${c.id}, '${escapeHtml(c.name)}', '${escapeHtml(c.phone || '')}', ${c.loyalty_points || 0}, ${c.current_balance || 0})">
+            <div class="customer-dropdown-item" onclick="PurePOS.selectCustomer(${c.id}, '${escapeHtml(c.name)}', '${escapeHtml(c.phone || '')}', ${c.loyalty_points || 0}, ${c.current_balance || 0})">
                 <div class="cdi-avatar">${c.name.substring(0, 2).toUpperCase()}</div>
                 <div>
                     <div class="cdi-name">${escapeHtml(c.name)}</div>
@@ -455,7 +455,7 @@ window.clearSearch = () => {
     const input = document.getElementById('productSearch');
     if (input) { input.value = ''; input.focus(); }
     document.getElementById('searchClear')?.classList.add('d-none');
-    CeylonPOS._loadProducts('', POSState.selectedCat);
+    PurePOS._loadProducts('', POSState.selectedCat);
 };
 
 window.clearCustomer = () => {
@@ -471,23 +471,23 @@ window.clearOrder = () => {
     POSState.cart = [];
     POSState.discount = { type: 'percentage', value: 0, amount: 0 };
     POSState.coupon   = null;
-    CeylonPOS._renderCart();
-    CeylonPOS._calcTotals();
+    PurePOS._renderCart();
+    PurePOS._calcTotals();
     clearCustomer();
 };
 
 window.removeDiscount = () => {
     POSState.discount = { type: 'percentage', value: 0, amount: 0 };
     POSState.coupon   = null;
-    CeylonPOS._calcTotals();
+    PurePOS._calcTotals();
 };
 
 // ── PAYMENT MODAL ─────────────────────────────────────────────
 window.showPaymentModal = () => {
     if (POSState.cart.length === 0) { showToast('Cart is empty!', 'warning'); return; }
-    const grand = CeylonPOS._getGrandTotal();
+    const grand = PurePOS._getGrandTotal();
     setElText('paymentTotalDisplay', formatCurrency(grand));
-    CeylonPOS._updateQuickCash(grand);
+    PurePOS._updateQuickCash(grand);
     const cashInput = document.getElementById('cashReceived');
     if (cashInput) { cashInput.value = ''; }
     selectPaymentMethod('cash');
@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.initSplitPayments = () => {
-    const grand = CeylonPOS._getGrandTotal();
+    const grand = PurePOS._getGrandTotal();
     POSState.splitPayments = [{ method: 'cash', amount: grand }];
     renderSplitPayments();
 };
@@ -539,7 +539,7 @@ window.renderSplitPayments = () => {
 };
 
 window.updateSplitRemaining = () => {
-    const grand = CeylonPOS._getGrandTotal();
+    const grand = PurePOS._getGrandTotal();
     const paid  = POSState.splitPayments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
     const rem   = Math.max(0, grand - paid);
     setElText('splitRemaining', formatCurrency(rem));
@@ -548,7 +548,7 @@ window.updateSplitRemaining = () => {
 window.confirmPayment = async () => {
     if (POSState.cart.length === 0) { showToast('Cart is empty!', 'error'); return; }
 
-    const grand     = CeylonPOS._getGrandTotal();
+    const grand     = PurePOS._getGrandTotal();
     const method    = POSState.payMethod;
     const payments  = [];
 
@@ -610,8 +610,8 @@ window.confirmPayment = async () => {
         POSState.discount = { type: 'percentage', value: 0, amount: 0 };
         POSState.coupon   = null;
         POSState.customer = null;
-        CeylonPOS._renderCart();
-        CeylonPOS._calcTotals();
+        PurePOS._renderCart();
+        PurePOS._calcTotals();
         clearCustomer();
 
     } catch (err) {
@@ -634,7 +634,7 @@ window.showReceiptModal = (order, payment) => {
 
     document.getElementById('receiptContent').innerHTML = `
     <div class="receipt-header">
-        <div style="font-size:1.1rem;font-weight:bold">Ceyloan POS</div>
+        <div style="font-size:1.1rem;font-weight:bold">Pure POS</div>
         <div style="font-size:0.75rem;color:#666">by Nexfloit</div>
         <div class="receipt-divider"></div>
         <div>${date}</div>
@@ -676,8 +676,8 @@ window.newOrder = () => {
     POSState.discount = { type: 'percentage', value: 0, amount: 0 };
     POSState.coupon = null;
     clearCustomer();
-    CeylonPOS._renderCart();
-    CeylonPOS._calcTotals();
+    PurePOS._renderCart();
+    PurePOS._calcTotals();
     document.getElementById('productSearch')?.focus();
 };
 
@@ -704,7 +704,7 @@ window.applyDiscount = () => {
     if (val <= 0) { showToast('Enter a valid discount', 'warning'); return; }
     if (POSState.discountType === 'percentage' && val > 100) { showToast('Discount cannot exceed 100%', 'error'); return; }
     POSState.discount = { type: POSState.discountType, value: val, amount: 0 };
-    CeylonPOS._calcTotals();
+    PurePOS._calcTotals();
     bootstrap.Modal.getInstance(document.getElementById('discountModal'))?.hide();
     showToast(`Discount applied: ${val}${POSState.discountType === 'percentage' ? '%' : ' Rs.'}`, 'success');
 };
@@ -726,7 +726,7 @@ window.applyCoupon = async () => {
     try {
         const res = await posRequest(POSState.config.routes.applyCoupon, 'POST', { code, subtotal });
         POSState.coupon = { code, discountAmount: res.discount_amount };
-        CeylonPOS._calcTotals();
+        PurePOS._calcTotals();
         bootstrap.Modal.getInstance(document.getElementById('couponModal'))?.hide();
         showToast(res.message, 'success');
     } catch (err) {
@@ -752,7 +752,7 @@ window.validateGiftCard = async () => {
 window.holdOrder = async () => {
     if (POSState.cart.length === 0) { showToast('Cart is empty!', 'warning'); return; }
     try {
-        const total = CeylonPOS._getGrandTotal();
+        const total = PurePOS._getGrandTotal();
         await posRequest(POSState.config.routes.holdOrder, 'POST', {
             customer_id:  POSState.customer?.id,
             items:        POSState.cart,

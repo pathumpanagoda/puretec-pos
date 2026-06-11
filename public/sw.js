@@ -1,9 +1,9 @@
-const CACHE_NAME = 'ceylon-pos-v1.0.0';
+const CACHE_NAME = 'pure-pos-v1.0.0';
 const STATIC_ASSETS = [
     '/',
-    '/css/ceylon-pos.css',
+    '/css/pure-pos.css',
     '/css/pos.css',
-    '/js/ceylon-pos.js',
+    '/js/pure-pos.js',
     '/manifest.json',
 ];
 
