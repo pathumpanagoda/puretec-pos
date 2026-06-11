@@ -32,10 +32,10 @@
 </div>
 
 <!-- Search & Filters -->
-<div class="card cpos-card mb-3">
-    <div class="card-body py-3">
-        <div class="row g-2 align-items-end">
-            <div class="col-md-5">
+<div class="card cpos-card mb-3 product-filter-card">
+    <div class="card-body">
+        <div class="row g-2 product-filter-row">
+            <div class="col-lg-5 col-md-12 product-search-col">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" id="productSearch" class="form-control" placeholder="Search by name, SKU, barcode, price, category..." value="{{ request('search') }}" autofocus>
@@ -45,7 +45,7 @@
                 </div>
                 <small class="text-muted">Type to search instantly</small>
             </div>
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-4 filter-control-col">
                 <select name="category" id="categoryFilter" class="form-select">
                     <option value="">All Categories</option>
                     @foreach($categories as $cat)
@@ -53,20 +53,20 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-3 filter-control-col">
                 <select name="status" id="statusFilter" class="form-select">
                     <option value="">All Status</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-3 filter-control-col">
                 <select name="stock" id="stockFilter" class="form-select">
                     <option value="">All Stock</option>
                     <option value="low" {{ request('stock') === 'low' ? 'selected' : '' }}>Low Stock</option>
                 </select>
             </div>
-            <div class="col-md-1">
+            <div class="col-lg-1 col-md-2 filter-control-col">
                 <button type="button" class="btn btn-outline-secondary w-100" id="resetFilters" title="Reset filters">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </button>
@@ -568,6 +568,63 @@
 [data-theme="dark"] .modal-cpos-header .btn-close {
     filter: invert(1) grayscale(100%) brightness(200%);
     opacity: 0.85;
+}
+
+/* Search and filter bar alignment */
+.product-filter-card .card-body {
+    padding: 14px 16px;
+}
+.product-filter-row {
+    align-items: flex-start;
+}
+.product-search-col {
+    position: relative;
+    padding-bottom: 18px;
+}
+.product-search-col small {
+    position: absolute;
+    left: calc(var(--bs-gutter-x) * 0.5);
+    bottom: 0;
+    line-height: 1.1;
+}
+.product-filter-card .input-group,
+.product-filter-card .form-select,
+.product-filter-card #resetFilters {
+    height: 46px;
+}
+.product-filter-card .input-group-text,
+.product-filter-card .form-control,
+.product-filter-card .form-select,
+.product-filter-card .btn {
+    min-height: 46px;
+}
+.product-filter-card .input-group-text {
+    width: 42px;
+    justify-content: center;
+    padding: 0;
+}
+.product-filter-card .form-control,
+.product-filter-card .form-select {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.filter-control-col {
+    display: flex;
+}
+.filter-control-col > .form-select,
+.filter-control-col > .btn {
+    width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .product-search-col {
+        padding-bottom: 0;
+    }
+    .product-search-col small {
+        position: static;
+        display: block;
+        margin-top: 5px;
+    }
 }
 /* ═══════════════════════════════════════════════════════════════════════════
    FIX: Hide any stray large icons that shouldn't appear
