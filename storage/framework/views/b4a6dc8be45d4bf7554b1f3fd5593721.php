@@ -456,6 +456,120 @@
 
 <?php $__env->startPush('styles'); ?>
 <style>
+/* Products page dark-mode contrast fixes */
+#productSearch,
+#categoryFilter,
+#statusFilter,
+#stockFilter,
+#productsTable,
+#productsTable td,
+#productsTable th {
+    color: var(--cp-text, #f0f0f0);
+}
+#productSearch,
+#categoryFilter,
+#statusFilter,
+#stockFilter,
+#quickEditModal .form-control,
+#quickEditModal .form-select,
+#stockAdjustModal .form-control,
+#stockAdjustModal .form-select,
+#importModal .form-control,
+#importModal .form-select {
+    background-color: var(--cp-surface, #1a1a1a);
+    border-color: var(--cp-border-light, #333333);
+    color: var(--cp-text, #f0f0f0);
+}
+#productSearch::placeholder,
+#quickEditModal .form-control::placeholder,
+#stockAdjustModal .form-control::placeholder,
+#importModal .form-control::placeholder {
+    color: var(--cp-text-muted, #9a9a9a);
+    opacity: 1;
+}
+#productSearch + .btn,
+#resetFilters,
+.input-group-text {
+    background-color: var(--cp-surface-alt, #141414);
+    border-color: var(--cp-border-light, #333333);
+    color: var(--cp-text, #f0f0f0);
+}
+.cpos-card .text-muted,
+#productsTable .text-muted,
+#quickEditModal .text-muted,
+#stockAdjustModal .text-muted,
+#importModal .text-muted,
+#paginationContainer .text-muted {
+    color: var(--cp-text-muted, #b0b0b0) !important;
+}
+#quickEditModal .modal-content,
+#quickEditModal .modal-body,
+#quickEditModal .modal-footer {
+    background: var(--cp-surface, #1a1a1a);
+    color: var(--cp-text, #f0f0f0);
+}
+#quickEditModal .modal-content {
+    border: 1px solid var(--cp-border, #2a2a2a);
+    box-shadow: var(--cp-shadow-xl, 0 24px 70px rgba(0, 0, 0, 0.35));
+}
+#quickEditModal .modal-footer {
+    border-top: 1px solid var(--cp-border, #2a2a2a);
+}
+#quickEditModal .btn-outline-secondary,
+#quickEditModal .btn-secondary {
+    background: var(--cp-surface-alt, #141414);
+    border-color: var(--cp-border-light, #333333);
+    color: var(--cp-text, #f0f0f0);
+}
+#quickEditModal .btn-outline-secondary:hover,
+#quickEditModal .btn-secondary:hover {
+    background: var(--cp-border-light, #333333);
+    color: var(--cp-text, #ffffff);
+}
+#quickEditModal .btn-outline-primary {
+    border-color: var(--cp-primary, #c9a227);
+    color: var(--cp-primary, #c9a227);
+}
+#quickEditModal .btn-outline-primary:hover,
+#quickEditModal .btn-primary {
+    background: var(--cp-primary, #c9a227);
+    border-color: var(--cp-primary, #c9a227);
+    color: #0d0d0d;
+}
+#quickEditModal .btn-primary:hover {
+    background: var(--cp-primary-dark, #b08d1e);
+    border-color: var(--cp-primary-dark, #b08d1e);
+    color: #0d0d0d;
+}
+#quickEditModal a {
+    color: var(--cp-primary, #c9a227);
+}
+#quickEditModal .alert-info {
+    background: color-mix(in srgb, var(--cp-primary, #c9a227) 16%, var(--cp-surface, #1a1a1a));
+    border-color: color-mix(in srgb, var(--cp-primary, #c9a227) 45%, var(--cp-border, #2a2a2a));
+    color: var(--cp-text, #f0f0f0);
+}
+.modal-cpos-header {
+    background: var(--cp-surface-alt, #141414);
+    border-bottom: 1px solid var(--cp-border, #2a2a2a);
+    color: var(--cp-text, #f0f0f0);
+}
+.modal-cpos-header .modal-title,
+.modal-cpos-header h5 {
+    color: var(--cp-text, #f0f0f0);
+    font-weight: 700;
+}
+.modal-cpos-header i {
+    color: var(--cp-primary, #c9a227);
+}
+[data-theme="light"] .modal-cpos-header .btn-close {
+    filter: none;
+    opacity: 0.75;
+}
+[data-theme="dark"] .modal-cpos-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.85;
+}
 /* ═══════════════════════════════════════════════════════════════════════════
    FIX: Hide any stray large icons that shouldn't appear
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -623,30 +737,43 @@
 /* Quick Edit Modal Styles */
 #quickEditModal .form-label {
     font-weight: 600;
-    color: var(--cp-text);
+    color: var(--cp-text, #f0f0f0);
     font-size: 13px;
     margin-bottom: 4px;
 }
 #quickEditModal .form-control,
 #quickEditModal .form-select {
+    background-color: var(--cp-surface-alt, #141414);
+    border-color: var(--cp-border-light, #333333);
+    color: var(--cp-text, #f0f0f0);
     font-size: 14px;
 }
+#quickEditModal .form-control:focus,
+#quickEditModal .form-select:focus {
+    background-color: var(--cp-surface, #1a1a1a);
+    border-color: var(--cp-primary, #c9a227);
+    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.16);
+    color: var(--cp-text, #f0f0f0);
+}
 #quickEditModal .input-group-text {
+    background-color: var(--cp-surface-alt, #141414);
+    border-color: var(--cp-border-light, #333333);
+    color: var(--cp-text-muted, #b0b0b0);
     font-size: 13px;
     padding: 6px 10px;
 }
 
 /* Image Box */
 .qe-image-box {
-    background: var(--cp-bg-alt, #f8f9fa);
-    border: 1px solid var(--cp-border-light, #e9ecef);
+    background: var(--cp-surface-alt, #141414);
+    border: 1px solid var(--cp-border-light, #333333);
     border-radius: 10px;
     padding: 12px;
 }
 .qe-image-zone {
     width: 100%;
     height: 150px;
-    border: 2px dashed var(--cp-border, #dee2e6);
+    border: 2px dashed var(--cp-border-light, #333333);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -654,18 +781,18 @@
     cursor: pointer;
     transition: all 0.2s;
     overflow: hidden;
-    background: var(--cp-bg, #fff);
+    background: var(--cp-surface, #1a1a1a);
 }
 .qe-image-zone:hover {
-    border-color: var(--cp-primary, #0d6efd);
-    background: var(--cp-blue-50, #e7f1ff);
+    border-color: var(--cp-primary, #c9a227);
+    background: color-mix(in srgb, var(--cp-primary, #c9a227) 10%, var(--cp-surface, #1a1a1a));
 }
 .qe-image-placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    color: var(--cp-text-muted, #6c757d);
+    color: var(--cp-text-muted, #b0b0b0);
 }
 .qe-image-placeholder i {
     font-size: 32px;
@@ -684,8 +811,9 @@
    STATS BOX - MARGIN, PROFIT, STOCK VAL - Bright colors on blue
    ═══════════════════════════════════════════════════════════════════════════ */
 .qe-stats-box {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background: linear-gradient(135deg, var(--cp-primary, #c9a227) 0%, var(--cp-primary-dark, #b08d1e) 100%) !important;
     border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
     padding: 16px !important;
     display: flex !important;
     justify-content: space-between !important;
@@ -702,11 +830,11 @@ span.qe-stat-label {
     display: block !important;
     font-size: 10px !important;
     font-weight: 800 !important;
-    color: #fef08a !important; /* Bright yellow for labels */
+    color: rgba(13, 13, 13, 0.74) !important;
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
     margin-bottom: 4px !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+    text-shadow: none !important;
 }
 #quickEditModal .qe-stat-value,
 .qe-stats-box .qe-stat-value,
@@ -715,24 +843,24 @@ span.qe-stat-value {
     display: block !important;
     font-size: 16px !important;
     font-weight: 700 !important;
-    color: #ffffff !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+    color: #0d0d0d !important;
+    text-shadow: none !important;
 }
 /* Bright colors for stat values - VERY VISIBLE on blue */
 #quickEditModal .qe-stat-value.text-success,
 .qe-stats-box .qe-stat-value.text-success,
 .qe-stat-value.text-success,
 #qe_profit_margin {
-    color: #FFFF00 !important; /* Bright Yellow - maximum visibility on blue */
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
+    color: #0d0d0d !important;
+    text-shadow: none !important;
     font-weight: 800 !important;
 }
 #quickEditModal .qe-stat-value.text-warning,
-.qe-stat-value.text-warning { color: #FF9500 !important; } /* Orange */
+.qe-stat-value.text-warning { color: #7c3d00 !important; }
 #quickEditModal .qe-stat-value.text-danger,
-.qe-stat-value.text-danger { color: #FF3B30 !important; } /* Bright red */
+.qe-stat-value.text-danger { color: #7f1d1d !important; }
 #quickEditModal .qe-stat-value.text-primary,
-.qe-stat-value.text-primary { color: #ffffff !important; } /* White */
+.qe-stat-value.text-primary { color: #0d0d0d !important; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    QUICK EDIT MODAL - Toggle Switches (Active, Track Stock, Featured)
@@ -745,8 +873,8 @@ span.qe-stat-value {
 /* Toggle wrapper cards */
 #quickEditModal .form-check.form-switch {
     padding: 10px 14px !important;
-    background: #f1f5f9 !important;
-    border: 2px solid #e2e8f0 !important;
+    background: var(--cp-surface-alt, #141414) !important;
+    border: 1px solid var(--cp-border-light, #333333) !important;
     border-radius: 10px !important;
     margin: 0 !important;
     display: inline-flex !important;
@@ -754,15 +882,15 @@ span.qe-stat-value {
     gap: 8px !important;
 }
 #quickEditModal .form-check.form-switch:hover {
-    background: #e2e8f0 !important;
-    border-color: #94a3b8 !important;
+    background: color-mix(in srgb, var(--cp-primary, #c9a227) 8%, var(--cp-surface-alt, #141414)) !important;
+    border-color: var(--cp-primary, #c9a227) !important;
 }
 /* Switch toggle - smaller */
 #quickEditModal .form-switch .form-check-input {
     width: 38px !important;
     height: 20px !important;
     margin: 0 !important;
-    background-color: #94a3b8 !important;
+    background-color: var(--cp-text-muted, #888888) !important;
     border: none !important;
     border-radius: 20px !important;
     cursor: pointer !important;
@@ -773,13 +901,12 @@ span.qe-stat-value {
     flex-shrink: 0 !important;
 }
 #quickEditModal .form-switch .form-check-input:checked {
-    background-color: #22c55e !important;
+    background-color: var(--cp-primary, #c9a227) !important;
     background-position: right center !important;
 }
-/* Labels - DARK text, visible */
 #quickEditModal .form-switch .form-check-label,
 #quickEditModal .form-check-label {
-    color: #1e293b !important;
+    color: var(--cp-text, #f0f0f0) !important;
     font-weight: 700 !important;
     font-size: 13px !important;
     margin: 0 !important;
@@ -788,8 +915,9 @@ span.qe-stat-value {
 
 /* Category suggestion */
 #qeCategorySuggestion {
-    background: var(--cp-warning-light, #fff3cd);
-    border: 1px solid var(--cp-warning, #ffc107);
+    background: color-mix(in srgb, var(--cp-primary, #c9a227) 12%, var(--cp-surface, #1a1a1a));
+    border: 1px solid color-mix(in srgb, var(--cp-primary, #c9a227) 55%, var(--cp-border, #2a2a2a));
+    color: var(--cp-text, #f0f0f0);
     border-radius: 6px;
     padding: 6px 10px;
     margin-top: 6px;
