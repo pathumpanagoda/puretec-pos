@@ -20,6 +20,37 @@
 <div class="row g-3 price-tags-page">
     <!-- Settings Panel -->
     <div class="col-lg-3">
+        <!-- Product Filter -->
+        <div class="card cpos-card settings-card mb-2">
+            <div class="card-header modal-cpos-header">
+                <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filter Products</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6 compact-field">
+                        <label class="form-label fw-600">Category</label>
+                        <select id="filterCategory" class="form-select" onchange="filterProducts()">
+                            <option value="">All Categories</option>
+                            @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 compact-field">
+                        <label class="form-label fw-600">Search</label>
+                        <input type="text" id="filterSearch" class="form-control" placeholder="Search..." oninput="filterProducts()">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <small class="text-muted"><span id="visibleCount">{{ $products->count() }}</span> visible | <span id="selectedCount">{{ $products->count() }}</span> selected</small>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="selectAllVisible()">Select Visible</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">Deselect</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card cpos-card settings-card mb-2">
             <div class="card-header modal-cpos-header">
                 <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Tag Settings</h6>
@@ -139,37 +170,6 @@
                     <div class="col-4 compact-field">
                         <label class="form-label fw-600">Currency</label>
                         <input type="text" id="currencySymbol" class="form-control" value="{{ $store->currency_symbol ?? 'Rs.' }}" onchange="updatePreview()" oninput="updatePreview()">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Product Filter -->
-        <div class="card cpos-card settings-card mb-3">
-            <div class="card-header modal-cpos-header">
-                <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filter Products</h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-6 compact-field">
-                        <label class="form-label fw-600">Category</label>
-                        <select id="filterCategory" class="form-select" onchange="filterProducts()">
-                            <option value="">All Categories</option>
-                            @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-6 compact-field">
-                        <label class="form-label fw-600">Search</label>
-                        <input type="text" id="filterSearch" class="form-control" placeholder="Search..." oninput="filterProducts()">
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <small class="text-muted"><span id="visibleCount">{{ $products->count() }}</span> visible | <span id="selectedCount">{{ $products->count() }}</span> selected</small>
-                    <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="selectAllVisible()">Select Visible</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">Deselect</button>
                     </div>
                 </div>
             </div>
