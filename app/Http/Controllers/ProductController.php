@@ -964,4 +964,50 @@ class ProductController extends Controller
             'count' => $products->count(),
         ]);
     }
+
+    /**
+     * Price Tag printing page
+     * Supports both GET (all/filtered products) and POST (selected product IDs)
+     */
+    public function priceTags(Request $request)
+    {
+        $storeId = Auth::user()->store_id;
+        $store = \App\Models\Store::find($storeId);
+
+        $query = Product::where('store_id', $storeId)->with('category')->where('is_active', true);
+
+        // If specific product IDs are provided (from checkboxes)
+        if ($request->filled('ids')) {
+            $ids = is_array($request->ids) ? $request->ids : explode(',', $request->ids);
+            $query->whereIn('id', $ids);
+        }
+
+        // Apply filters
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+
+        $products = $query->orderBy('name')->get();
+        $categories = Category::where('store_id', $storeId)->where('is_active', true)->get();
+
+        // Prepare product data for JS (avoid complex @json in Blade)
+        $productsJson = $products->map(function($p) {
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'sku' => $p->sku,
+                'barcode' => $p->barcode,
+                'selling_price' => $p->selling_price,
+                'category' => $p->category?->name ?? '',
+                'category_id' => $p->category_id,
+                'unit' => $p->unit,
+                'selected' => true,
+            ];
+        })->values();
+
+        return view('products.price-tags', compact('products', 'categories', 'store', 'productsJson'));
+    }
 }

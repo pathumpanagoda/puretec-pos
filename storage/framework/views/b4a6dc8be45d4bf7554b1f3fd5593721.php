@@ -1,11 +1,10 @@
-@extends('layouts.app')
-@section('title', 'Products')
-@section('breadcrumb')
+<?php $__env->startSection('title', 'Products'); ?>
+<?php $__env->startSection('breadcrumb'); ?>
 <li class="breadcrumb-item active">Products</li>
-@endsection
-@section('content')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('content'); ?>
 <div class="page-header">
-    <div><h2 class="page-title">Products</h2><p class="page-subtitle">{{ $products->total() }} products {{ $lowStock > 0 ? "• {$lowStock} low stock" : '' }}</p></div>
+    <div><h2 class="page-title">Products</h2><p class="page-subtitle"><?php echo e($products->total()); ?> products <?php echo e($lowStock > 0 ? "• {$lowStock} low stock" : ''); ?></p></div>
     <div class="page-actions">
         <!-- Bulk Delete Button - Hidden by default -->
         <button type="button" class="btn btn-danger btn-cpos me-2 d-none" id="bulkDeleteBtn" onclick="bulkDeleteProducts()">
@@ -14,18 +13,18 @@
         <button type="button" class="btn btn-warning btn-cpos me-2 d-none" id="bulkPriceTagBtn" onclick="printSelectedPriceTags()">
             <i class="bi bi-tag me-1"></i>Print Tags (<span id="bulkPriceTagCount">0</span>)
         </button>
-        @if($lowStock > 0)
-        <a href="{{ route('products.index', ['stock' => 'low']) }}" class="btn btn-warning btn-cpos me-2">
-            <i class="bi bi-exclamation-triangle me-1"></i>{{ $lowStock }} Low Stock
+        <?php if($lowStock > 0): ?>
+        <a href="<?php echo e(route('products.index', ['stock' => 'low'])); ?>" class="btn btn-warning btn-cpos me-2">
+            <i class="bi bi-exclamation-triangle me-1"></i><?php echo e($lowStock); ?> Low Stock
         </a>
-        @endif
+        <?php endif; ?>
         <button type="button" class="btn btn-outline-primary btn-cpos me-2" data-bs-toggle="modal" data-bs-target="#importModal">
             <i class="bi bi-upload me-1"></i>Import
         </button>
-        <a href="{{ route('products.price-tags') }}" class="btn btn-outline-warning btn-cpos me-2" id="priceTagBtn" title="Print Price Tags">
+        <a href="<?php echo e(route('products.price-tags')); ?>" class="btn btn-outline-warning btn-cpos me-2" id="priceTagBtn" title="Print Price Tags">
             <i class="bi bi-tag me-1"></i>Price Tags
         </a>
-        <a href="{{ route('products.create') }}" class="btn btn-primary btn-cpos">
+        <a href="<?php echo e(route('products.create')); ?>" class="btn btn-primary btn-cpos">
             <i class="bi bi-plus-lg me-2"></i>Add Product
         </a>
     </div>
@@ -38,7 +37,7 @@
             <div class="col-md-5">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="productSearch" class="form-control" placeholder="Search by name, SKU, barcode, price, category..." value="{{ request('search') }}" autofocus>
+                    <input type="text" id="productSearch" class="form-control" placeholder="Search by name, SKU, barcode, price, category..." value="<?php echo e(request('search')); ?>" autofocus>
                     <button type="button" class="btn btn-outline-secondary" id="clearSearch" style="display: none;">
                         <i class="bi bi-x-lg"></i>
                     </button>
@@ -48,22 +47,22 @@
             <div class="col-md-2">
                 <select name="category" id="categoryFilter" class="form-select">
                     <option value="">All Categories</option>
-                    @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($cat->id); ?>" <?php echo e(request('category') == $cat->id ? 'selected' : ''); ?>><?php echo e($cat->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
             <div class="col-md-2">
                 <select name="status" id="statusFilter" class="form-select">
                     <option value="">All Status</option>
-                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    <option value="active" <?php echo e(request('status') === 'active' ? 'selected' : ''); ?>>Active</option>
+                    <option value="inactive" <?php echo e(request('status') === 'inactive' ? 'selected' : ''); ?>>Inactive</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <select name="stock" id="stockFilter" class="form-select">
                     <option value="">All Stock</option>
-                    <option value="low" {{ request('stock') === 'low' ? 'selected' : '' }}>Low Stock</option>
+                    <option value="low" <?php echo e(request('stock') === 'low' ? 'selected' : ''); ?>>Low Stock</option>
                 </select>
             </div>
             <div class="col-md-1">
@@ -96,65 +95,67 @@
                     </tr>
                 </thead>
                 <tbody id="productsBody">
-                    @forelse($products as $product)
-                    <tr data-product-id="{{ $product->id }}">
+                    <?php $__empty_1 = true; $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <tr data-product-id="<?php echo e($product->id); ?>">
                         <td>
-                            <input type="checkbox" class="form-check-input product-checkbox" value="{{ $product->id }}" data-name="{{ $product->name }}">
+                            <input type="checkbox" class="form-check-input product-checkbox" value="<?php echo e($product->id); ?>" data-name="<?php echo e($product->name); ?>">
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="product-thumb">
-                                    @if($product->image)
-                                        <img src="{{ asset(Str::startsWith($product->image, 'storage/') ? $product->image : 'storage/'.$product->image) }}" alt="{{ $product->name }}" class="thumb-img">
-                                    @else
+                                    <?php if($product->image): ?>
+                                        <img src="<?php echo e(asset(Str::startsWith($product->image, 'storage/') ? $product->image : 'storage/'.$product->image)); ?>" alt="<?php echo e($product->name); ?>" class="thumb-img">
+                                    <?php else: ?>
                                         <div class="thumb-placeholder"><i class="bi bi-box-seam"></i></div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                                 <div>
-                                    <div class="fw-600">{{ $product->name }}</div>
-                                    <div class="text-muted small">{{ $product->unit }}</div>
+                                    <div class="fw-600"><?php echo e($product->name); ?></div>
+                                    <div class="text-muted small"><?php echo e($product->unit); ?></div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div class="fw-600 text-mono" style="color: var(--cp-primary);">{{ $product->sku ?? '-' }}</div>
-                            @if($product->barcode)
-                            <div class="text-muted text-mono small">{{ $product->barcode }}</div>
-                            @endif
+                            <div class="fw-600 text-mono" style="color: var(--cp-primary);"><?php echo e($product->sku ?? '-'); ?></div>
+                            <?php if($product->barcode): ?>
+                            <div class="text-muted text-mono small"><?php echo e($product->barcode); ?></div>
+                            <?php endif; ?>
                         </td>
-                        <td>{{ $product->category?->name ?? '—' }}</td>
-                        <td>Rs. {{ number_format($product->cost_price, 2) }}</td>
-                        <td class="fw-600">Rs. {{ number_format($product->selling_price, 2) }}</td>
+                        <td><?php echo e($product->category?->name ?? '—'); ?></td>
+                        <td>Rs. <?php echo e(number_format($product->cost_price, 2)); ?></td>
+                        <td class="fw-600">Rs. <?php echo e(number_format($product->selling_price, 2)); ?></td>
                         <td>
-                            <div class="stock-indicator {{ $product->isOutOfStock() ? 'stock-out' : ($product->isLowStock() ? 'stock-low' : 'stock-ok') }}">
+                            <div class="stock-indicator <?php echo e($product->isOutOfStock() ? 'stock-out' : ($product->isLowStock() ? 'stock-low' : 'stock-ok')); ?>">
                                 <span class="stock-dot"></span>
-                                {{ number_format($product->stock_quantity, 0) }} {{ $product->unit }}
+                                <?php echo e(number_format($product->stock_quantity, 0)); ?> <?php echo e($product->unit); ?>
+
                             </div>
                         </td>
                         <td>
-                            <span class="badge {{ $product->is_active ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger' }}">
-                                {{ $product->is_active ? 'Active' : 'Inactive' }}
+                            <span class="badge <?php echo e($product->is_active ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'); ?>">
+                                <?php echo e($product->is_active ? 'Active' : 'Inactive'); ?>
+
                             </span>
                         </td>
                         <td>
                             <div class="action-btns">
-                                <button class="action-btn action-btn-quick" title="Quick Edit" onclick="openQuickEdit({{ $product->id }})"><i class="bi bi-lightning"></i></button>
-                                <a href="{{ route('products.edit', $product) }}" class="action-btn" title="Full Edit"><i class="bi bi-pencil"></i></a>
-                                <button class="action-btn" title="Adjust Stock" onclick="openStockAdjust({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->stock_quantity }})"><i class="bi bi-arrow-down-up"></i></button>
-                                <form action="{{ route('products.destroy', $product) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this product?')">
-                                    @csrf @method('DELETE')
+                                <button class="action-btn action-btn-quick" title="Quick Edit" onclick="openQuickEdit(<?php echo e($product->id); ?>)"><i class="bi bi-lightning"></i></button>
+                                <a href="<?php echo e(route('products.edit', $product)); ?>" class="action-btn" title="Full Edit"><i class="bi bi-pencil"></i></a>
+                                <button class="action-btn" title="Adjust Stock" onclick="openStockAdjust(<?php echo e($product->id); ?>, '<?php echo e(addslashes($product->name)); ?>', <?php echo e($product->stock_quantity); ?>)"><i class="bi bi-arrow-down-up"></i></button>
+                                <form action="<?php echo e(route('products.destroy', $product)); ?>" method="POST" class="d-inline" onsubmit="return confirm('Delete this product?')">
+                                    <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                     <button type="submit" class="action-btn action-btn-danger" title="Delete"><i class="bi bi-trash3"></i></button>
                                 </form>
                             </div>
                         </td>
                     </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr id="noProductsRow"><td colspan="9" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No products found</td></tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
-        <div class="p-3" id="paginationContainer">{{ $products->links() }}</div>
+        <div class="p-3" id="paginationContainer"><?php echo e($products->links()); ?></div>
     </div>
 </div>
 
@@ -167,7 +168,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="stockAdjustForm" method="POST">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <div class="modal-body">
                     <div class="mb-3"><strong id="adjustProductName"></strong><br><small class="text-muted">Current Stock: <span id="adjustCurrentStock"></span></small></div>
                     <div class="mb-3">
@@ -205,13 +206,13 @@
                 <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Import Products</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('products.import.process') }}" method="POST" enctype="multipart/form-data">
-                @csrf
+            <form action="<?php echo e(route('products.import.process')); ?>" method="POST" enctype="multipart/form-data">
+                <?php echo csrf_field(); ?>
                 <div class="modal-body">
                     <div class="alert alert-info mb-3">
                         <i class="bi bi-info-circle me-2"></i>
                         Upload a CSV or Excel file with product details.
-                        <a href="{{ route('products.import.template') }}" class="alert-link">Download template</a>
+                        <a href="<?php echo e(route('products.import.template')); ?>" class="alert-link">Download template</a>
                     </div>
 
                     <div class="mb-3">
@@ -344,27 +345,27 @@
                                     <label class="form-label">Category</label>
                                     <select name="category_id" id="qe_category_id" class="form-select">
                                         <option value="">-- None --</option>
-                                        @foreach($categories as $cat)
-                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                        @endforeach
+                                        <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($cat->id); ?>"><?php echo e($cat->name); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Supplier</label>
                                     <select name="supplier_id" id="qe_supplier_id" class="form-select">
                                         <option value="">-- None --</option>
-                                        @foreach($suppliers as $sup)
-                                        <option value="{{ $sup->id }}">{{ $sup->name }}</option>
-                                        @endforeach
+                                        <?php $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sup): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($sup->id); ?>"><?php echo e($sup->name); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Tax</label>
                                     <select name="tax_id" id="qe_tax_id" class="form-select">
                                         <option value="">No Tax</option>
-                                        @foreach($taxes as $tax)
-                                        <option value="{{ $tax->id }}">{{ $tax->name }} ({{ $tax->rate }}%)</option>
-                                        @endforeach
+                                        <?php $__currentLoopData = $taxes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($tax->id); ?>"><?php echo e($tax->name); ?> (<?php echo e($tax->rate); ?>%)</option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
                                 </div>
                             </div>
@@ -451,9 +452,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    FIX: Hide any stray large icons that shouldn't appear
@@ -826,9 +827,9 @@ span.qe-stat-value {
     font-size: 18px;
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 let currentQuickEditId = null;
@@ -836,11 +837,11 @@ const quickEditModal = new bootstrap.Modal(document.getElementById('quickEditMod
 
 // Route URLs from Laravel
 const ROUTES = {
-    getProduct: (id) => `{{ url('products/quick-get') }}/${id}`,
-    quickUpdate: (id) => `{{ url('products') }}/${id}/quick-update`,
-    adjustStock: (id) => `{{ url('products') }}/${id}/adjust-stock`,
-    editProduct: (id) => `{{ url('products') }}/${id}/edit`,
-    barcodeSearch: `{{ url('products/search-barcode') }}`,
+    getProduct: (id) => `<?php echo e(url('products/quick-get')); ?>/${id}`,
+    quickUpdate: (id) => `<?php echo e(url('products')); ?>/${id}/quick-update`,
+    adjustStock: (id) => `<?php echo e(url('products')); ?>/${id}/adjust-stock`,
+    editProduct: (id) => `<?php echo e(url('products')); ?>/${id}/edit`,
+    barcodeSearch: `<?php echo e(url('products/search-barcode')); ?>`,
     barcodeAPI: 'https://world.openfoodfacts.org/api/v0/product/'
 };
 
@@ -980,7 +981,7 @@ function previewQEImage(input) {
 // Generate barcode for Quick Edit
 async function generateBarcodeQE() {
     try {
-        const res = await fetch(`{{ url('products/generate-barcode') }}`);
+        const res = await fetch(`<?php echo e(url('products/generate-barcode')); ?>`);
         const data = await res.json();
         document.getElementById('qe_barcode').value = data.barcode;
         showToast('Barcode generated!', 'success');
@@ -1097,7 +1098,7 @@ async function generateSkuQE() {
     if (productName) params.append('product_name', productName);
 
     try {
-        const res = await fetch(`{{ url('products/generate-sku') }}?` + params.toString());
+        const res = await fetch(`<?php echo e(url('products/generate-sku')); ?>?` + params.toString());
         const data = await res.json();
         document.getElementById('qe_sku').value = data.sku;
         showToast('SKU generated!', 'success');
@@ -1118,7 +1119,7 @@ document.getElementById('qe_name').addEventListener('input', function() {
         nameTimeout = setTimeout(async () => {
             try {
                 // Suggest category
-                const res = await fetch(`{{ url('products/suggest-category') }}?name=` + encodeURIComponent(name));
+                const res = await fetch(`<?php echo e(url('products/suggest-category')); ?>?name=` + encodeURIComponent(name));
                 const data = await res.json();
 
                 const suggestionEl = document.getElementById('qeCategorySuggestion');
@@ -1339,7 +1340,7 @@ function performSearch() {
 
     // If all filters are empty and search is empty, reload page for pagination
     if (!search && !category && !status && !stock) {
-        location.href = '{{ route("products.index") }}';
+        location.href = '<?php echo e(route("products.index")); ?>';
         return;
     }
 
@@ -1353,7 +1354,7 @@ function performSearch() {
     if (status) params.append('status', status);
     if (stock) params.append('stock', stock);
 
-    fetch('{{ route("products.search") }}?' + params.toString())
+    fetch('<?php echo e(route("products.search")); ?>?' + params.toString())
         .then(res => res.json())
         .then(data => {
             if (data.products.length === 0) {
@@ -1452,7 +1453,7 @@ document.getElementById('resetFilters').addEventListener('click', () => {
     categoryFilter.value = '';
     statusFilter.value = '';
     stockFilter.value = '';
-    location.href = '{{ route("products.index") }}';
+    location.href = '<?php echo e(route("products.index")); ?>';
 });
 
 // Show clear button if search has value on page load
@@ -1513,7 +1514,7 @@ function printSelectedPriceTags() {
     // Open price tags page with selected IDs
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = '{{ route("products.price-tags") }}';
+    form.action = '<?php echo e(route("products.price-tags")); ?>';
     form.target = '_blank';
     form.innerHTML = `<input type="hidden" name="_token" value="${csrfToken}">`;
     selectedIds.forEach(id => {
@@ -1545,11 +1546,11 @@ async function bulkDeleteProducts() {
     bulkDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
 
     try {
-        const response = await fetch('{{ route("products.bulk-delete") }}', {
+        const response = await fetch('<?php echo e(route("products.bulk-delete")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ ids: selectedIds })
@@ -1590,4 +1591,6 @@ async function bulkDeleteProducts() {
     }
 }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\Users\pathu\Desktop\puretec pos\resources\views/products/index.blade.php ENDPATH**/ ?>
