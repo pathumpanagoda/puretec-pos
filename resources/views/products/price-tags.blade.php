@@ -17,16 +17,16 @@
     </div>
 </div>
 
-<div class="row g-3">
+<div class="row g-3 price-tags-page">
     <!-- Settings Panel -->
     <div class="col-lg-3">
-        <div class="card cpos-card mb-3">
+        <div class="card cpos-card settings-card mb-2">
             <div class="card-header modal-cpos-header">
                 <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Tag Settings</h6>
             </div>
             <div class="card-body">
                 <!-- Tag Size -->
-                <div class="mb-3">
+                <div class="compact-field mb-2">
                     <label class="form-label fw-600">Tag Size</label>
                     <select id="tagSize" class="form-select" onchange="updatePreview()">
                         <option value="small" selected>Small (50mm × 30mm)</option>
@@ -36,25 +36,31 @@
                     </select>
                 </div>
 
-                <!-- Columns -->
-                <div class="mb-3">
-                    <label class="form-label fw-600">Columns per Row</label>
-                    <select id="tagColumns" class="form-select" onchange="updatePreview()">
-                        <option value="2">2 Columns</option>
-                        <option value="3" selected>3 Columns</option>
-                        <option value="4">4 Columns</option>
-                        <option value="5">5 Columns</option>
-                    </select>
-                </div>
+                <div class="row g-2">
+                    <!-- Columns -->
+                    <div class="col-6 compact-field">
+                        <label class="form-label fw-600">Columns</label>
+                        <select id="tagColumns" class="form-select" onchange="updatePreview()">
+                            <option value="2">2 Columns</option>
+                            <option value="3" selected>3 Columns</option>
+                            <option value="4">4 Columns</option>
+                            <option value="5">5 Columns</option>
+                        </select>
+                    </div>
 
-                <!-- Copies per product -->
-                <div class="mb-3">
-                    <label class="form-label fw-600">Copies Per Product</label>
-                    <input type="number" id="tagCopies" class="form-control" value="1" min="1" max="100" onchange="updatePreview()">
+                    <!-- Copies per product -->
+                    <div class="col-6 compact-field">
+                        <label class="form-label fw-600">Copies</label>
+                        <div class="input-group input-group-sm copies-control">
+                            <button type="button" class="btn btn-outline-secondary" onclick="adjustCopies(-1)" title="Decrease copies">-</button>
+                            <input type="number" id="tagCopies" class="form-control text-center" value="1" min="1" max="100" onchange="updatePreview()" oninput="updatePreview()">
+                            <button type="button" class="btn btn-outline-secondary" onclick="adjustCopies(1)" title="Increase copies">+</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Paper Size -->
-                <div class="mb-3">
+                <div class="compact-field mt-2">
                     <label class="form-label fw-600">Paper Size</label>
                     <select id="paperSize" class="form-select" onchange="updatePreview()">
                         <option value="a4" selected>A4</option>
@@ -65,94 +71,104 @@
             </div>
         </div>
 
-        <div class="card cpos-card mb-3">
-            <div class="card-header modal-cpos-header">
+        <div class="card cpos-card settings-card mb-2">
+            <div class="card-header modal-cpos-header d-flex justify-content-between align-items-center">
                 <h6 class="mb-0"><i class="bi bi-eye me-2"></i>Display Options</h6>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-light" onclick="setDisplayOptions(true)">All</button>
+                    <button type="button" class="btn btn-outline-light" onclick="setDisplayOptions(false)">None</button>
+                </div>
             </div>
             <div class="card-body">
-                <div class="form-check form-switch mb-2">
+                <div class="switch-grid">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showStoreName" class="form-check-input" checked onchange="updatePreview()">
                     <label class="form-check-label" for="showStoreName">Store Name</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showProductName" class="form-check-input" checked onchange="updatePreview()">
                     <label class="form-check-label" for="showProductName">Product Name</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showSku" class="form-check-input" checked onchange="updatePreview()">
                     <label class="form-check-label" for="showSku">SKU / Item Code</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showBarcode" class="form-check-input" checked onchange="updatePreview()">
                     <label class="form-check-label" for="showBarcode">Barcode</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showBarcodeNumber" class="form-check-input" checked onchange="updatePreview()">
                     <label class="form-check-label" for="showBarcodeNumber">Barcode Number</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showPrice" class="form-check-input" checked onchange="updatePreview()">
                     <label class="form-check-label" for="showPrice">Selling Price</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showCategory" class="form-check-input" onchange="updatePreview()">
                     <label class="form-check-label" for="showCategory">Category</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showUnit" class="form-check-input" onchange="updatePreview()">
                     <label class="form-check-label" for="showUnit">Unit</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showBorder" class="form-check-input" checked onchange="updatePreview()">
                     <label class="form-check-label" for="showBorder">Tag Border</label>
                 </div>
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch">
                     <input type="checkbox" id="showDate" class="form-check-input" onchange="updatePreview()">
                     <label class="form-check-label" for="showDate">Print Date</label>
+                </div>
                 </div>
             </div>
         </div>
 
         <!-- Custom Store Name -->
-        <div class="card cpos-card mb-3">
+        <div class="card cpos-card settings-card mb-2">
             <div class="card-header modal-cpos-header">
                 <h6 class="mb-0"><i class="bi bi-shop me-2"></i>Store Info</h6>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label fw-600">Store Name</label>
-                    <input type="text" id="customStoreName" class="form-control" value="{{ $store->name ?? 'PUREPOS' }}" onchange="updatePreview()">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label fw-600">Currency Symbol</label>
-                    <input type="text" id="currencySymbol" class="form-control" value="{{ $store->currency_symbol ?? 'Rs.' }}" onchange="updatePreview()">
+                <div class="row g-2">
+                    <div class="col-8 compact-field">
+                        <label class="form-label fw-600">Store Name</label>
+                        <input type="text" id="customStoreName" class="form-control" value="{{ $store->name ?? 'PUREPOS' }}" onchange="updatePreview()" oninput="updatePreview()">
+                    </div>
+                    <div class="col-4 compact-field">
+                        <label class="form-label fw-600">Currency</label>
+                        <input type="text" id="currencySymbol" class="form-control" value="{{ $store->currency_symbol ?? 'Rs.' }}" onchange="updatePreview()" oninput="updatePreview()">
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Product Filter -->
-        <div class="card cpos-card mb-3">
+        <div class="card cpos-card settings-card mb-3">
             <div class="card-header modal-cpos-header">
                 <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filter Products</h6>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label fw-600">Category</label>
-                    <select id="filterCategory" class="form-select" onchange="filterProducts()">
-                        <option value="">All Categories</option>
-                        @foreach($categories as $cat)
-                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="row g-2">
+                    <div class="col-6 compact-field">
+                        <label class="form-label fw-600">Category</label>
+                        <select id="filterCategory" class="form-select" onchange="filterProducts()">
+                            <option value="">All Categories</option>
+                            @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 compact-field">
+                        <label class="form-label fw-600">Search</label>
+                        <input type="text" id="filterSearch" class="form-control" placeholder="Search..." oninput="filterProducts()">
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-600">Search</label>
-                    <input type="text" id="filterSearch" class="form-control" placeholder="Search products..." oninput="filterProducts()">
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted"><span id="visibleCount">{{ $products->count() }}</span> visible</small>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <small class="text-muted"><span id="visibleCount">{{ $products->count() }}</span> visible | <span id="selectedCount">{{ $products->count() }}</span> selected</small>
                     <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="selectAllVisible()">Select All</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="selectAllVisible()">Select Visible</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">Deselect</button>
                     </div>
                 </div>
@@ -195,25 +211,69 @@
    SETTINGS PANEL STYLES
    ═══════════════════════════════════════════════════════════════ */
 .price-tag-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
     gap: 8px;
     justify-content: flex-start;
     transform-origin: top left;
 }
 
-/* Form switches in settings */
-.card-body .form-check.form-switch {
-    padding-left: 2.8em;
+.price-tags-page .settings-card {
+    border-radius: 8px;
 }
-.card-body .form-check.form-switch .form-check-input {
-    width: 36px;
-    height: 18px;
-    cursor: pointer;
+.price-tags-page .settings-card .card-header {
+    padding: 8px 12px;
 }
-.card-body .form-check-label {
+.price-tags-page .settings-card .card-body {
+    padding: 10px 12px;
+}
+.price-tags-page .compact-field .form-label {
+    font-size: 12px;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+.price-tags-page .settings-card .form-select,
+.price-tags-page .settings-card .form-control,
+.price-tags-page .settings-card .btn {
     font-size: 13px;
+}
+.price-tags-page .settings-card .form-select,
+.price-tags-page .settings-card .form-control {
+    min-height: 34px;
+    padding: 5px 9px;
+}
+.price-tags-page .copies-control .btn {
+    width: 32px;
+    padding-left: 0;
+    padding-right: 0;
+}
+.switch-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 10px;
+}
+
+/* Form switches in settings */
+.price-tags-page .card-body .form-check.form-switch {
+    min-height: 20px;
+    padding-left: 2.35em;
+}
+.price-tags-page .card-body .form-check.form-switch .form-check-input {
+    width: 32px;
+    height: 16px;
+    margin-left: -2.35em;
     cursor: pointer;
+}
+.price-tags-page .card-body .form-check-label {
+    font-size: 12px;
+    line-height: 1.25;
+    cursor: pointer;
+}
+
+@media (max-width: 1199.98px) {
+    .switch-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -380,6 +440,7 @@ let currentZoom = 100;
 function updatePreview() {
     const container = document.getElementById('priceTagPreview');
     const tagSize = document.getElementById('tagSize').value;
+    const columns = parseInt(document.getElementById('tagColumns').value) || 3;
     const copies = parseInt(document.getElementById('tagCopies').value) || 1;
     const showStoreName = document.getElementById('showStoreName').checked;
     const showProductName = document.getElementById('showProductName').checked;
@@ -396,13 +457,14 @@ function updatePreview() {
     const filterCat = document.getElementById('filterCategory').value;
     const filterSearch = document.getElementById('filterSearch').value.toLowerCase();
 
+    container.style.gridTemplateColumns = `repeat(${columns}, max-content)`;
+
     let html = '';
     let visibleCount = 0;
 
     allProducts.forEach((product, idx) => {
         // Apply filters
-        if (filterCat && product.category_id && product.category_id != filterCat) return;
-        if (filterSearch && !product.name.toLowerCase().includes(filterSearch) && !(product.sku || '').toLowerCase().includes(filterSearch)) return;
+        if (!productMatchesFilter(product, filterCat, filterSearch)) return;
 
         visibleCount++;
 
@@ -445,6 +507,7 @@ function updatePreview() {
 
     container.innerHTML = html || '<div class="text-center text-muted py-5"><i class="bi bi-tag fs-1 d-block mb-2"></i>No products to display</div>';
     document.getElementById('visibleCount').textContent = visibleCount;
+    document.getElementById('selectedCount').textContent = allProducts.filter(p => p.selected).length;
 
     // Render barcodes
     setTimeout(() => {
@@ -504,6 +567,45 @@ function escHtml(str) {
     return div.innerHTML;
 }
 
+function productMatchesFilter(product, filterCat = null, filterSearch = null) {
+    const category = filterCat ?? document.getElementById('filterCategory').value;
+    const search = filterSearch ?? document.getElementById('filterSearch').value.toLowerCase();
+
+    if (category && String(product.category_id || '') !== String(category)) return false;
+    if (search && !product.name.toLowerCase().includes(search) && !(product.sku || '').toLowerCase().includes(search)) return false;
+
+    return true;
+}
+
+function adjustCopies(delta) {
+    const input = document.getElementById('tagCopies');
+    const min = parseInt(input.min, 10) || 1;
+    const max = parseInt(input.max, 10) || 100;
+    const nextValue = Math.max(min, Math.min(max, (parseInt(input.value, 10) || min) + delta));
+
+    input.value = nextValue;
+    updatePreview();
+}
+
+function setDisplayOptions(checked) {
+    [
+        'showStoreName',
+        'showProductName',
+        'showSku',
+        'showBarcode',
+        'showBarcodeNumber',
+        'showPrice',
+        'showCategory',
+        'showUnit',
+        'showBorder',
+        'showDate',
+    ].forEach(id => {
+        document.getElementById(id).checked = checked;
+    });
+
+    updatePreview();
+}
+
 // ═══════════════════════════════════════════════════════════════
 // TOGGLE & FILTER
 // ═══════════════════════════════════════════════════════════════
@@ -513,7 +615,9 @@ function toggleProduct(index) {
 }
 
 function selectAllVisible() {
-    allProducts.forEach(p => p.selected = true);
+    allProducts.forEach(p => {
+        if (productMatchesFilter(p)) p.selected = true;
+    });
     updatePreview();
 }
 
