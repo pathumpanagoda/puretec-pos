@@ -213,6 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Console Log for Debug
     // ============================================
     console.log('%cNexfloit Admin Panel', 'color: #e94560; font-size: 20px; font-weight: bold;');
-    console.log('%cCeyloan POS Platform Management', 'color: #8a8a9a; font-size: 12px;');
+    console.log('%cPure POS Platform Management', 'color: #8a8a9a; font-size: 12px;');
 
 });

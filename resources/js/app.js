@@ -1,4 +1,4 @@
 import './bootstrap';
 
-// Ceylon POS JavaScript
-console.log('Ceylon POS loaded');
+// Pure POS JavaScript
+console.log('Pure POS loaded');

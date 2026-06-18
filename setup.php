@@ -1,6 +1,6 @@
 <?php
 /**
- * Ceylon POS - Browser-Based Setup Script
+ * Pure POS - Browser-Based Setup Script
  *
  * This script handles all installation tasks without requiring SSH access.
  * It performs: dependency installation, database migration, seeding, and optimization.
@@ -23,7 +23,7 @@ define('BASE_PATH', __DIR__);
 // Session for tracking progress
 session_start();
 
-class CeylonPOSInstaller
+class PurePOSInstaller
 {
     private $errors = [];
     private $messages = [];
@@ -574,7 +574,7 @@ class CeylonPOSInstaller
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
 
-    $installer = new CeylonPOSInstaller();
+    $installer = new PurePOSInstaller();
     $action = $_POST['action'];
 
     switch ($action) {
@@ -621,14 +621,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 // Display HTML interface
-$installer = new CeylonPOSInstaller();
+$installer = new PurePOSInstaller();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ceylon POS - Installation</title>
+    <title>Pure POS - Installation</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -783,7 +783,7 @@ $installer = new CeylonPOSInstaller();
 <body>
     <div class="container">
         <div class="header">
-            <h1>Ceylon POS</h1>
+            <h1>Pure POS</h1>
             <p>Installation Wizard</p>
         </div>
 
@@ -921,7 +921,7 @@ $installer = new CeylonPOSInstaller();
             <!-- Completion -->
             <div id="completion" style="display: none;">
                 <div class="alert alert-success">
-                    <strong>Installation Complete!</strong> Your Ceylon POS system is ready to use.
+                    <strong>Installation Complete!</strong> Your Pure POS system is ready to use.
                 </div>
 
                 <div class="credentials-box">
@@ -929,7 +929,7 @@ $installer = new CeylonPOSInstaller();
                     <table>
                         <tr>
                             <td>Super Admin Email:</td>
-                            <td><code>admin@ceylonpos.lk</code></td>
+                            <td><code>admin@purepos.lk</code></td>
                         </tr>
                         <tr>
                             <td>Super Admin Password:</td>
@@ -941,7 +941,7 @@ $installer = new CeylonPOSInstaller();
                         </tr>
                         <tr>
                             <td>Cashier Email:</td>
-                            <td><code>cashier@ceylonpos.lk</code></td>
+                            <td><code>cashier@purepos.lk</code></td>
                         </tr>
                         <tr>
                             <td>Cashier Password:</td>
@@ -959,7 +959,7 @@ $installer = new CeylonPOSInstaller();
                 </div>
 
                 <div style="text-align: center; margin-top: 30px;">
-                    <a href="/" class="btn btn-success">Go to Ceylon POS</a>
+                    <a href="/" class="btn btn-success">Go to Pure POS</a>
                 </div>
             </div>
 
@@ -1189,7 +1189,7 @@ $installer = new CeylonPOSInstaller();
 
         async function runAllSteps() {
             document.getElementById('btn-run-all').disabled = true;
-            document.getElementById('btn-run-all').innerHTML = '<span class="loading"></span>Installing Ceylon POS...';
+            document.getElementById('btn-run-all').innerHTML = '<span class="loading"></span>Installing Pure POS...';
 
             // Open all steps
             for (let i = 1; i <= 9; i++) {

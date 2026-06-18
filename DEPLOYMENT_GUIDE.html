@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ceylon POS - Live Server Deployment Guide</title>
+    <title>Pure POS - Live Server Deployment Guide</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
@@ -46,7 +46,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Ceylon POS</h1>
+            <h1>Pure POS</h1>
             <p>Live Server Deployment Guide</p>
             <p style="font-size: 0.9em; margin-top: 10px;">Browser-Only Method - No SSH/Command Line Required</p>
         </div>
@@ -55,7 +55,7 @@
             <!-- Introduction -->
             <div class="note info">
                 <div class="note-title">About This Guide</div>
-                This guide will help you deploy Ceylon POS to a live hosting server so your clients can access it from anywhere via the internet. No SSH, command line, PowerShell, or root access is required - only a web browser and cPanel file manager.
+                This guide will help you deploy Pure POS to a live hosting server so your clients can access it from anywhere via the internet. No SSH, command line, PowerShell, or root access is required - only a web browser and cPanel file manager.
             </div>
 
             <!-- Prerequisites -->
@@ -90,7 +90,7 @@
                         <li>Open your project folder</li>
                         <li>Select all files and folders</li>
                         <li>Right-click > "Send to" > "Compressed (zipped) folder"</li>
-                        <li>Name it <code>ceylon-pos.zip</code></li>
+                        <li>Name it <code>pure-pos.zip</code></li>
                     </ol>
 
                     <div class="note danger">
@@ -108,7 +108,7 @@
 
                     <p><strong>Files That MUST Be Included in ZIP:</strong></p>
                     <div class="folder-structure">
-<span class="folder">ceylon-pos/</span>
+<span class="folder">pure-pos/</span>
 ├── <span class="folder">app/</span>                 [OK] (Application code)
 ├── <span class="folder">bootstrap/</span>           [OK]
 ├── <span class="folder">config/</span>              [OK]
@@ -167,12 +167,12 @@ https://yourdomain.com/cpanel</pre>
                     <p><strong>3.2 Create New Database:</strong></p>
                     <ol>
                         <li>In the "Create New Database" section</li>
-                        <li>Enter database name: <code>ceylon_pos</code></li>
+                        <li>Enter database name: <code>pure_pos</code></li>
                         <li>Click "Create Database" button</li>
                     </ol>
                     <div class="note">
                         <div class="note-title">Note</div>
-                        cPanel automatically adds a prefix. Example: <code>username_ceylon_pos</code>
+                        cPanel automatically adds a prefix. Example: <code>username_pure_pos</code>
                         <br>Write down this full name - you need it for the .env file!
                     </div>
 
@@ -198,7 +198,7 @@ https://yourdomain.com/cpanel</pre>
                     <div class="note success">
                         <div class="note-title">Write Down These Details!</div>
                         <table>
-                            <tr><td>Database Name:</td><td><code>username_ceylon_pos</code></td></tr>
+                            <tr><td>Database Name:</td><td><code>username_pure_pos</code></td></tr>
                             <tr><td>Database User:</td><td><code>username_pos_user</code></td></tr>
                             <tr><td>Database Password:</td><td><code>your_generated_password</code></td></tr>
                             <tr><td>Database Host:</td><td><code>localhost</code></td></tr>
@@ -295,7 +295,7 @@ APP_URL=https://yourdomain.com
 DB_CONNECTION=mysql
 DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=username_ceylon_pos
+DB_DATABASE=username_pure_pos
 DB_USERNAME=username_pos_user
 DB_PASSWORD=your_database_password
 
@@ -436,8 +436,8 @@ POS_TIMEZONE=Asia/Colombo</pre>
                     <p><strong>9.2 Login with default credentials:</strong></p>
                     <table>
                         <tr><th>User Type</th><th>Email</th><th>Password</th><th>PIN</th></tr>
-                        <tr><td>Super Admin</td><td><code>admin@ceylonpos.lk</code></td><td><code>admin123</code></td><td><code>1234</code></td></tr>
-                        <tr><td>Cashier</td><td><code>cashier@ceylonpos.lk</code></td><td><code>cashier123</code></td><td><code>5678</code></td></tr>
+                        <tr><td>Super Admin</td><td><code>admin@purepos.lk</code></td><td><code>admin123</code></td><td><code>1234</code></td></tr>
+                        <tr><td>Cashier</td><td><code>cashier@purepos.lk</code></td><td><code>cashier123</code></td><td><code>5678</code></td></tr>
                     </table>
 
                     <div class="note danger">
@@ -584,7 +584,7 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]</pre>
             <!-- Success Message -->
             <div class="note success" style="text-align: center; margin-top: 30px;">
                 <div class="note-title">Congratulations!</div>
-                <p>Your Ceylon POS system is now live!</p>
+                <p>Your Pure POS system is now live!</p>
                 <p style="margin-top: 15px;">If you encounter any problems, contact your hosting provider's support team.</p>
                 <p style="margin-top: 10px; font-size: 0.9em;">Made with love for Sri Lankan businesses</p>
             </div>

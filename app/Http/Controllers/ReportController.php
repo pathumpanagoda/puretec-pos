@@ -898,7 +898,7 @@ class ReportController extends Controller
         $endDate = $request->get('to', now()->toDateString());
         $date = $request->get('date', now()->toDateString());
 
-        $filename = "ceylon_pos_{$report}_" . now()->format('Y-m-d_His') . ".csv";
+        $filename = "pure_pos_{$report}_" . now()->format('Y-m-d_His') . ".csv";
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",

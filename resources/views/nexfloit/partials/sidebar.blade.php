@@ -65,7 +65,7 @@
 
     <div class="sidebar-footer">
         <div class="system-info">
-            <small class="text-muted">Ceyloan POS Platform</small>
+            <small class="text-muted">Pure POS Platform</small>
             <small class="text-muted d-block">v1.0.0</small>
         </div>
     </div>

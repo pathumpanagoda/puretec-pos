@@ -569,7 +569,7 @@
 @push('scripts')
 <script>
 // ─────────────────────────────────────────────────────────
-//  Ceyloan POS — POS Screen JavaScript
+//  Pure POS — POS Screen JavaScript
 // ─────────────────────────────────────────────────────────
 const CSRF   = document.querySelector('meta[name="csrf-token"]').content;
 const Routes = {
@@ -1268,7 +1268,7 @@ function showReceiptModal(order, totals, paidAmount) {
         <div class="receipt-divider"></div>
         <div class="receipt-footer">
             <p class="footer-thanks">${storeInfo.footer}</p>
-            <p class="receipt-powered">Ceyloan POS &bull; Powered by Nexfloit</p>
+            <p class="receipt-powered">Pure POS &bull; Powered by Nexfloit</p>
         </div>
     `;
 
@@ -1757,7 +1757,7 @@ function showBillReceipt(order, totals) {
         <div class="receipt-divider"></div>
         <div class="receipt-footer">
             <p class="footer-thanks text-warning">Please proceed to main counter for payment</p>
-            <p class="receipt-powered">Ceyloan POS</p>
+            <p class="receipt-powered">Pure POS</p>
         </div>
     `;
 
@@ -2022,7 +2022,7 @@ function showApprovedReceipt(order, paidAmount) {
         <div class="receipt-divider"></div>
         <div class="receipt-footer">
             <p class="footer-thanks">${storeInfo.footer}</p>
-            <p class="receipt-powered">Ceyloan POS</p>
+            <p class="receipt-powered">Pure POS</p>
         </div>
     `;
 
@@ -2220,8 +2220,8 @@ document.addEventListener('keydown', e => {
 
 // ── Customer Display (Persistent Second Screen) ──────────────────────
 // Uses localStorage for persistent sync - display stays open across page navigations
-const CUSTOMER_DISPLAY_KEY = 'ceylon_pos_customer_display';
-const CUSTOMER_DISPLAY_ENABLED_KEY = 'ceylon_pos_display_enabled';
+const CUSTOMER_DISPLAY_KEY = 'pure_pos_customer_display';
+const CUSTOMER_DISPLAY_ENABLED_KEY = 'pure_pos_display_enabled';
 let customerDisplayWindow = null;
 
 // Auto-open customer display on POS load if was enabled
@@ -2251,7 +2251,7 @@ function openCustomerDisplay(silent = false) {
     // Open new window
     customerDisplayWindow = window.open(
         displayUrl,
-        'CeylonPOSCustomerDisplay',
+        'PurePOSCustomerDisplay',
         'width=' + screen.width + ',height=' + screen.height + ',menubar=no,toolbar=no,location=no,status=no'
     );
 

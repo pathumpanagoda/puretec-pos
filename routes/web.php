@@ -74,6 +74,7 @@ Route::middleware(['auth', 'tenant.scope', 'tenant.lock'])->group(function () {
     Route::post('/products/{product}/adjust-stock', [ProductController::class, 'adjustStock'])->name('products.adjust-stock');
     Route::post('/products/{product}/quick-update', [ProductController::class, 'quickUpdate'])->name('products.quick-update');
     Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+    Route::match(['get', 'post'], '/products/price-tags', [ProductController::class, 'priceTags'])->name('products.price-tags');
     // Resource routes (last)
     Route::resource('products', ProductController::class);
 

@@ -24,8 +24,8 @@
 
 {{-- Date Filter --}}
 <div class="cpos-card mb-4">
-    <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end">
+    <div class="card-body py-3 px-4">
+        <form method="GET" class="row g-3 align-items-end cpos-filter-form">
             <div class="col-md-3">
                 <label class="form-label">From</label>
                 <input type="date" name="from" class="form-control" value="{{ $startDate }}">
@@ -35,11 +35,13 @@
                 <input type="date" name="to" class="form-control" value="{{ $endDate }}">
             </div>
             <div class="col-md-2">
+                <label class="form-label d-none d-md-block">&nbsp;</label>
                 <button type="submit" class="btn-cpos btn-primary w-100">
                     <i class="bi bi-funnel"></i> Filter
                 </button>
             </div>
             <div class="col-md-4">
+                <label class="form-label d-none d-md-block">&nbsp;</label>
                 <div class="btn-group w-100">
                     <a href="{{ route('reports.expenses', ['from' => now()->startOfWeek()->toDateString(), 'to' => now()->toDateString()]) }}" class="btn btn-outline-secondary">This Week</a>
                     <a href="{{ route('reports.expenses', ['from' => now()->startOfMonth()->toDateString(), 'to' => now()->toDateString()]) }}" class="btn btn-outline-secondary">This Month</a>

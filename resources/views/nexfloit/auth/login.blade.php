@@ -87,7 +87,7 @@
             </form>
 
             <div class="login-footer">
-                <small class="text-muted">Ceyloan POS Platform Management</small>
+                <small class="text-muted">Pure POS Platform Management</small>
             </div>
         </div>
     </div>

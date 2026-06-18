@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Create the tenants table for multi-tenant SaaS system.
-     * Each tenant represents a business using Ceyloan POS.
+     * Each tenant represents a business using Pure POS.
      */
     public function up(): void
     {
