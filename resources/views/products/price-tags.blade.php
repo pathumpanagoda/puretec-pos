@@ -20,6 +20,7 @@
 <div class="row g-3 price-tags-page">
     <!-- Settings Panel -->
     <div class="col-lg-3">
+        <div class="settings-scroll-container">
         <!-- Product Filter -->
         <div class="card cpos-card settings-card mb-2">
             <div class="card-header modal-cpos-header">
@@ -318,6 +319,7 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
 
     <!-- Preview Panel -->
@@ -354,6 +356,25 @@
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS PANEL STYLES
    ═══════════════════════════════════════════════════════════════ */
+.settings-scroll-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+/* Style scrollbar for settings container to look sleek and fit the dark scheme */
+.settings-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+.settings-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+.settings-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+.settings-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
 .price-tag-grid {
     display: grid;
     grid-template-columns: repeat(3, max-content);
@@ -511,7 +532,7 @@
 }
 .price-tag .tag-name {
     font-size: 9px;
-    font-weight: 600;
+    font-weight: 400;
     color: #111;
     line-height: 1.2;
     margin-bottom: 2px;
@@ -862,8 +883,8 @@ function updatePreview() {
                              style="width:${config.w * mmToPx}px; height:${config.h * mmToPx}px; flex-direction: row; gap: 8px; text-align: left; align-items: center;" 
                              onclick="toggleProduct(${idx})" title="Click to toggle">
                     <div class="tag-left" style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding-right: 4px;">
-                        ${showStoreName ? `<div class="tag-store" style="font-size:${config.storeFont}pt; font-weight:600; text-transform:uppercase; letter-spacing:0.3mm; color:#333; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
-                        ${showProductName ? `<div class="tag-name" style="font-size:${config.nameFont}pt; font-weight:600; color:#111; line-height:1.2; margin-bottom: 2px; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;">${escHtml(product.name)}</div>` : ''}
+                        ${showStoreName ? `<div class="tag-store" style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.3mm; color:#333; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
+                        ${showProductName ? `<div class="tag-name" style="font-size:${config.nameFont}pt; font-weight:400; color:#000; line-height:1.2; margin-bottom: 2px; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;">${escHtml(product.name)}</div>` : ''}
                         ${showSku && product.sku ? `<div class="tag-sku" style="font-size:${config.skuFont}pt; color:#666; font-family: 'JetBrains Mono', monospace; margin-bottom: 2px;">${escHtml(product.sku)}</div>` : ''}
                         ${showCategory && product.category ? `<div class="tag-category" style="font-size:${config.skuFont}pt; color:#888; text-transform:uppercase; letter-spacing:0.5px;">${escHtml(product.category)}</div>` : ''}
                         ${showUnit ? `<div class="tag-unit" style="font-size:${config.skuFont}pt; color:#888;">per ${escHtml(product.unit)}</div>` : ''}
@@ -871,7 +892,7 @@ function updatePreview() {
                         ${!showBarcode && showBarcodeNumber && product.barcode ? `<div class="tag-barcode-num" style="font-size:${config.barcodeFont}pt; font-family: 'JetBrains Mono', monospace; color:#444; letter-spacing: 1px;">${escHtml(product.barcode)}</div>` : ''}
                     </div>
                     <div class="tag-right" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center;">
-                        ${showPrice ? `<div class="tag-price" style="font-size:${config.priceFont}pt; font-weight: 700; color: #000; line-height: 1; margin: 2px 0;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
+                        ${showPrice ? `<div class="tag-price" style="font-size:${config.priceFont}pt; font-weight: 400; color: #000; line-height: 1; margin: 2px 0;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
                     </div>
                     ${showDate ? `<div class="tag-date" style="font-size: 5px; color: #aaa; position: absolute; bottom: 2px; right: 4px;">${new Date().toLocaleDateString()}</div>` : ''}
                 </div>`;
@@ -879,14 +900,14 @@ function updatePreview() {
                 html += `<div class="price-tag ${borderClass} ${selectedClass}" 
                              style="width:${config.w * mmToPx}px; height:${config.h * mmToPx}px;" 
                              onclick="toggleProduct(${idx})" title="Click to toggle">
-                    ${showStoreName ? `<div class="tag-store" style="font-size:${config.storeFont}pt; font-weight:600; text-transform:uppercase; letter-spacing:0.5mm; color:#333; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
-                    ${showProductName ? `<div class="tag-name" style="font-size:${config.nameFont}pt; font-weight:600; color:#111; line-height:1.2; margin-bottom: 2px; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;">${escHtml(product.name)}</div>` : ''}
+                    ${showStoreName ? `<div class="tag-store" style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.5mm; color:#333; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
+                    ${showProductName ? `<div class="tag-name" style="font-size:${config.nameFont}pt; font-weight:400; color:#000; line-height:1.2; margin-bottom: 2px; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;">${escHtml(product.name)}</div>` : ''}
                     ${showSku && product.sku ? `<div class="tag-sku" style="font-size:${config.skuFont}pt; color:#666; font-family: 'JetBrains Mono', monospace; margin-bottom: 2px;">${escHtml(product.sku)}</div>` : ''}
-                    ${showBarcode && product.barcode ? `<div class="tag-barcode-visual" style="margin: 2px 0;"><svg id="${barcodeId}"></svg></div>` : ''}
-                    ${!showBarcode && showBarcodeNumber && product.barcode ? `<div class="tag-barcode-num" style="font-size:${config.barcodeFont}pt; font-family: 'JetBrains Mono', monospace; color:#444; letter-spacing: 1px;">${escHtml(product.barcode)}</div>` : ''}
-                    ${showPrice ? `<div class="tag-price" style="font-size:${config.priceFont}pt; font-weight: 700; color: #000; line-height: 1; margin: 2px 0;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
+                    ${showPrice ? `<div class="tag-price" style="font-size:${config.priceFont}pt; font-weight: 400; color: #000; line-height: 1; margin: 2px 0;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
                     ${showCategory && product.category ? `<div class="tag-category" style="font-size:${config.skuFont}pt; color:#888; text-transform:uppercase; letter-spacing:0.5px;">${escHtml(product.category)}</div>` : ''}
                     ${showUnit ? `<div class="tag-unit" style="font-size:${config.skuFont}pt; color:#888;">per ${escHtml(product.unit)}</div>` : ''}
+                    ${showBarcode && product.barcode ? `<div class="tag-barcode-visual" style="margin: 2px 0;"><svg id="${barcodeId}"></svg></div>` : ''}
+                    ${!showBarcode && showBarcodeNumber && product.barcode ? `<div class="tag-barcode-num" style="font-size:${config.barcodeFont}pt; font-family: 'JetBrains Mono', monospace; color:#444; letter-spacing: 1px;">${escHtml(product.barcode)}</div>` : ''}
                     ${showDate ? `<div class="tag-date" style="font-size: 5px; color: #aaa; position: absolute; bottom: 2px; right: 4px;">${new Date().toLocaleDateString()}</div>` : ''}
                 </div>`;
             }
@@ -1045,8 +1066,8 @@ function buildTagHtml(product, barcodeId, config, showStoreName, showProductName
         return `
         <div class="ptag ptag-shelf" style="width:${config.w}mm; height:${config.h}mm; ${borderStyle}">
             <div class="ptag-left" style="flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start;">
-                ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:600; text-transform:uppercase; letter-spacing:0.3mm; color:#333; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
-                ${showProductName ? `<div style="font-size:${config.nameFont}pt; font-weight:600; color:#111; line-height:1.2; margin:0.5mm 0; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: ${config.nameFont * 2.5}pt; width: 100%;">${escHtml(product.name)}</div>` : ''}
+                ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.3mm; color:#333; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
+                ${showProductName ? `<div style="font-size:${config.nameFont}pt; font-weight:200; color:#000; line-height:1.2; margin:0.5mm 0; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: ${config.nameFont * 2.5}pt; width: 100%;">${escHtml(product.name)}</div>` : ''}
                 ${showSku && product.sku ? `<div style="font-size:${config.skuFont}pt; color:#666; font-family:monospace; margin-bottom:0.5mm;">${escHtml(product.sku)}</div>` : ''}
                 ${showCategory && product.category ? `<div style="font-size:${config.skuFont}pt; color:#888; text-transform:uppercase;">${escHtml(product.category)}</div>` : ''}
                 ${showUnit ? `<div style="font-size:${config.skuFont}pt; color:#888;">per ${escHtml(product.unit)}</div>` : ''}
@@ -1054,21 +1075,21 @@ function buildTagHtml(product, barcodeId, config, showStoreName, showProductName
                 ${!showBarcode && showBarcodeNumber && product.barcode ? `<div style="font-size:${config.barcodeFont}pt; font-family:monospace; color:#444; letter-spacing:0.3mm;">${escHtml(product.barcode)}</div>` : ''}
             </div>
             <div class="ptag-right" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 0.5mm;">
-                ${showPrice ? `<div style="font-size:${config.priceFont}pt; font-weight:700; color:#000; line-height: 1;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
+                ${showPrice ? `<div style="font-size:${config.priceFont}pt; font-weight:500; color:#000; line-height: 1;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
             </div>
             ${showDate ? `<div style="position:absolute; bottom:0.5mm; right:2mm; font-size:4pt; color:#aaa;">${new Date().toLocaleDateString()}</div>` : ''}
         </div>`;
     } else {
         return `
         <div class="ptag" style="width:${config.w}mm; height:${config.h}mm; ${borderStyle}">
-            ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:600; text-transform:uppercase; letter-spacing:0.5mm; color:#333; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
-            ${showProductName ? `<div style="font-size:${config.nameFont}pt; font-weight:600; color:#111; line-height:1.2; margin:0.5mm 0; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: ${config.nameFont * 2.5}pt; width: 100%;">${escHtml(product.name)}</div>` : ''}
+            ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.5mm; color:#333; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
+            ${showProductName ? `<div style="font-size:${config.nameFont}pt; font-weight:400; color:#000; line-height:1.2; margin:0.5mm 0; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: ${config.nameFont * 2.5}pt; width: 100%;">${escHtml(product.name)}</div>` : ''}
             ${showSku && product.sku ? `<div style="font-size:${config.skuFont}pt; color:#666; font-family:monospace; margin-bottom:0.5mm;">${escHtml(product.sku)}</div>` : ''}
-            ${showBarcode && product.barcode ? `<div style="margin:0.5mm 0;"><svg id="${barcodeId}"></svg></div>` : ''}
-            ${!showBarcode && showBarcodeNumber && product.barcode ? `<div style="font-size:${config.barcodeFont}pt; font-family:monospace; color:#444; letter-spacing:0.3mm;">${escHtml(product.barcode)}</div>` : ''}
-            ${showPrice ? `<div style="font-size:${config.priceFont}pt; font-weight:700; color:#000; margin:0.5mm 0; line-height: 1;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
+            ${showPrice ? `<div style="font-size:${config.priceFont}pt; font-weight:400; color:#000; margin:0.5mm 0; line-height: 1;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
             ${showCategory && product.category ? `<div style="font-size:${config.skuFont}pt; color:#888; text-transform:uppercase; margin-bottom:0.5mm;">${escHtml(product.category)}</div>` : ''}
             ${showUnit ? `<div style="font-size:${config.skuFont}pt; color:#888;">per ${escHtml(product.unit)}</div>` : ''}
+            ${showBarcode && product.barcode ? `<div style="margin:0.5mm 0;"><svg id="${barcodeId}"></svg></div>` : ''}
+            ${!showBarcode && showBarcodeNumber && product.barcode ? `<div style="font-size:${config.barcodeFont}pt; font-family:monospace; color:#444; letter-spacing:0.3mm;">${escHtml(product.barcode)}</div>` : ''}
             ${showDate ? `<div style="position:absolute; bottom:0.5mm; right:2mm; font-size:4pt; color:#aaa;">${new Date().toLocaleDateString()}</div>` : ''}
         </div>`;
     }
