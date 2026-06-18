@@ -977,7 +977,8 @@ class ProductController extends Controller
         $query = Product::where('store_id', $storeId)->with('category')->where('is_active', true);
 
         // If specific product IDs are provided (from checkboxes)
-        if ($request->filled('ids')) {
+        $hasExplicitSelection = $request->filled('ids');
+        if ($hasExplicitSelection) {
             $ids = is_array($request->ids) ? $request->ids : explode(',', $request->ids);
             $query->whereIn('id', $ids);
         }
@@ -994,7 +995,7 @@ class ProductController extends Controller
         $categories = Category::where('store_id', $storeId)->where('is_active', true)->get();
 
         // Prepare product data for JS (avoid complex @json in Blade)
-        $productsJson = $products->map(function($p) {
+        $productsJson = $products->map(function($p) use ($hasExplicitSelection) {
             return [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -1004,7 +1005,7 @@ class ProductController extends Controller
                 'category' => $p->category?->name ?? '',
                 'category_id' => $p->category_id,
                 'unit' => $p->unit,
-                'selected' => true,
+                'selected' => $hasExplicitSelection,
             ];
         })->values();
 
