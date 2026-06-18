@@ -44,8 +44,8 @@
 
 
 <div class="cpos-card mb-4">
-    <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end">
+    <div class="card-body py-3 px-4">
+        <form method="GET" class="row g-3 align-items-end cpos-filter-form">
             <div class="col-md-3">
                 <label class="form-label small text-muted">From Date</label>
                 <input type="date" name="from" class="form-control" value="<?php echo e(request('from')); ?>">
@@ -67,12 +67,14 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
                 <button type="submit" class="btn-cpos btn-primary w-100">
                     <i class="bi bi-funnel"></i> Filter
                 </button>
             </div>
             <div class="col-md-1">
-                <a href="<?php echo e(route('expenses.index')); ?>" class="btn btn-outline-secondary w-100">Clear</a>
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
+                <a href="<?php echo e(route('expenses.index')); ?>" class="btn-cpos btn-outline-secondary w-100">Clear</a>
             </div>
         </form>
     </div>

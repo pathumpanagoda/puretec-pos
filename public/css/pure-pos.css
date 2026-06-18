@@ -1414,5 +1414,73 @@ a:hover { color: var(--cp-blue-400); }
   color: #c9a227 !important;
 }
 
+/* ── Custom Outline Buttons ────────────────────────────────────────── */
+.btn-cpos.btn-outline-secondary {
+  background: transparent;
+  border: 1.5px solid var(--cp-border) !important;
+  color: var(--cp-text) !important;
+}
+.btn-cpos.btn-outline-secondary:hover {
+  background: var(--cp-surface-alt) !important;
+  color: var(--cp-text) !important;
+  border-color: var(--cp-text-muted) !important;
+}
+.btn-cpos.btn-outline-primary {
+  background: transparent;
+  border: 1.5px solid var(--cp-primary) !important;
+  color: var(--cp-primary) !important;
+}
+.btn-cpos.btn-outline-primary:hover {
+  background: rgba(201, 162, 39, 0.08) !important;
+  color: var(--cp-primary-light) !important;
+  border-color: var(--cp-primary-light) !important;
+}
 
-
+/* ── Unified Filter Form Layout ────────────────────────────────────── */
+.cpos-filter-form {
+  align-items: flex-end !important;
+}
+.cpos-filter-form .form-control,
+.cpos-filter-form .form-select,
+.cpos-filter-form .btn-cpos,
+.cpos-filter-form .btn {
+  height: 44px;
+  min-height: 44px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+}
+.cpos-filter-form .form-control,
+.cpos-filter-form .form-select {
+  padding-top: 0;
+  padding-bottom: 0;
+  border-radius: var(--cp-radius-md); /* 10px */
+}
+.cpos-filter-form .btn-cpos,
+.cpos-filter-form .btn {
+  padding-top: 0;
+  padding-bottom: 0;
+  justify-content: center;
+  border-radius: var(--cp-radius-md); /* 10px */
+}
+.cpos-filter-form .input-group {
+  height: 44px;
+}
+.cpos-filter-form .input-group-text {
+  min-height: 44px;
+  border-radius: var(--cp-radius-md) 0 0 var(--cp-radius-md);
+  display: inline-flex;
+  align-items: center;
+}
+.cpos-filter-form .input-group .form-control {
+  border-radius: 0 var(--cp-radius-md) var(--cp-radius-md) 0;
+}
+.cpos-filter-form .btn-group .btn {
+  border-radius: 0;
+}
+.cpos-filter-form .btn-group .btn:first-child {
+  border-radius: var(--cp-radius-md) 0 0 var(--cp-radius-md);
+}
+.cpos-filter-form .btn-group .btn:last-child {
+  border-radius: 0 var(--cp-radius-md) var(--cp-radius-md) 0;
+}

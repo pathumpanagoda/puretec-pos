@@ -45,14 +45,16 @@
 
 <div class="cpos-card mb-4">
     <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end">
+        <form method="GET" class="row g-2 align-items-end cpos-filter-form">
             <div class="col-md-2">
+                <label class="form-label small text-muted">Search</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control" placeholder="Search..." value="<?php echo e(request('search')); ?>">
                 </div>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted">Category</label>
                 <select name="category" class="form-select">
                     <option value="">All Categories</option>
                     <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -61,6 +63,7 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted">Method</label>
                 <select name="method" class="form-select">
                     <option value="">All Methods</option>
                     <option value="cash" <?php echo e(request('method') == 'cash' ? 'selected' : ''); ?>>Cash</option>
@@ -70,16 +73,20 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted">From Date</label>
                 <input type="date" name="from" class="form-control" value="<?php echo e(request('from')); ?>">
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted">To Date</label>
                 <input type="date" name="to" class="form-control" value="<?php echo e(request('to')); ?>">
             </div>
             <div class="col-md-1">
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
                 <button type="submit" class="btn-cpos btn-primary w-100"><i class="bi bi-search"></i></button>
             </div>
             <div class="col-md-1">
-                <a href="<?php echo e(route('incomes.index')); ?>" class="btn btn-outline-secondary w-100">Clear</a>
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
+                <a href="<?php echo e(route('incomes.index')); ?>" class="btn-cpos btn-outline-secondary w-100">Clear</a>
             </div>
         </form>
     </div>

@@ -54,8 +54,9 @@
 {{-- Filters --}}
 <div class="cpos-card mb-4">
     <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end">
+        <form method="GET" class="row g-2 align-items-end cpos-filter-form">
             <div class="col-md-3">
+                <label class="form-label small text-muted">Search Order</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control"
@@ -63,6 +64,7 @@
                 </div>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted">Status</label>
                 <select name="status" class="form-select">
                     <option value="">All Status</option>
                     <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
@@ -72,18 +74,22 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted">From Date</label>
                 <input type="date" name="from" class="form-control" placeholder="From" value="{{ request('from') }}">
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted">To Date</label>
                 <input type="date" name="to" class="form-control" placeholder="To" value="{{ request('to') }}">
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
                 <button type="submit" class="btn-cpos btn-primary w-100">
                     <i class="bi bi-search"></i> Filter
                 </button>
             </div>
             <div class="col-md-1">
-                <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary w-100">Clear</a>
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
+                <a href="{{ route('orders.index') }}" class="btn-cpos btn-outline-secondary w-100">Clear</a>
             </div>
         </form>
     </div>
