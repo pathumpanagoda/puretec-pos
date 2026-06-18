@@ -1057,8 +1057,6 @@ function zoomPreview(dir) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// BUILD TAG HTML (unified tag generator for screen and print)
-// ═══════════════════════════════════════════════════════════════
 function buildTagHtml(product, barcodeId, config, showStoreName, showProductName, showSku, showBarcode, showBarcodeNumber, showPrice, showCategory, showUnit, showBorder, showDate, storeName, currency) {
     const borderStyle = showBorder ? 'border: 0.3mm dashed #999;' : 'border: none;';
     
@@ -1066,31 +1064,31 @@ function buildTagHtml(product, barcodeId, config, showStoreName, showProductName
         return `
         <div class="ptag ptag-shelf" style="width:${config.w}mm; height:${config.h}mm; ${borderStyle}">
             <div class="ptag-left" style="flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start;">
-                ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.3mm; color:#333; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
+                ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.3mm; color:#000; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
                 ${showProductName ? `<div style="font-size:${config.nameFont}pt; font-weight:400; font-family: Arial, sans-serif; color:#000; line-height:1.2; margin:0.5mm 0; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: ${config.nameFont * 2.5}pt; width: 100%;">${escHtml(product.name)}</div>` : ''}
-                ${showSku && product.sku ? `<div style="font-size:${config.skuFont}pt; color:#666; font-family:monospace; margin-bottom:0.5mm;">${escHtml(product.sku)}</div>` : ''}
-                ${showCategory && product.category ? `<div style="font-size:${config.skuFont}pt; color:#888; text-transform:uppercase;">${escHtml(product.category)}</div>` : ''}
-                ${showUnit ? `<div style="font-size:${config.skuFont}pt; color:#888;">per ${escHtml(product.unit)}</div>` : ''}
+                ${showSku && product.sku ? `<div style="font-size:${config.skuFont}pt; color:#000; font-family:monospace; margin-bottom:0.5mm;">${escHtml(product.sku)}</div>` : ''}
+                ${showCategory && product.category ? `<div style="font-size:${config.skuFont}pt; color:#000; text-transform:uppercase;">${escHtml(product.category)}</div>` : ''}
+                ${showUnit ? `<div style="font-size:${config.skuFont}pt; color:#000;">per ${escHtml(product.unit)}</div>` : ''}
                 ${showBarcode && product.barcode ? `<div style="margin: 0.5mm 0;"><svg id="${barcodeId}"></svg></div>` : ''}
-                ${!showBarcode && showBarcodeNumber && product.barcode ? `<div style="font-size:${config.barcodeFont}pt; font-family:monospace; color:#444; letter-spacing:0.3mm;">${escHtml(product.barcode)}</div>` : ''}
+                ${!showBarcode && showBarcodeNumber && product.barcode ? `<div style="font-size:${config.barcodeFont}pt; font-family:monospace; color:#000; letter-spacing:0.3mm;">${escHtml(product.barcode)}</div>` : ''}
             </div>
             <div class="ptag-right" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 0.5mm;">
                 ${showPrice ? `<div style="font-size:${config.priceFont}pt; font-weight:400; font-family: Arial, sans-serif; color:#000; line-height: 1;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
             </div>
-            ${showDate ? `<div style="position:absolute; bottom:0.5mm; right:2mm; font-size:4pt; color:#aaa;">${new Date().toLocaleDateString()}</div>` : ''}
+            ${showDate ? `<div style="position:absolute; bottom:0.5mm; right:2mm; font-size:5.5pt; color:#000;">${new Date().toLocaleDateString()}</div>` : ''}
         </div>`;
     } else {
         return `
         <div class="ptag" style="width:${config.w}mm; height:${config.h}mm; ${borderStyle}">
-            ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.5mm; color:#333; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
+            ${showStoreName ? `<div style="font-size:${config.storeFont}pt; font-weight:500; text-transform:uppercase; letter-spacing:0.5mm; color:#000; margin-bottom:0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${escHtml(storeName)}</div>` : ''}
             ${showProductName ? `<div style="font-size:${config.nameFont}pt; font-weight:400; font-family: Arial, sans-serif; color:#000; line-height:1.2; margin:0.5mm 0; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: ${config.nameFont * 2.5}pt; width: 100%;">${escHtml(product.name)}</div>` : ''}
-            ${showSku && product.sku ? `<div style="font-size:${config.skuFont}pt; color:#666; font-family:monospace; margin-bottom:0.5mm;">${escHtml(product.sku)}</div>` : ''}
+            ${showSku && product.sku ? `<div style="font-size:${config.skuFont}pt; color:#000; font-family:monospace; margin-bottom:0.5mm;">${escHtml(product.sku)}</div>` : ''}
             ${showPrice ? `<div style="font-size:${config.priceFont}pt; font-weight:400; font-family: Arial, sans-serif; color:#000; margin:0.5mm 0; line-height: 1;">${escHtml(currency)} ${formatPrice(product.selling_price)}</div>` : ''}
-            ${showCategory && product.category ? `<div style="font-size:${config.skuFont}pt; color:#888; text-transform:uppercase; margin-bottom:0.5mm;">${escHtml(product.category)}</div>` : ''}
-            ${showUnit ? `<div style="font-size:${config.skuFont}pt; color:#888;">per ${escHtml(product.unit)}</div>` : ''}
+            ${showCategory && product.category ? `<div style="font-size:${config.skuFont}pt; color:#000; text-transform:uppercase; margin-bottom:0.5mm;">${escHtml(product.category)}</div>` : ''}
+            ${showUnit ? `<div style="font-size:${config.skuFont}pt; color:#000;">per ${escHtml(product.unit)}</div>` : ''}
             ${showBarcode && product.barcode ? `<div style="margin:0.5mm 0;"><svg id="${barcodeId}"></svg></div>` : ''}
-            ${!showBarcode && showBarcodeNumber && product.barcode ? `<div style="font-size:${config.barcodeFont}pt; font-family:monospace; color:#444; letter-spacing:0.3mm;">${escHtml(product.barcode)}</div>` : ''}
-            ${showDate ? `<div style="position:absolute; bottom:0.5mm; right:2mm; font-size:4pt; color:#aaa;">${new Date().toLocaleDateString()}</div>` : ''}
+            ${!showBarcode && showBarcodeNumber && product.barcode ? `<div style="font-size:${config.barcodeFont}pt; font-family:monospace; color:#000; letter-spacing:0.3mm;">${escHtml(product.barcode)}</div>` : ''}
+            ${showDate ? `<div style="position:absolute; bottom:0.5mm; right:2mm; font-size:5.5pt; color:#000;">${new Date().toLocaleDateString()}</div>` : ''}
         </div>`;
     }
 }
