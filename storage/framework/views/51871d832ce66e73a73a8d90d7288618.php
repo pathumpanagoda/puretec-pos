@@ -921,6 +921,9 @@ function updatePreview() {
             }
         });
     }, 50);
+
+    // Save settings
+    saveSettings();
 }
 
 function detectBarcodeFormat(barcode) {
@@ -1301,8 +1304,124 @@ function printPriceTags() {
     printWindow.document.close();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// SAVE & LOAD SETTINGS (localStorage Persistence)
+// ═══════════════════════════════════════════════════════════════
+const storageKey = 'cpos_price_tag_settings';
+
+function saveSettings() {
+    const settings = {
+        tagSize: document.getElementById('tagSize').value,
+        tagColumns: document.getElementById('tagColumns').value,
+        tagCopies: document.getElementById('tagCopies').value,
+        paperSize: document.getElementById('paperSize').value,
+        customTagWidth: document.getElementById('customTagWidth').value,
+        customTagHeight: document.getElementById('customTagHeight').value,
+        layoutType: document.getElementById('layoutType').value,
+        customPaperWidth: document.getElementById('customPaperWidth').value,
+        customPaperHeight: document.getElementById('customPaperHeight').value,
+        marginTop: document.getElementById('marginTop').value,
+        marginBottom: document.getElementById('marginBottom').value,
+        marginLeft: document.getElementById('marginLeft').value,
+        marginRight: document.getElementById('marginRight').value,
+        gapHorizontal: document.getElementById('gapHorizontal').value,
+        gapVertical: document.getElementById('gapVertical').value,
+        fontStore: document.getElementById('fontStore').value,
+        fontName: document.getElementById('fontName').value,
+        fontSku: document.getElementById('fontSku').value,
+        fontPrice: document.getElementById('fontPrice').value,
+        barcodeSymbology: document.getElementById('barcodeSymbology').value,
+        barcodeBarWidth: document.getElementById('barcodeBarWidth').value,
+        barcodeBarHeight: document.getElementById('barcodeBarHeight').value,
+        
+        // Display options
+        showStoreName: document.getElementById('showStoreName').checked,
+        showProductName: document.getElementById('showProductName').checked,
+        showSku: document.getElementById('showSku').checked,
+        showBarcode: document.getElementById('showBarcode').checked,
+        showBarcodeNumber: document.getElementById('showBarcodeNumber').checked,
+        showPrice: document.getElementById('showPrice').checked,
+        showCategory: document.getElementById('showCategory').checked,
+        showUnit: document.getElementById('showUnit').checked,
+        showBorder: document.getElementById('showBorder').checked,
+        showDate: document.getElementById('showDate').checked,
+        
+        // Store Info
+        customStoreName: document.getElementById('customStoreName').value,
+        currencySymbol: document.getElementById('currencySymbol').value
+    };
+    
+    localStorage.setItem(storageKey, JSON.stringify(settings));
+}
+
+function loadSettings() {
+    try {
+        const saved = localStorage.getItem(storageKey);
+        if (!saved) return;
+        
+        const settings = JSON.parse(saved);
+        
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && val !== undefined) el.value = val;
+        };
+        const setCheck = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && val !== undefined) el.checked = !!val;
+        };
+        
+        setVal('tagSize', settings.tagSize);
+        setVal('tagColumns', settings.tagColumns);
+        setVal('tagCopies', settings.tagCopies);
+        setVal('paperSize', settings.paperSize);
+        setVal('customTagWidth', settings.customTagWidth);
+        setVal('customTagHeight', settings.customTagHeight);
+        setVal('layoutType', settings.layoutType);
+        setVal('customPaperWidth', settings.customPaperWidth);
+        setVal('customPaperHeight', settings.customPaperHeight);
+        setVal('marginTop', settings.marginTop);
+        setVal('marginBottom', settings.marginBottom);
+        setVal('marginLeft', settings.marginLeft);
+        setVal('marginRight', settings.marginRight);
+        setVal('gapHorizontal', settings.gapHorizontal);
+        setVal('gapVertical', settings.gapVertical);
+        setVal('fontStore', settings.fontStore);
+        setVal('fontName', settings.fontName);
+        setVal('fontSku', settings.fontSku);
+        setVal('fontPrice', settings.fontPrice);
+        setVal('barcodeSymbology', settings.barcodeSymbology);
+        setVal('barcodeBarWidth', settings.barcodeBarWidth);
+        setVal('barcodeBarHeight', settings.barcodeBarHeight);
+        
+        setCheck('showStoreName', settings.showStoreName);
+        setCheck('showProductName', settings.showProductName);
+        setCheck('showSku', settings.showSku);
+        setCheck('showBarcode', settings.showBarcode);
+        setCheck('showBarcodeNumber', settings.showBarcodeNumber);
+        setCheck('showPrice', settings.showPrice);
+        setCheck('showCategory', settings.showCategory);
+        setCheck('showUnit', settings.showUnit);
+        setCheck('showBorder', settings.showBorder);
+        setCheck('showDate', settings.showDate);
+        
+        setVal('customStoreName', settings.customStoreName);
+        setVal('currencySymbol', settings.currencySymbol);
+        
+        if (settings.paperSize === 'custom') {
+            document.getElementById('customPaperDimContainer').style.display = 'block';
+        } else {
+            document.getElementById('customPaperDimContainer').style.display = 'none';
+        }
+    } catch (e) {
+        console.error("Error loading settings from localStorage:", e);
+    }
+}
+
 // Initial render
-document.addEventListener('DOMContentLoaded', updatePreview);
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    updatePreview();
+});
 </script>
 <?php $__env->stopPush(); ?>
 
