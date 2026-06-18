@@ -44,21 +44,24 @@
 
 
 <div class="cpos-card mb-4">
-    <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end">
+    <div class="card-body py-3 px-4">
+        <form method="GET" class="row g-3 align-items-end cpos-filter-form">
             <div class="col-md-8">
+                <label class="form-label small text-muted">Search</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control" placeholder="Search by supplier name, company, phone..." value="<?php echo e(request('search')); ?>">
                 </div>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
                 <button type="submit" class="btn-cpos btn-primary w-100">
                     <i class="bi bi-search"></i> Search
                 </button>
             </div>
             <div class="col-md-2">
-                <a href="<?php echo e(route('suppliers.index')); ?>" class="btn btn-outline-secondary w-100">Clear</a>
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
+                <a href="<?php echo e(route('suppliers.index')); ?>" class="btn-cpos btn-outline-secondary w-100">Clear</a>
             </div>
         </form>
     </div>

@@ -24,8 +24,8 @@
 
 {{-- Date Filter --}}
 <div class="cpos-card mb-4">
-    <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end cpos-filter-form">
+    <div class="card-body py-3 px-4">
+        <form method="GET" class="row g-3 align-items-end cpos-filter-form">
             <div class="col-md-3">
                 <label class="form-label">From</label>
                 <input type="date" name="from" class="form-control" value="{{ $startDate }}">

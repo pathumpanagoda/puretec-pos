@@ -51,15 +51,17 @@
 
 
 <div class="cpos-card mb-4">
-    <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end">
+    <div class="card-body py-3 px-4">
+        <form method="GET" class="row g-3 align-items-end cpos-filter-form">
             <div class="col-md-5">
+                <label class="form-label small text-muted">Search</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control" placeholder="Search by name, phone, email..." value="<?php echo e(request('search')); ?>">
                 </div>
             </div>
             <div class="col-md-3">
+                <label class="form-label small text-muted">Group</label>
                 <select name="group" class="form-select">
                     <option value="">All Groups</option>
                     <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -68,12 +70,14 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
                 <button type="submit" class="btn-cpos btn-primary w-100">
                     <i class="bi bi-funnel"></i> Filter
                 </button>
             </div>
             <div class="col-md-2">
-                <a href="<?php echo e(route('customers.index')); ?>" class="btn btn-outline-secondary w-100">Clear</a>
+                <label class="form-label small text-muted d-none d-md-block">&nbsp;</label>
+                <a href="<?php echo e(route('customers.index')); ?>" class="btn-cpos btn-outline-secondary w-100">Clear</a>
             </div>
         </form>
     </div>

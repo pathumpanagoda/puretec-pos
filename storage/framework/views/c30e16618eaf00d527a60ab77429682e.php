@@ -44,8 +44,8 @@
 
 
 <div class="cpos-card mb-4">
-    <div class="card-body py-3">
-        <form method="GET" class="row g-2 align-items-end cpos-filter-form">
+    <div class="card-body py-3 px-4">
+        <form method="GET" class="row g-3 align-items-end cpos-filter-form">
             <div class="col-md-2">
                 <label class="form-label small text-muted">Search</label>
                 <div class="input-group">
