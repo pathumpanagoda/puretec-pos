@@ -10,7 +10,9 @@ return new class extends Migration
     public function up(): void
     {
         // Add 'pending_payment' to status enum
-        DB::statement("ALTER TABLE orders MODIFY status ENUM('pending','processing','completed','cancelled','refunded','on_hold','pending_payment') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY status ENUM('pending','processing','completed','cancelled','refunded','on_hold','pending_payment') DEFAULT 'pending'");
+        }
 
         Schema::table('orders', function (Blueprint $table) {
             $table->foreignId('billed_by')->nullable()->after('user_id')->constrained('users')->nullOnDelete();
@@ -29,6 +31,8 @@ return new class extends Migration
         });
 
         // Revert status enum
-        DB::statement("ALTER TABLE orders MODIFY status ENUM('pending','processing','completed','cancelled','refunded','on_hold') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY status ENUM('pending','processing','completed','cancelled','refunded','on_hold') DEFAULT 'pending'");
+        }
     }
 };

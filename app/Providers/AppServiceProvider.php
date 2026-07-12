@@ -12,7 +12,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // When running inside Electron, redirect storage to AppData
+        $electronStoragePath = env('ELECTRON_STORAGE_PATH');
+        if ($electronStoragePath) {
+            $this->app->useStoragePath($electronStoragePath);
+        }
     }
 
     /**

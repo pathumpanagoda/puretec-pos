@@ -1,0 +1,141 @@
+{
+  "name": "puretec-pos",
+  "version": "1.0.0",
+  "description": "PureTec POS - Professional Point of Sale System",
+  "main": "main.js",
+  "author": "Nexfloit",
+  "license": "proprietary",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "pack": "electron-builder --dir",
+    "download-php": "powershell -ExecutionPolicy Bypass -File ../scripts/download-php.ps1",
+    "prebuild": "node prebuild.js"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.0",
+    "electron-updater": "^6.1.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.0"
+  },
+  "build": {
+    "appId": "com.nexfloit.puretec-pos",
+    "productName": "PureTec POS",
+    "copyright": "Copyright © 2026 Nexfloit",
+    "directories": {
+      "output": "../dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "splash.html",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../app",
+        "to": "laravel/app",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../bootstrap",
+        "to": "laravel/bootstrap",
+        "filter": ["**/*", "!cache/*.php"]
+      },
+      {
+        "from": "../config",
+        "to": "laravel/config",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../database/migrations",
+        "to": "laravel/database/migrations",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../database/seeders",
+        "to": "laravel/database/seeders",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../public",
+        "to": "laravel/public",
+        "filter": ["**/*", "!error_log"]
+      },
+      {
+        "from": "../resources",
+        "to": "laravel/resources",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../routes",
+        "to": "laravel/routes",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../storage",
+        "to": "laravel/storage",
+        "filter": [
+          "app/**/*",
+          "framework/cache/.gitignore",
+          "framework/sessions/.gitignore",
+          "framework/views/.gitignore",
+          "logs/.gitignore"
+        ]
+      },
+      {
+        "from": "../vendor",
+        "to": "laravel/vendor",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../artisan",
+        "to": "laravel/artisan"
+      },
+      {
+        "from": "../.env.electron",
+        "to": "laravel/.env"
+      },
+      {
+        "from": "php",
+        "to": "php",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PureTec POS",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "license": null
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "nexfloit",
+        "repo": "puretec-pos-releases"
+      }
+    ]
+  }
+}

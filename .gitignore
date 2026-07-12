@@ -18,3 +18,8 @@ yarn-error.log
 /.vscode
 /deploy-package
 *.zip
+
+# Electron
+/dist
+/electron/php
+/electron/node_modules
