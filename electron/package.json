@@ -98,6 +98,10 @@
         "to": "laravel/artisan"
       },
       {
+        "from": "../server.php",
+        "to": "laravel/server.php"
+      },
+      {
         "from": "../.env.electron",
         "to": "laravel/.env"
       },

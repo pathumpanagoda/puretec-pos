@@ -223,7 +223,7 @@ function startPhpServer() {
     phpProcess = spawn(phpPath, [
       '-S', `127.0.0.1:${PHP_PORT}`,
       '-t', publicPath,
-      path.join(publicPath, 'index.php'),
+      path.join(resourcesPath, 'server.php'),
     ], {
       cwd: resourcesPath,
       env: {
