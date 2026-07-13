@@ -52,6 +52,7 @@ function ensureDirectories() {
     logsDir,
     storageDir,
     path.join(storageDir, 'app', 'public'),
+    path.join(storageDir, 'framework', 'cache'),
     path.join(storageDir, 'framework', 'cache', 'data'),
     path.join(storageDir, 'framework', 'sessions'),
     path.join(storageDir, 'framework', 'views'),
@@ -64,6 +65,22 @@ function ensureDirectories() {
       log.info(`Created directory: ${dir}`);
     }
   });
+}
+
+// Helper to get environment variables for PHP/Laravel processes
+function getLaravelEnv() {
+  return {
+    ...process.env,
+    APP_URL: `http://127.0.0.1:${PHP_PORT}`,
+    DB_CONNECTION: 'sqlite',
+    DB_DATABASE: dbPath,
+    ELECTRON_STORAGE_PATH: storageDir,
+    APP_SERVICES_CACHE: path.join(storageDir, 'framework', 'cache', 'services.php'),
+    APP_PACKAGES_CACHE: path.join(storageDir, 'framework', 'cache', 'packages.php'),
+    APP_CONFIG_CACHE: path.join(storageDir, 'framework', 'cache', 'config.php'),
+    APP_ROUTES_CACHE: path.join(storageDir, 'framework', 'cache', 'routes-v7.php'),
+    APP_EVENTS_CACHE: path.join(storageDir, 'framework', 'cache', 'events.php'),
+  };
 }
 
 // ─── Environment File ───────────────────────────────────────────────────────────
@@ -79,6 +96,12 @@ function setupEnvironment() {
   const dbPathNormalized = dbPath.replace(/\\/g, '/');
   const storagePathNormalized = storageDir.replace(/\\/g, '/');
 
+  const servicesCachePathNormalized = path.join(storageDir, 'framework', 'cache', 'services.php').replace(/\\/g, '/');
+  const packagesCachePathNormalized = path.join(storageDir, 'framework', 'cache', 'packages.php').replace(/\\/g, '/');
+  const configCachePathNormalized = path.join(storageDir, 'framework', 'cache', 'config.php').replace(/\\/g, '/');
+  const routesCachePathNormalized = path.join(storageDir, 'framework', 'cache', 'routes-v7.php').replace(/\\/g, '/');
+  const eventsCachePathNormalized = path.join(storageDir, 'framework', 'cache', 'events.php').replace(/\\/g, '/');
+
   if (isDev) {
     // In dev mode, just create an override file (Laravel loads .env by default,
     // but we pass env vars directly to PHP process anyway)
@@ -87,6 +110,11 @@ APP_URL=http://127.0.0.1:${PHP_PORT}
 DB_CONNECTION=sqlite
 DB_DATABASE="${dbPathNormalized}"
 ELECTRON_STORAGE_PATH="${storagePathNormalized}"
+APP_SERVICES_CACHE="${servicesCachePathNormalized}"
+APP_PACKAGES_CACHE="${packagesCachePathNormalized}"
+APP_CONFIG_CACHE="${configCachePathNormalized}"
+APP_ROUTES_CACHE="${routesCachePathNormalized}"
+APP_EVENTS_CACHE="${eventsCachePathNormalized}"
 `;
     fs.writeFileSync(envPath, overrideContent);
     log.info(`Electron env override written to: ${envPath}`);
@@ -97,25 +125,23 @@ ELECTRON_STORAGE_PATH="${storagePathNormalized}"
       envContent = fs.readFileSync(envPath, 'utf-8');
     }
 
-    // Replace or add DB_DATABASE
-    if (envContent.includes('DB_DATABASE=')) {
-      envContent = envContent.replace(
-        /DB_DATABASE=.*/,
-        `DB_DATABASE="${dbPathNormalized}"`
-      );
-    } else {
-      envContent += `\nDB_DATABASE="${dbPathNormalized}"`;
-    }
+    // Helper to replace or append
+    const setEnvVar = (key, value) => {
+      const regex = new RegExp(`^${key}=.*`, 'm');
+      if (envContent.match(regex)) {
+        envContent = envContent.replace(regex, `${key}="${value}"`);
+      } else {
+        envContent += `\n${key}="${value}"`;
+      }
+    };
 
-    // Add ELECTRON_STORAGE_PATH
-    if (envContent.includes('ELECTRON_STORAGE_PATH=')) {
-      envContent = envContent.replace(
-        /ELECTRON_STORAGE_PATH=.*/,
-        `ELECTRON_STORAGE_PATH="${storagePathNormalized}"`
-      );
-    } else {
-      envContent += `\nELECTRON_STORAGE_PATH="${storagePathNormalized}"`;
-    }
+    setEnvVar('DB_DATABASE', dbPathNormalized);
+    setEnvVar('ELECTRON_STORAGE_PATH', storagePathNormalized);
+    setEnvVar('APP_SERVICES_CACHE', servicesCachePathNormalized);
+    setEnvVar('APP_PACKAGES_CACHE', packagesCachePathNormalized);
+    setEnvVar('APP_CONFIG_CACHE', configCachePathNormalized);
+    setEnvVar('APP_ROUTES_CACHE', routesCachePathNormalized);
+    setEnvVar('APP_EVENTS_CACHE', eventsCachePathNormalized);
 
     // Set APP_URL
     envContent = envContent.replace(
@@ -145,13 +171,7 @@ function setupDatabase() {
     const artisanPath = path.join(resourcesPath, 'artisan');
     const migrateProcess = spawn(phpPath, [artisanPath, 'migrate', '--force'], {
       cwd: resourcesPath,
-      env: {
-        ...process.env,
-        APP_URL: `http://127.0.0.1:${PHP_PORT}`,
-        DB_CONNECTION: 'sqlite',
-        DB_DATABASE: dbPath,
-        ELECTRON_STORAGE_PATH: storageDir,
-      },
+      env: getLaravelEnv(),
     });
 
     let output = '';
@@ -172,13 +192,7 @@ function setupDatabase() {
           log.info('Fresh database detected. Running seeders...');
           const seedProcess = spawn(phpPath, [artisanPath, 'db:seed', '--force'], {
             cwd: resourcesPath,
-            env: {
-              ...process.env,
-              APP_URL: `http://127.0.0.1:${PHP_PORT}`,
-              DB_CONNECTION: 'sqlite',
-              DB_DATABASE: dbPath,
-              ELECTRON_STORAGE_PATH: storageDir,
-            },
+            env: getLaravelEnv(),
           });
 
           seedProcess.stdout.on('data', (data) => {
@@ -226,13 +240,7 @@ function startPhpServer() {
       path.join(resourcesPath, 'server.php'),
     ], {
       cwd: resourcesPath,
-      env: {
-        ...process.env,
-        APP_URL: `http://127.0.0.1:${PHP_PORT}`,
-        DB_CONNECTION: 'sqlite',
-        DB_DATABASE: dbPath,
-        ELECTRON_STORAGE_PATH: storageDir,
-      },
+      env: getLaravelEnv(),
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 

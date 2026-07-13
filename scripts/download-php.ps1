@@ -10,7 +10,7 @@
 #>
 
 param(
-    [string]$PhpVersion = "8.1.31",
+    [string]$PhpVersion = "8.2.12",
     [string]$OutputDir = "$PSScriptRoot\..\electron\php"
 )
 

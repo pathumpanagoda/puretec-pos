@@ -235,7 +235,7 @@ if (Test-Path $distDir) {
     Write-Host "  Generated files:" -ForegroundColor Gray
     Get-ChildItem $distDir -Filter "*.exe" | ForEach-Object {
         $sizeMB = [math]::Round($_.Length / 1MB, 1)
-        Write-Host "    📦 $($_.Name) ($sizeMB MB)" -ForegroundColor White
+        Write-Host "    [Installer] $($_.Name) ($sizeMB MB)" -ForegroundColor White
     }
 }
 

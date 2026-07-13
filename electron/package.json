@@ -102,6 +102,10 @@
         "to": "laravel/server.php"
       },
       {
+        "from": "../composer.json",
+        "to": "laravel/composer.json"
+      },
+      {
         "from": "../.env.electron",
         "to": "laravel/.env"
       },
@@ -118,7 +122,6 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "build/icon.ico",
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
@@ -128,9 +131,6 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "PureTec POS",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
-      "installerHeaderIcon": "build/icon.ico",
       "deleteAppDataOnUninstall": false,
       "license": null
     },
