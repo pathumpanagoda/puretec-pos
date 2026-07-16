@@ -13,7 +13,7 @@
             </div>
             <h1 class="auth-title"><span class="text-gold">PURE</span>POS</h1>
             <p class="auth-subtitle">Software Activation Required</p>
-            <p class="text-muted small">Please activate your software license key to unlock the application.</p>
+            <p class="small" style="color: rgba(255, 255, 255, 0.65);">Please activate your software license key to unlock the application.</p>
         </div>
 
         @if($errors->any())
@@ -25,17 +25,7 @@
         <form action="{{ route('license.process') }}" method="POST" autocomplete="off">
             @csrf
 
-            <!-- Hardware Fingerprint / Machine ID Display -->
-            <div class="form-group mb-3">
-                <label class="form-label" style="color: rgba(255, 255, 255, 0.5); font-size: 11px; letter-spacing: 0.5px;">YOUR UNIQUE MACHINE ID</label>
-                <div class="input-icon-wrap">
-                    <i class="bi bi-cpu input-icon" style="color: rgba(255, 255, 255, 0.3);"></i>
-                    <input type="text" class="form-control form-control-auth text-muted" value="{{ $machineId }}" readonly style="font-family: var(--font-mono); font-size: 12px; background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.15);">
-                    <button type="button" class="btn btn-sm btn-outline-light input-icon-right" onclick="copyMachineId()" style="padding: 2px 8px; font-size: 11px; top: 50%; transform: translateY(-50%); position: absolute; right: 12px; height: auto; border-color: rgba(255,255,255,.15);">
-                        Copy
-                    </button>
-                </div>
-            </div>
+
 
             <!-- License Key Input -->
             <div class="form-group mb-4">
@@ -123,26 +113,4 @@
 </style>
 @endpush
 
-@push('scripts')
-<script>
-function copyMachineId() {
-    // Find read-only UUID input field
-    const inputs = document.getElementsByTagName('input');
-    let machineId = '';
-    for (let input of inputs) {
-        if (input.readOnly) {
-            machineId = input.value;
-            break;
-        }
-    }
-    
-    if (machineId) {
-        navigator.clipboard.writeText(machineId).then(() => {
-            alert('Machine ID copied to clipboard!');
-        }).catch(err => {
-            console.error('Could not copy Machine ID: ', err);
-        });
-    }
-}
-</script>
-@endpush
+

@@ -12,7 +12,7 @@
             </div>
             <h1 class="auth-title"><span class="text-gold">PURE</span>POS</h1>
             <p class="auth-subtitle">Initial Onboarding Setup</p>
-            <p class="text-muted small">Configure your business and admin credentials to get started.</p>
+            <p class="small" style="color: rgba(255, 255, 255, 0.65);">Configure your business and admin credentials to get started.</p>
         </div>
 
         @if($errors->any())
