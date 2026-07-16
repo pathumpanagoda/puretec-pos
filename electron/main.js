@@ -9,7 +9,7 @@ const { autoUpdater } = require('electron-updater');
 
 const APP_NAME = 'PureTec POS';
 const PHP_PORT = 8000;
-const isDev = process.argv.includes('--dev');
+const isDev = process.argv.includes('--dev') || !app.isPackaged;
 
 // Paths
 const appDataDir = path.join(app.getPath('userData'));
@@ -23,9 +23,19 @@ const resourcesPath = isDev
   ? path.join(__dirname, '..')
   : path.join(process.resourcesPath, 'laravel');
 
-const phpPath = isDev
-  ? 'php' // Use system PHP in dev mode
-  : path.join(process.resourcesPath, 'php', 'php.exe');
+// Resolve PHP path
+let phpPath;
+if (isDev) {
+  // Use bundled PHP if available in electron/php/php.exe, otherwise fall back to system 'php'
+  const localPhp = path.join(__dirname, 'php', 'php.exe');
+  if (fs.existsSync(localPhp)) {
+    phpPath = localPhp;
+  } else {
+    phpPath = 'php';
+  }
+} else {
+  phpPath = path.join(process.resourcesPath, 'php', 'php.exe');
+}
 
 // ─── Logger Setup ───────────────────────────────────────────────────────────────
 

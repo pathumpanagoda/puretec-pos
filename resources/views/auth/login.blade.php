@@ -60,13 +60,8 @@
         <div class="auth-support">
             <div class="support-title"><i class="bi bi-headset"></i> Customer Support</div>
             <div class="support-contacts">
-                <div class="support-person">
-                    <span class="support-name">Devinda</span>
-                    <span class="support-numbers">076 644 1335 / 071 515 5503</span>
-                </div>
-                <div class="support-person">
-                    <span class="support-name">Kalpana</span>
-                    <span class="support-numbers">071 915 3554</span>
+                <div class="support-person" style="justify-content: center;">
+                    <span class="support-numbers" style="font-size: 14px; color: rgba(255,255,255,.85); font-weight: bold;">071 915 3554</span>
                 </div>
             </div>
         </div>

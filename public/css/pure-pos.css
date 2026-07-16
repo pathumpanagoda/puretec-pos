@@ -708,9 +708,21 @@ a:hover { color: var(--cp-blue-400); }
   transition: all .25s;
 }
 .form-control:focus, .form-select:focus {
-  border-color: var(--cp-primary);
-  box-shadow: 0 0 0 4px rgba(201,162,39,.1);
-  background: var(--cp-surface);
+  border-color: var(--cp-primary) !important;
+  box-shadow: 0 0 0 4px rgba(201,162,39,.1) !important;
+  background: var(--cp-surface) !important;
+  color: var(--cp-text) !important;
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--cp-text) !important;
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: 0 0 0px 1000px var(--cp-surface-alt) inset !important;
 }
 .form-label {
   font-size: 13px; font-weight: 600;
@@ -875,10 +887,18 @@ a:hover { color: var(--cp-blue-400); }
   transition: all .25s;
 }
 .form-control-auth:focus {
-  background: rgba(255,255,255,.08);
-  border-color: var(--cp-primary);
-  box-shadow: 0 0 0 4px rgba(201,162,39,.15);
-  color: #f0f0f0;
+  background: rgba(255,255,255,.08) !important;
+  border-color: var(--cp-primary) !important;
+  box-shadow: 0 0 0 4px rgba(201,162,39,.15) !important;
+  color: #f0f0f0 !important;
+}
+.form-control-auth:-webkit-autofill,
+.form-control-auth:-webkit-autofill:hover, 
+.form-control-auth:-webkit-autofill:focus, 
+.form-control-auth:-webkit-autofill:active {
+  -webkit-text-fill-color: #f0f0f0 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: 0 0 0px 1000px #1e1e1e inset !important;
 }
 .form-control-auth::placeholder { color: rgba(255,255,255,.25); }
 .input-icon-wrap { position: relative; }

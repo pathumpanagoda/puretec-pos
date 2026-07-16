@@ -16,6 +16,16 @@ use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SetupController;
+use App\Http\Controllers\LicenseController;
+
+// ── License Activation ────────────────────────────────────────────────────────
+Route::get('/license/activate',  [LicenseController::class, 'showActivate'])->name('license.activate');
+Route::post('/license/activate', [LicenseController::class, 'activate'])->name('license.process');
+
+// ── Onboarding Setup ──────────────────────────────────────────────────────────
+Route::get('/setup',  [SetupController::class, 'index'])->name('setup.index');
+Route::post('/setup', [SetupController::class, 'store'])->name('setup.store');
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 Route::get('/login',   [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
