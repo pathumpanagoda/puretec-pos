@@ -62,14 +62,16 @@
     .logo-icon {
       width: 72px;
       height: 72px;
-      background: linear-gradient(135deg, #0d6e8a, #14b8a6);
+      background: #141414;
+      border: 2px solid #c9a227;
       border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 16px;
-      box-shadow: 0 8px 24px rgba(13, 110, 138, 0.4);
+      box-shadow: 0 8px 24px rgba(201, 162, 39, 0.25);
       animation: float 3s ease-in-out infinite;
+      overflow: hidden;
     }
 
     @keyframes float {
@@ -77,10 +79,11 @@
       50% { transform: translateY(-6px); }
     }
 
-    .logo-icon svg {
-      width: 40px;
-      height: 40px;
-      fill: white;
+    .logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
     }
 
     .app-name {
@@ -149,9 +152,7 @@
   <div class="splash-container">
     <div class="logo-area">
       <div class="logo-icon">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 2v4h16V6H4zm0 6v6h16v-6H4zm2 2h3v2H6v-2zm5 0h3v2h-3v-2z"/>
-        </svg>
+        <img class="logo-img" src="logo.png" alt="PureTec POS Logo">
       </div>
       <div class="app-name">PureTec POS</div>
       <div class="app-subtitle">Point of Sale</div>

@@ -34,6 +34,8 @@
       "main.js",
       "preload.js",
       "splash.html",
+      "logo.png",
+      "build/icon.ico",
       "node_modules/**/*"
     ],
     "extraResources": [

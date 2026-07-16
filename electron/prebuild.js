@@ -95,5 +95,16 @@ if (!fs.existsSync(buildDir)) {
   console.log('✅ Compiled assets found');
 }
 
+// 6. Copy splash screen logo
+const logoSrc = path.join(rootDir, 'public', 'icons', 'logo png.png');
+const logoDst = path.join(__dirname, 'logo.png');
+if (fs.existsSync(logoSrc)) {
+  fs.copyFileSync(logoSrc, logoDst);
+  console.log('✅ Splash screen logo copied to electron/logo.png');
+} else {
+  console.warn('⚠️  Splash screen logo source not found at:', logoSrc);
+}
+
 console.log('\n================================');
 console.log('✅ Pre-build checks complete! Ready to package.\n');
+
