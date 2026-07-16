@@ -1307,7 +1307,22 @@ function openPrintView(format) {
         // Invoice formats: a4, a5, a3
         url = `${Routes.orderInvoice}/${lastCompletedOrderId}/invoice?size=${format}`;
     }
-    window.open(url, '_blank');
+
+    // Check if running in Electron and printSilent is available
+    if (window.electronAPI && typeof window.electronAPI.printSilent === 'function') {
+        showToast('Printing receipt silently...', 'info');
+        window.electronAPI.printSilent({ url: url })
+            .then(() => {
+                showToast('Receipt printed successfully!', 'success');
+            })
+            .catch(err => {
+                console.error('Silent print failed:', err);
+                showToast('Silent print failed, opening print window...', 'warning');
+                window.open(url, '_blank');
+            });
+    } else {
+        window.open(url, '_blank');
+    }
 }
 
 function openDefaultPrintView() {

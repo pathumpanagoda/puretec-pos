@@ -90,10 +90,23 @@ hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
 <script>
 function printReceipt() {
     document.getElementById('printOptions').style.display = 'none';
-    window.print();
-    setTimeout(() => {
-        document.getElementById('printOptions').style.display = 'block';
-    }, 500);
+    if (window.electronAPI && typeof window.electronAPI.printSilent === 'function') {
+        window.electronAPI.printSilent({ url: window.location.href })
+            .catch(err => {
+                console.error('Silent print failed:', err);
+                window.print();
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    document.getElementById('printOptions').style.display = 'block';
+                }, 500);
+            });
+    } else {
+        window.print();
+        setTimeout(() => {
+            document.getElementById('printOptions').style.display = 'block';
+        }, 500);
+    }
 }
 
 function changeReceiptSize(size) {

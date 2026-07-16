@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, dialog, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, dialog, shell, ipcMain } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -569,6 +569,110 @@ function getIconPath() {
   return iconPaths[0];
 }
 
+// ─── IPC Handlers ───────────────────────────────────────────────────────────────
+
+function setupIpcHandlers() {
+  // App version
+  ipcMain.handle('get-version', () => {
+    return app.getVersion();
+  });
+
+  // Window Controls
+  ipcMain.on('window-minimize', () => {
+    if (mainWindow) mainWindow.minimize();
+  });
+
+  ipcMain.on('window-maximize', () => {
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+  });
+
+  ipcMain.on('window-close', () => {
+    if (mainWindow) mainWindow.close();
+  });
+
+  // Notifications
+  ipcMain.on('show-notification', (event, { title, body }) => {
+    const { Notification } = require('electron');
+    if (Notification.isSupported()) {
+      new Notification({ title, body }).show();
+    }
+  });
+
+  // Standard Print
+  ipcMain.on('print', (event) => {
+    const webContents = event.sender;
+    webContents.print({ silent: false });
+  });
+
+  // Silent Print
+  ipcMain.handle('print-silent', async (event, options) => {
+    const { url, silent = true, deviceName = '', ...printOptions } = options || {};
+    if (!url) {
+      throw new Error('URL is required for silent printing');
+    }
+
+    return new Promise((resolve, reject) => {
+      const printWindow = new BrowserWindow({
+        show: false,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+        }
+      });
+
+      printWindow.loadURL(url);
+
+      printWindow.webContents.once('did-finish-load', () => {
+        const opt = {
+          silent: silent,
+          deviceName: deviceName,
+          printBackground: true,
+          ...printOptions
+        };
+
+        printWindow.webContents.print(opt, (success, errorType) => {
+          printWindow.destroy();
+          if (success) {
+            resolve({ success: true });
+          } else {
+            reject(new Error(`Print failed: ${errorType}`));
+          }
+        });
+      });
+
+      printWindow.webContents.once('did-fail-load', (e, errorCode, errorDescription) => {
+        printWindow.destroy();
+        reject(new Error(`Failed to load URL: ${errorDescription}`));
+      });
+    });
+  });
+
+  // File Dialogs
+  ipcMain.handle('open-file-dialog', async (event, options) => {
+    return await dialog.showOpenDialog(mainWindow, options);
+  });
+
+  ipcMain.handle('save-file-dialog', async (event, options) => {
+    return await dialog.showSaveDialog(mainWindow, options);
+  });
+
+  // App Lifecycle
+  ipcMain.on('restart-app', () => {
+    app.relaunch();
+    app.exit(0);
+  });
+
+  ipcMain.on('check-updates', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
+}
+
 // ─── App Lifecycle ──────────────────────────────────────────────────────────────
 
 // Prevent multiple instances
@@ -587,6 +691,7 @@ if (!gotTheLock) {
 
   app.whenReady().then(async () => {
     log.info('Electron app ready');
+    setupIpcHandlers();
 
     try {
       // 1. Show splash screen
