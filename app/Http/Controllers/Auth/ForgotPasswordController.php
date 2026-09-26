@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\PasswordResetRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -21,12 +21,13 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * Find user by email or username and redirect to reset form.
+     * Submit a password reset request (requires admin approval).
      */
     public function findUser(Request $request)
     {
         $request->validate([
             'identifier' => 'required|string',
+            'reason'     => 'nullable|string|max:500',
         ]);
 
         $identifier = $request->identifier;
@@ -40,159 +41,120 @@ class ForgotPasswordController extends Controller
             return back()->with('error', 'No account found with that email or username.');
         }
 
+        // Check if there's already a pending request for this user
+        $existingRequest = PasswordResetRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existingRequest) {
+            return back()->with('info', 'You already have a pending password reset request. Please wait for admin approval.');
+        }
+
         // Generate a temporary token
         $token = Str::random(64);
 
-        // Delete old tokens for this user
-        DB::table('password_reset_tokens')->where('email', $user->email)->delete();
-
-        // Insert new token
-        DB::table('password_reset_tokens')->insert([
-            'email' => $user->email,
-            'token' => Hash::make($token),
-            'created_at' => Carbon::now(),
+        // Create the password reset request (pending approval)
+        PasswordResetRequest::create([
+            'user_id'  => $user->id,
+            'store_id' => $user->store_id,
+            'token'    => Hash::make($token),
+            'status'   => 'pending',
+            'reason'   => $request->reason,
         ]);
 
-        // Check if user has security question set
-        if (!empty($user->security_question) && !empty($user->security_answer)) {
-            return redirect()->route('password.security-question', [
-                'token' => $token,
-                'email' => $user->email,
-            ]);
-        }
-
-        // No security question - go directly to reset form
-        return redirect()->route('password.reset', [
-            'token' => $token,
-            'email' => $user->email,
-        ]);
+        return redirect()->route('login')->with('success', 'Your password reset request has been submitted successfully. An administrator will review your request and approve it shortly.');
     }
 
     /**
-     * Show security question form.
+     * Show reset password form (only if approved by admin).
      */
-    public function showSecurityQuestion(Request $request)
+    public function showResetForm(Request $request, $token)
     {
-        $user = User::where('email', $request->email)->first();
+        $email = $request->email;
+        $user = User::where('email', $email)->first();
 
-        if (!$user || empty($user->security_question)) {
+        if (!$user) {
             return redirect()->route('password.request')
-                ->with('error', 'Invalid request.');
+                ->with('error', 'Invalid reset link. Please try again.');
         }
 
-        return view('auth.security-question', [
-            'token' => $request->token,
-            'email' => $request->email,
-            'question' => $user->security_question,
+        // Find the approved reset request for this user
+        $resetRequest = PasswordResetRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->latest()
+            ->first();
+
+        if (!$resetRequest) {
+            return redirect()->route('password.request')
+                ->with('error', 'No approved reset request found. Please submit a new request.');
+        }
+
+        // Verify token matches
+        if (!Hash::check($token, $resetRequest->token)) {
+            return redirect()->route('password.request')
+                ->with('error', 'Invalid reset link. Please submit a new request.');
+        }
+
+        // Check if token is expired
+        if ($resetRequest->isExpired()) {
+            $resetRequest->update(['status' => 'rejected']);
+            return redirect()->route('password.request')
+                ->with('error', 'Reset link has expired. Please submit a new request.');
+        }
+
+        return view('auth.reset-password', [
+            'token'     => $token,
+            'email'     => $email,
             'user_name' => $user->name,
         ]);
     }
 
     /**
-     * Verify security answer.
-     */
-    public function verifySecurityAnswer(Request $request)
-    {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'answer' => 'required|string',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            return back()->with('error', 'User not found.');
-        }
-
-        // Verify the answer (case-insensitive)
-        if (strtolower(trim($request->answer)) !== strtolower(trim($user->security_answer))) {
-            return back()->with('error', 'Incorrect answer. Please try again.');
-        }
-
-        // Answer correct - redirect to reset form
-        return redirect()->route('password.reset', [
-            'token' => $request->token,
-            'email' => $request->email,
-        ]);
-    }
-
-    /**
-     * Show reset password form.
-     */
-    public function showResetForm(Request $request, $token)
-    {
-        // Verify token exists and is valid
-        $resetRecord = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->first();
-
-        if (!$resetRecord || !Hash::check($token, $resetRecord->token)) {
-            return redirect()->route('password.request')
-                ->with('error', 'Invalid or expired reset link. Please try again.');
-        }
-
-        // Check if token is expired (60 minutes)
-        if (Carbon::parse($resetRecord->created_at)->addMinutes(60)->isPast()) {
-            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-            return redirect()->route('password.request')
-                ->with('error', 'Reset link has expired. Please try again.');
-        }
-
-        $user = User::where('email', $request->email)->first();
-
-        return view('auth.reset-password', [
-            'token' => $token,
-            'email' => $request->email,
-            'user_name' => $user ? $user->name : '',
-        ]);
-    }
-
-    /**
-     * Reset the password.
+     * Reset the password (only if request was approved).
      */
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
+            'token'    => 'required',
+            'email'    => 'required|email',
             'password' => 'required|min:6|confirmed',
         ]);
 
-        // Find the reset token
-        $resetRecord = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->first();
-
-        if (!$resetRecord) {
-            return back()->with('error', 'Invalid or expired reset link.');
-        }
-
-        // Check if token matches
-        if (!Hash::check($request->token, $resetRecord->token)) {
-            return back()->with('error', 'Invalid or expired reset link.');
-        }
-
-        // Check if token is expired (60 minutes)
-        if (Carbon::parse($resetRecord->created_at)->addMinutes(60)->isPast()) {
-            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-            return back()->with('error', 'Reset link has expired. Please request a new one.');
-        }
-
-        // Update the password
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
             return back()->with('error', 'User not found.');
         }
 
+        // Find the approved reset request
+        $resetRequest = PasswordResetRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->latest()
+            ->first();
+
+        if (!$resetRequest) {
+            return back()->with('error', 'No approved reset request found.');
+        }
+
+        // Verify token
+        if (!Hash::check($request->token, $resetRequest->token)) {
+            return back()->with('error', 'Invalid reset link.');
+        }
+
+        // Check if expired
+        if ($resetRequest->isExpired()) {
+            $resetRequest->update(['status' => 'rejected']);
+            return back()->with('error', 'Reset link has expired. Please submit a new request.');
+        }
+
+        // Update the password
         $user->update([
-            'password' => Hash::make($request->password),
+            'password'            => Hash::make($request->password),
             'password_changed_at' => now(),
         ]);
 
-        // Delete the reset token
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        // Mark request as completed
+        $resetRequest->update(['status' => 'completed']);
 
         return redirect()->route('login')->with('success', 'Password has been reset successfully! Please login with your new password.');
     }

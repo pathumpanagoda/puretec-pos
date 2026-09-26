@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Create the platform_users table.
-     * Nexfloit admin users who manage the SaaS platform.
+     * Puretec admin users who manage the SaaS platform.
      */
     public function up(): void
     {

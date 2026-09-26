@@ -1,7 +1,7 @@
 <?php
 /**
  * Pure POS — Application Configuration
- * by Nexfloit
+ * by Puretec
  */
 return [
     'name'           => env('APP_NAME', 'Pure POS'),

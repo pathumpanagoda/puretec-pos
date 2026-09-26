@@ -9,16 +9,16 @@ use Illuminate\Support\Facades\Hash;
 class PlatformUserSeeder extends Seeder
 {
     /**
-     * Seed the initial Nexfloit platform admin user.
+     * Seed the initial Puretec platform admin user.
      */
     public function run(): void
     {
         // Create super admin if doesn't exist
         PlatformUser::firstOrCreate(
-            ['email' => 'admin@nexfloit.com'],
+            ['email' => 'admin@puretec.com'],
             [
-                'name' => 'Nexfloit Admin',
-                'email' => 'admin@nexfloit.com',
+                'name' => 'Puretec Admin',
+                'email' => 'admin@puretec.com',
                 'password' => Hash::make('admin123'),
                 'role' => 'super_admin',
                 'is_active' => true,
@@ -26,7 +26,7 @@ class PlatformUserSeeder extends Seeder
         );
 
         $this->command->info('Platform user created:');
-        $this->command->info('Email: admin@nexfloit.com');
+        $this->command->info('Email: admin@puretec.com');
         $this->command->info('Password: admin123');
     }
 }

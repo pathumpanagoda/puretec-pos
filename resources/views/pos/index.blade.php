@@ -1268,7 +1268,7 @@ function showReceiptModal(order, totals, paidAmount) {
         <div class="receipt-divider"></div>
         <div class="receipt-footer">
             <p class="footer-thanks">${storeInfo.footer}</p>
-            <p class="receipt-powered">Pure POS &bull; Powered by Nexfloit</p>
+            <p class="receipt-powered">Pure POS &bull; Powered by Puretec</p>
         </div>
     `;
 

@@ -1,150 +1,224 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Forgot Password - Pure POS</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/pure-pos.css') }}">
-    <style>
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #0d6e8a 0%, #084c61 100%);
-        }
-        .forgot-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
-            width: 100%;
-            max-width: 420px;
-        }
-        .forgot-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .forgot-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #0d6e8a, #084c61);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-        }
-        .forgot-icon i {
-            font-size: 36px;
-            color: #fff;
-        }
-        .forgot-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .forgot-subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        .btn-reset {
-            background: linear-gradient(135deg, #0d6e8a, #084c61);
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-        }
-        .btn-reset:hover {
-            background: linear-gradient(135deg, #0a5a72, #063d4e);
-        }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a {
-            color: var(--text-muted);
-            text-decoration: none;
-        }
-        .back-link a:hover {
-            color: #0d6e8a;
-        }
-        .info-box {
-            background: rgba(13, 110, 138, 0.1);
-            border: 1px solid rgba(13, 110, 138, 0.2);
-            border-radius: 10px;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-        .info-box i {
-            color: #0d6e8a;
-        }
-    </style>
-</head>
-<body>
-    <div class="forgot-card">
-        <div class="forgot-header">
-            <div class="forgot-icon">
-                <i class="bi bi-key"></i>
+@extends('layouts.app')
+
+@section('title', 'Forgot Password')
+@section('body-class', 'auth-body')
+
+@section('content')
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <div class="auth-logo">
+                <img src="{{ asset('icons/logo png.png') }}" alt="Logo" class="auth-logo-img">
             </div>
-            <h1 class="forgot-title">Forgot Password?</h1>
-            <p class="forgot-subtitle">Enter your email or username to reset your password</p>
+            <h1 class="auth-title"><span class="text-gold">PURE</span>POS</h1>
+            <p class="auth-subtitle">Password Reset Request</p>
         </div>
 
         @if(session('success'))
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+            <div class="alert alert-success mb-3">
+                <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+            <div class="alert alert-danger mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
             </div>
         @endif
 
-        <div class="info-box">
-            <i class="bi bi-info-circle me-2"></i>
-            You can use either your email address or username to recover your account.
+        @if(session('info'))
+            <div class="alert alert-warning mb-3">
+                <i class="bi bi-info-circle-fill me-2"></i>{{ session('info') }}
+            </div>
+        @endif
+
+        {{-- Approval Notice --}}
+        <div class="forgot-approval-notice">
+            <i class="bi bi-shield-lock"></i>
+            <div>
+                <strong>Admin Approval Required</strong>
+                <p class="mb-0">Your request will be reviewed by an administrator before password reset is allowed.</p>
+            </div>
         </div>
 
-        <form method="POST" action="{{ route('password.find-user') }}">
+        <form action="{{ route('password.find-user') }}" method="POST">
             @csrf
-
-            <div class="mb-4">
+            <div class="form-group mb-3">
                 <label class="form-label">Email or Username</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-person"></i></span>
-                    <input type="text"
-                           class="form-control @error('identifier') is-invalid @enderror"
-                           name="identifier"
-                           value="{{ old('identifier') }}"
-                           placeholder="Enter your email or username"
-                           required
-                           autofocus>
+                <div class="input-icon-wrap">
+                    <i class="bi bi-person input-icon"></i>
+                    <input type="text" name="identifier" class="form-control form-control-auth" placeholder="Enter your email or username" value="{{ old('identifier') }}" required autofocus>
                 </div>
                 @error('identifier')
                     <div class="text-danger mt-1 small">{{ $message }}</div>
                 @enderror
             </div>
 
-            <button type="submit" class="btn btn-primary btn-reset w-100">
-                <i class="bi bi-arrow-right me-2"></i>Continue
+            <div class="form-group mb-3">
+                <label class="form-label">Reason <span class="text-muted" style="font-weight:400;font-size:12px;">(optional)</span></label>
+                <div class="input-icon-wrap">
+                    <i class="bi bi-chat-text input-icon" style="top:20px;transform:none;"></i>
+                    <textarea name="reason" class="form-control form-control-auth" style="padding-left:48px;min-height:70px;resize:vertical;" placeholder="Why do you need to reset?" maxlength="500">{{ old('reason') }}</textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-auth w-100">
+                <i class="bi bi-send me-2"></i>Submit Reset Request
             </button>
         </form>
 
-        <div class="back-link">
+        <div class="forgot-back-link">
             <a href="{{ route('login') }}">
                 <i class="bi bi-arrow-left me-1"></i>Back to Login
             </a>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+        {{-- Trademark Footer --}}
+        <div class="auth-trademark">
+            <div class="trademark-logo">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="trademark-text">
+                <span class="trademark-brand"><span class="text-gold">PURE</span>POS</span> &copy; {{ date('Y') }} <strong>PURETEC</strong>
+                <br>
+                <small>All Rights Reserved. Licensed Software.</small>
+            </div>
+        </div>
+    </div>
+    <div class="auth-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+/* Forgot Password - matching login page design */
+.forgot-approval-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(201, 162, 39, 0.08);
+    border: 1px solid rgba(201, 162, 39, 0.2);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-size: 12px;
+    color: rgba(255,255,255,.6);
+    line-height: 1.5;
+}
+.forgot-approval-notice > i {
+    font-size: 20px;
+    color: var(--cp-primary);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.forgot-approval-notice strong {
+    color: var(--cp-primary);
+    font-size: 13px;
+    display: block;
+    margin-bottom: 2px;
+}
+.forgot-approval-notice p {
+    font-size: 11.5px;
+    color: rgba(255,255,255,.45);
+}
+
+.forgot-back-link {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,.06);
+}
+.forgot-back-link a {
+    color: rgba(255,255,255,.45);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.forgot-back-link a:hover {
+    color: var(--cp-primary);
+}
+
+/* Auth page tweaks */
+.auth-card {
+    padding: 32px 36px;
+}
+.auth-brand {
+    margin-bottom: 24px;
+}
+.auth-logo {
+    width: 60px;
+    height: 60px;
+    font-size: 26px;
+    margin-bottom: 14px;
+}
+.auth-title {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.auth-subtitle {
+    font-size: 13px;
+}
+.form-group .form-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+.form-control-auth {
+    padding: 12px 16px 12px 44px;
+    font-size: 14px;
+}
+.input-icon {
+    left: 14px;
+    font-size: 16px;
+}
+.btn-auth {
+    padding: 12px;
+    font-size: 15px;
+}
+
+/* Trademark Footer */
+.auth-trademark {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+.trademark-logo {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(96,165,250,.2), rgba(99,102,241,.1));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cp-blue-400);
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.trademark-text {
+    font-size: 11px;
+    color: rgba(255,255,255,.4);
+    line-height: 1.5;
+}
+.trademark-brand {
+    font-weight: 700;
+    color: rgba(255,255,255,.7);
+}
+.trademark-text strong {
+    color: var(--cp-blue-400);
+}
+
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 24px 20px;
+    }
+}
+</style>
+@endpush

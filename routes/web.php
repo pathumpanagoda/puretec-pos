@@ -16,17 +16,16 @@ use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PasswordResetRequestController;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 Route::get('/login',   [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 Route::post('/login',  [AuthController::class, 'login'])->name('login.post')->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ── Password Reset (No Email Required) ────────────────────────────────────────
+// ── Password Reset (Approval-Based) ──────────────────────────────────────────
 Route::get('/forgot-password',           [ForgotPasswordController::class, 'showForgotForm'])->name('password.request')->middleware('guest');
 Route::post('/forgot-password',          [ForgotPasswordController::class, 'findUser'])->name('password.find-user')->middleware('guest');
-Route::get('/security-question',         [ForgotPasswordController::class, 'showSecurityQuestion'])->name('password.security-question')->middleware('guest');
-Route::post('/security-question',        [ForgotPasswordController::class, 'verifySecurityAnswer'])->name('password.verify-security')->middleware('guest');
 Route::get('/reset-password/{token}',    [ForgotPasswordController::class, 'showResetForm'])->name('password.reset')->middleware('guest');
 Route::post('/reset-password',           [ForgotPasswordController::class, 'resetPassword'])->name('password.update')->middleware('guest');
 
@@ -155,6 +154,13 @@ Route::middleware(['auth', 'tenant.scope', 'tenant.lock'])->group(function () {
     // Users (admin only)
     Route::resource('users', UserController::class)->except(['show']);
 
+    // Password Reset Requests (admin only)
+    Route::prefix('password-reset-requests')->name('password-reset-requests.')->middleware('role:super_admin,admin')->group(function () {
+        Route::get('/',           [PasswordResetRequestController::class, 'index'])->name('index');
+        Route::post('/{id}/approve', [PasswordResetRequestController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject',  [PasswordResetRequestController::class, 'reject'])->name('reject');
+    });
+
     // Profile
     Route::get('/profile',          [AuthController::class, 'profile'])->name('profile');
     Route::post('/profile/update',  [AuthController::class, 'updateProfile'])->name('profile.update');
@@ -166,5 +172,5 @@ Route::post('/api/dismiss-payment-reminder', function () {
     return response()->json(['success' => true]);
 })->middleware('auth');
 
-// Include Nexfloit admin panel routes
-require __DIR__.'/nexfloit.php';
+// Include Puretec admin panel routes
+require __DIR__.'/puretec.php';

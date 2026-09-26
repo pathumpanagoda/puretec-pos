@@ -48,7 +48,7 @@
         <!-- Footer -->
         <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
             <p style="color: #888; font-size: 12px; margin: 0;">
-                &copy; {{ date('Y') }} Pure POS by Nexfloit. All rights reserved.
+                &copy; {{ date('Y') }} Pure POS by Puretec. All rights reserved.
             </p>
         </div>
     </div>

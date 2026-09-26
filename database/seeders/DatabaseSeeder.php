@@ -161,12 +161,12 @@ class DatabaseSeeder extends Seeder
             'is_active'  => true,
         ]);
 
-        // Seed Nexfloit Platform Admin
+        // Seed Puretec Platform Admin
         $this->call(PlatformUserSeeder::class);
 
         $this->command->info('✅ Pure POS database seeded successfully!');
         $this->command->info('📧 Admin Login: admin@purepos.lk / admin123');
         $this->command->info('📧 Cashier Login: cashier@purepos.lk / cashier123');
-        $this->command->info('🔧 Nexfloit Admin: admin@nexfloit.com / admin123');
+        $this->command->info('🔧 Puretec Admin: admin@puretec.com / admin123');
     }
 }

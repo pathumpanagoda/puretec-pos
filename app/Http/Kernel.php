@@ -57,8 +57,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'role' => \App\Http\Middleware\CheckRole::class,
         'permission' => \App\Http\Middleware\CheckPermission::class,
-        // Nexfloit Multi-Tenant Middleware
-        'nexfloit.auth' => \App\Http\Middleware\NexfloitAuth::class,
+        // Puretec Multi-Tenant Middleware
+        'puretec.auth' => \App\Http\Middleware\PuretecAuth::class,
         'tenant.scope' => \App\Http\Middleware\TenantScope::class,
         'tenant.lock' => \App\Http\Middleware\CheckTenantLock::class,
     ];

@@ -16,6 +16,19 @@
     </div>
 </div>
 
+@if(auth()->user()->isAdmin() && $pendingPasswordResets > 0)
+<div class="alert alert-warning d-flex align-items-center justify-content-between mb-4" role="alert">
+    <div>
+        <i class="bi bi-key me-2"></i>
+        <strong>{{ $pendingPasswordResets }} pending password reset {{ $pendingPasswordResets == 1 ? 'request' : 'requests' }}</strong>
+        — Users are waiting for your approval to reset their passwords.
+    </div>
+    <a href="{{ route('password-reset-requests.index') }}" class="btn btn-sm btn-warning">
+        <i class="bi bi-arrow-right me-1"></i>Review
+    </a>
+</div>
+@endif
+
 <!-- Today Stats Row -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">

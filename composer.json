@@ -1,7 +1,7 @@
 {
-    "name": "nexfloit/pure-pos",
-    "description": "Pure POS - Professional Point of Sale System by Nexfloit",
-    "keywords": ["pos", "point-of-sale", "pure", "nexfloit"],
+    "name": "puretec/pure-pos",
+    "description": "Pure POS - Professional Point of Sale System by Puretec",
+    "keywords": ["pos", "point-of-sale", "pure", "puretec"],
     "license": "proprietary",
     "type": "project",
     "require": {

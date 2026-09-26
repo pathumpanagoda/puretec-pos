@@ -49,14 +49,14 @@
 
             <!-- Contact Info -->
             <div class="contact-info">
-                <p>Please contact Nexfloit to make your payment:</p>
+                <p>Please contact Puretec to make your payment:</p>
                 <p class="contact-phone">
                     <i class="bi bi-telephone-fill"></i>
                     {{ $paymentReminder['phone'] ?? '+94 77 123 4567' }}
                 </p>
                 <p class="contact-email">
                     <i class="bi bi-envelope-fill"></i>
-                    {{ $paymentReminder['email'] ?? 'billing@nexfloit.com' }}
+                    {{ $paymentReminder['email'] ?? 'billing@puretec.com' }}
                 </p>
             </div>
 

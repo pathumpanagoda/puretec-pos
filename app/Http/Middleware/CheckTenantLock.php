@@ -98,7 +98,7 @@ class CheckTenantLock
                     'dueDate' => $dueDate,
                     'billingMonth' => $billingMonth,
                     // Use tenant-specific contact info or defaults
-                    'email' => $tenant->billing_contact_email ?? 'billing@nexfloit.com',
+                    'email' => $tenant->billing_contact_email ?? 'billing@puretec.com',
                     'phone' => $tenant->billing_contact_phone ?? '+94 77 123 4567',
                 ]);
             }

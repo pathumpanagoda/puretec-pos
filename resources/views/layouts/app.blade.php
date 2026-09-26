@@ -21,16 +21,16 @@
 </head>
 <body class="@yield('body-class', 'app-body')">
 
-{{-- Impersonation Bar - Shows when Nexfloit admin is logged in as a user --}}
-@if(session('nexfloit_impersonating'))
+{{-- Impersonation Bar - Shows when Puretec admin is logged in as a user --}}
+@if(session('puretec_impersonating'))
 <div class="impersonation-bar">
     <div class="impersonation-content">
         <i class="bi bi-person-badge me-2"></i>
         <span>You are logged in as <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->tenant?->business_name ?? 'No Tenant' }})</span>
-        <form action="{{ route('nexfloit.stop-impersonate') }}" method="POST" class="d-inline ms-3">
+        <form action="{{ route('puretec.stop-impersonate') }}" method="POST" class="d-inline ms-3">
             @csrf
             <button type="submit" class="btn btn-sm btn-light">
-                <i class="bi bi-box-arrow-left me-1"></i>Exit & Return to Nexfloit
+                <i class="bi bi-box-arrow-left me-1"></i>Exit & Return to Puretec
             </button>
         </form>
     </div>
@@ -169,6 +169,13 @@ body:has(.impersonation-bar) .main-content {
         <div class="nav-section-label mt-3">System</div>
         <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users*') ? 'active' : '' }}">
             <i class="bi bi-person-gear"></i><span>Users</span>
+        </a>
+        <a href="{{ route('password-reset-requests.index') }}" class="nav-link {{ request()->routeIs('password-reset-requests*') ? 'active' : '' }}">
+            <i class="bi bi-key"></i><span>Password Resets</span>
+            @php $prPending = \App\Models\PasswordResetRequest::where('store_id', auth()->user()->store_id)->pending()->count(); @endphp
+            @if($prPending > 0)
+                <span class="nav-badge bg-danger">{{ $prPending }}</span>
+            @endif
         </a>
         @if(auth()->user()->canAccess('settings'))
         <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings*') ? 'active' : '' }}">

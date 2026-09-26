@@ -245,7 +245,7 @@ pure-pos/
 │   ├── Http/
 │   │   ├── Controllers/          # 16 controllers (POS, Products, Orders, Reports, etc.)
 │   │   │   ├── Auth/             # AuthController, ForgotPasswordController
-│   │   │   └── Nexfloit/         # Platform admin panel controllers
+│   │   │   └── Puretec/         # Platform admin panel controllers
 │   │   └── Middleware/           # Auth, Role, Permission, TenantScope, TenantLock
 │   ├── Models/                   # 27 Eloquent models
 │   ├── Services/                 # Business logic
@@ -287,7 +287,7 @@ pure-pos/
 │   └── launch.html               # Desktop PWA launcher
 ├── routes/
 │   ├── web.php                   # Application routes
-│   └── nexfloit.php              # Platform admin routes
+│   └── puretec.php              # Platform admin routes
 └── config/purepos.php            # App configuration
 ```
 

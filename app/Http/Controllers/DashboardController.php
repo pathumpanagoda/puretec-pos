@@ -5,6 +5,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\PasswordResetRequest;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,9 +47,16 @@ class DashboardController extends Controller
         // Sales chart (last 7 days)
         $salesChart = $this->reportService->getDailySalesChart($storeId, 7);
 
+        // Pending password reset requests (admin only)
+        $pendingPasswordResets = 0;
+        if ($user->isAdmin()) {
+            $pendingPasswordResets = PasswordResetRequest::where('store_id', $storeId)->pending()->count();
+        }
+
         return view('dashboard.index', compact(
             'todayStats','monthStats','totalProducts','totalCustomers',
-            'lowStockCount','pendingOrders','recentOrders','topProducts','salesChart'
+            'lowStockCount','pendingOrders','recentOrders','topProducts','salesChart',
+            'pendingPasswordResets'
         ));
     }
 }

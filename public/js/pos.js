@@ -1,7 +1,7 @@
 /**
  * =============================================================
  * PURE POS — Point of Sale Terminal JavaScript
- * Author: Nexfloit | Version: 1.0.0
+ * Author: Puretec | Version: 1.0.0
  * =============================================================
  *
  * State Management: Pure JS (no frameworks)
@@ -635,7 +635,7 @@ window.showReceiptModal = (order, payment) => {
     document.getElementById('receiptContent').innerHTML = `
     <div class="receipt-header">
         <div style="font-size:1.1rem;font-weight:bold">Pure POS</div>
-        <div style="font-size:0.75rem;color:#666">by Nexfloit</div>
+        <div style="font-size:0.75rem;color:#666">by Puretec</div>
         <div class="receipt-divider"></div>
         <div>${date}</div>
         <div>Order: ${order.order_number}</div>

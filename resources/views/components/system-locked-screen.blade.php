@@ -329,7 +329,7 @@
         </div>
 
         <div class="contact-section">
-            <div class="contact-title">Contact Nexfloit to Restore Access</div>
+            <div class="contact-title">Contact Puretec to Restore Access</div>
             <div class="contact-items">
                 <div class="contact-item">
                     <i class="bi bi-telephone-fill"></i>
@@ -341,7 +341,7 @@
                 </div>
                 <div class="contact-item">
                     <i class="bi bi-envelope-fill"></i>
-                    <a href="mailto:support@nexfloit.com">support@nexfloit.com</a>
+                    <a href="mailto:support@puretec.com">support@puretec.com</a>
                 </div>
             </div>
         </div>
