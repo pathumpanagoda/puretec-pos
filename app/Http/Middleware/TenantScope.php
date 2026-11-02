@@ -7,12 +7,21 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
+use App\Services\FeatureService;
 
 class TenantScope
 {
+    protected FeatureService $featureService;
+
+    public function __construct(FeatureService $featureService)
+    {
+        $this->featureService = $featureService;
+    }
+
     /**
      * Automatically scope queries to the current tenant.
      * This ensures data isolation between tenants.
+     * Also loads and shares enabled features for UI rendering.
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -27,6 +36,8 @@ class TenantScope
 
         if (!$tenant) {
             // User has no tenant - might be legacy data
+            // Share empty features (all defaults will apply)
+            view()->share('enabledFeatures', $this->featureService->getEnabledFeatures(null));
             return $next($request);
         }
 
@@ -34,8 +45,12 @@ class TenantScope
         session(['current_tenant_id' => $tenant->id]);
         $request->merge(['tenant' => $tenant]);
 
-        // Share with views
+        // Share tenant with views
         view()->share('currentTenant', $tenant);
+
+        // Load and share enabled features for navigation rendering
+        $enabledFeatures = $this->featureService->getEnabledFeatures($tenant->id);
+        view()->share('enabledFeatures', $enabledFeatures);
 
         // Check for payment reminder (only for admin users)
         if ($user->isAdmin()) {

@@ -5,17 +5,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'store_id','customer_id','user_id','order_number','status','order_type',
+        'uuid','store_id','customer_id','user_id','order_number','status','order_type',
         'subtotal','tax_amount','discount_amount','shipping_amount','total_amount',
         'paid_amount','change_amount','due_amount','profit','discount_type',
         'discount_value','coupon_code','table_number','notes','internal_notes',
         'loyalty_points_earned','loyalty_points_used','completed_at',
-        'billed_by','payment_processed_by','billed_at','payment_approved_at'
+        'billed_by','payment_processed_by','billed_at','payment_approved_at',
+        'device_id','synced_at','sync_status','source'
     ];
     protected $casts = [
         'completed_at'        => 'datetime',
@@ -30,6 +32,9 @@ class Order extends Model
     {
         parent::boot();
         static::creating(function ($order) {
+            if (empty($order->uuid)) {
+                $order->uuid = Str::uuid()->toString();
+            }
             if (empty($order->order_number)) {
                 $order->order_number = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
             }

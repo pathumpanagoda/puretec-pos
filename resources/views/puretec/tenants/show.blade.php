@@ -27,6 +27,9 @@
         </p>
     </div>
     <div class="btn-group">
+        <a href="{{ route('puretec.tenants.features', $tenant) }}" class="btn btn-outline-info">
+            <i class="bi bi-toggles me-1"></i>Features
+        </a>
         <a href="{{ route('puretec.tenants.edit', $tenant) }}" class="btn btn-outline-primary">
             <i class="bi bi-pencil me-1"></i>Edit
         </a>

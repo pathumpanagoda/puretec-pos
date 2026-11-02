@@ -2,11 +2,19 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    protected AuditLogService $auditLog;
+
+    public function __construct(AuditLogService $auditLog)
+    {
+        $this->auditLog = $auditLog;
+    }
+
     public function showLogin()
     {
         if (Auth::check()) return redirect()->route('dashboard');
@@ -30,14 +38,21 @@ class AuthController extends Controller
                 'last_login_at' => now(),
                 'last_login_ip' => $request->ip(),
             ]);
+
+            $this->auditLog->logLogin('web');
+
             return redirect()->intended(route('dashboard'))->with('success', 'Welcome back, ' . Auth::user()->name . '!');
         }
+
+        $this->auditLog->logFailedLogin($request->login);
 
         return back()->withErrors(['login' => 'Invalid credentials. Please try again.'])->withInput($request->except('password'));
     }
 
     public function logout(Request $request)
     {
+        $this->auditLog->logLogout();
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

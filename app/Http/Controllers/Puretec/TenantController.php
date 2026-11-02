@@ -139,6 +139,9 @@ class TenantController extends Controller
                 TenantSubscription::createForMonth($tenant, now()->format('Y-m'));
             }
 
+            // Initialize default features for the new tenant
+            app(\App\Services\FeatureService::class)->initializeForTenant($tenant->id);
+
             DB::commit();
 
             return redirect()->route('puretec.tenants.show', $tenant)
@@ -468,5 +471,36 @@ class TenantController extends Controller
         }
 
         return back()->with('success', "Subscription for {$month} created successfully!");
+    }
+
+    /**
+     * Show feature management page for a tenant.
+     */
+    public function features(Tenant $tenant)
+    {
+        $featureService = app(\App\Services\FeatureService::class);
+        $definitions = \App\Models\FeatureDefinition::orderBy('sort_order')->get()->groupBy('group');
+        $featureMap = $featureService->getFeatureMap($tenant->id);
+
+        return view('puretec.tenants.features', compact('tenant', 'definitions', 'featureMap'));
+    }
+
+    /**
+     * Update features for a tenant.
+     */
+    public function updateFeatures(Request $request, Tenant $tenant)
+    {
+        $featureService = app(\App\Services\FeatureService::class);
+        $allCodes = \App\Models\FeatureDefinition::allCodes();
+        $enabledCodes = $request->input('features', []);
+
+        $updates = [];
+        foreach ($allCodes as $code) {
+            $updates[$code] = in_array($code, $enabledCodes);
+        }
+
+        $featureService->updateFeatures($tenant->id, $updates);
+
+        return back()->with('success', 'Features updated successfully!');
     }
 }

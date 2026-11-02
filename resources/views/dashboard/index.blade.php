@@ -47,6 +47,7 @@
             <div class="stat-sub"><i class="bi bi-percent me-1"></i>Gross profit</div>
         </div>
     </div>
+    @if(in_array('customers', $enabledFeatures ?? []))
     <div class="col-6 col-lg-3">
         <div class="stat-card stat-teal">
             <div class="stat-icon"><i class="bi bi-people"></i></div>
@@ -55,6 +56,8 @@
             <div class="stat-sub"><i class="bi bi-person-plus me-1"></i>Active accounts</div>
         </div>
     </div>
+    @endif
+    @if(in_array('inventory', $enabledFeatures ?? []))
     <div class="col-6 col-lg-3">
         <div class="stat-card {{ $lowStockCount > 0 ? 'stat-warning' : 'stat-purple' }}">
             <div class="stat-icon"><i class="bi bi-{{ $lowStockCount > 0 ? 'exclamation-triangle' : 'box-seam' }}"></i></div>
@@ -63,6 +66,7 @@
             <div class="stat-sub"><a href="{{ route('reports.inventory') }}" class="text-inherit">View details →</a></div>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Monthly Stats Row -->

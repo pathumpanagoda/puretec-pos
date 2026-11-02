@@ -8,6 +8,9 @@ use App\Http\Controllers\Puretec\SubscriptionController;
 use App\Http\Controllers\Puretec\PaymentController;
 use App\Http\Controllers\Puretec\UserController;
 use App\Http\Controllers\Puretec\PasswordResetController;
+use App\Http\Controllers\Puretec\SyncMonitorController;
+use App\Http\Controllers\Puretec\AuditLogController;
+use App\Http\Controllers\Puretec\DeviceManagementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,11 +43,20 @@ Route::prefix('puretec')->name('puretec.')->group(function () {
         // Dashboard
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Tenant Management
+        // ── Client Management (Phase 8) ──────────────────────
         Route::resource('tenants', TenantController::class);
         Route::post('tenants/{tenant}/lock', [TenantController::class, 'lock'])->name('tenants.lock');
         Route::post('tenants/{tenant}/unlock', [TenantController::class, 'unlock'])->name('tenants.unlock');
+        Route::post('tenants/{tenant}/suspend', [TenantController::class, 'suspend'])->name('tenants.suspend');
+        Route::post('tenants/{tenant}/activate', [TenantController::class, 'activate'])->name('tenants.activate');
         Route::post('tenants/{tenant}/create-subscription', [TenantController::class, 'createSubscription'])->name('tenants.create-subscription');
+
+        // Feature Management (per tenant)
+        Route::get('tenants/{tenant}/features', [TenantController::class, 'features'])->name('tenants.features');
+        Route::post('tenants/{tenant}/features', [TenantController::class, 'updateFeatures'])->name('tenants.features.update');
+
+        // Client Provisioning (Phase 9)
+        Route::get('tenants/{tenant}/deployment', [TenantController::class, 'deployment'])->name('tenants.deployment');
 
         // Subscription Management
         Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
@@ -56,7 +68,7 @@ Route::prefix('puretec')->name('puretec.')->group(function () {
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
 
-        // User Management (all business users)
+        // User Management (Phase 8)
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
@@ -69,6 +81,23 @@ Route::prefix('puretec')->name('puretec.')->group(function () {
         Route::get('password-reset-requests', [DashboardController::class, 'passwordResetRequests'])->name('password-reset-requests.index');
         Route::post('password-reset-requests/{id}/approve', [DashboardController::class, 'approvePasswordReset'])->name('password-reset-requests.approve');
         Route::post('password-reset-requests/{id}/reject', [DashboardController::class, 'rejectPasswordReset'])->name('password-reset-requests.reject');
+
+        // ── Sync Monitoring (Phase 8) ────────────────────────
+        Route::prefix('sync-monitor')->name('sync-monitor.')->group(function () {
+            Route::get('/', [SyncMonitorController::class, 'index'])->name('index');
+            Route::get('/{tenant}', [SyncMonitorController::class, 'show'])->name('show');
+        });
+
+        // ── Device Management (Phase 8) ──────────────────────
+        Route::prefix('device-management')->name('devices.')->group(function () {
+            Route::get('/', [DeviceManagementController::class, 'index'])->name('index');
+            Route::post('/{device}/revoke', [DeviceManagementController::class, 'revoke'])->name('revoke');
+        });
+
+        // ── Audit Log Viewer (Phase 8) ───────────────────────
+        Route::prefix('audit-log')->name('audit-log.')->group(function () {
+            Route::get('/', [AuditLogController::class, 'index'])->name('index');
+        });
     });
 
     // Stop impersonation (outside auth middleware)

@@ -11,6 +11,15 @@
             <span class="cashier-session-badge">Active</span>
         @endif
     </div>
+    <!-- Sync Status Indicator -->
+    <div class="topbar-sync-status" id="syncStatusIndicator">
+        <div class="sync-dot" id="syncDot" title="Online"></div>
+        <span class="sync-label" id="syncLabel">Online</span>
+        <span class="sync-badge d-none" id="syncPendingBadge" title="Pending sync items">0</span>
+        <button class="btn-sync-now d-none" id="btnSyncNow" onclick="PureSync.pushAll()" title="Sync now">
+            <i class="bi bi-arrow-repeat"></i>
+        </button>
+    </div>
     <div class="topbar-display-controls">
         <button class="btn-display-control" id="btnDisplayOn" onclick="openCustomerDisplay()" title="Toggle Customer Display">
             <i class="bi bi-display"></i>
@@ -517,6 +526,66 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/pos.css') }}">
+<style>
+/* Sync Status Indicator */
+.topbar-sync-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px;
+    margin: 0 8px;
+}
+.sync-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+.sync-dot.sync-online { background: #00d26a; box-shadow: 0 0 6px #00d26a; }
+.sync-dot.sync-offline {
+    background: #ff4757;
+    box-shadow: 0 0 6px #ff4757;
+    animation: offlinePulse 1.5s infinite;
+}
+.sync-dot.sync-syncing {
+    background: #ffa502;
+    box-shadow: 0 0 6px #ffa502;
+    animation: syncSpin 1s linear infinite;
+}
+@keyframes offlinePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+@keyframes syncSpin {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+.sync-label { color: rgba(255,255,255,0.7); font-weight: 500; }
+.sync-badge {
+    background: #ff4757;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+.btn-sync-now {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    padding: 2px 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.2s;
+}
+.btn-sync-now:hover { color: #00d26a; transform: rotate(180deg); }
+</style>
 @php
     $printSettings = $store?->settings ?? [];
 @endphp
@@ -670,7 +739,7 @@ function handleBarcodeInput(e) {
 }
 
 async function processBarcodeInput(barcode) {
-    // Search for product by barcode
+    // Search for product by barcode in local cache first
     const product = allProducts.find(p =>
         p.barcode === barcode ||
         p.sku === barcode ||
@@ -696,7 +765,18 @@ async function processBarcodeInput(barcode) {
                 showToast('Product not found: ' + barcode, 'warning');
             }
         } catch (e) {
-            showToast('Scan error. Try again.', 'danger');
+            // ── OFFLINE FALLBACK: Search IndexedDB ──
+            try {
+                const localProduct = await PureDB.findByBarcode(barcode);
+                if (localProduct) {
+                    addToCart(localProduct);
+                    showToast(`Added (offline): ${localProduct.name}`, 'success');
+                } else {
+                    showToast('Product not found: ' + barcode, 'warning');
+                }
+            } catch (dbErr) {
+                showToast('Scan error. Try again.', 'danger');
+            }
         }
     }
 }
@@ -737,8 +817,21 @@ async function loadProducts(category = '', search = '', append = false) {
 
         currentPage++;
     } catch (e) {
+        // ── OFFLINE FALLBACK: Load from IndexedDB ──
         if (!append) {
-            grid.innerHTML = '<div class="pos-error"><i class="bi bi-wifi-off fs-2"></i><p>Failed to load products</p></div>';
+            try {
+                const localProducts = await PureDB.searchProducts(search, category || null);
+                if (localProducts.length > 0) {
+                    allProducts = localProducts;
+                    hasMoreProducts = false;
+                    renderProducts(localProducts, localProducts.length);
+                    console.log(`[POS] Loaded ${localProducts.length} products from IndexedDB`);
+                } else {
+                    grid.innerHTML = '<div class="pos-error"><i class="bi bi-wifi-off fs-2"></i><p>Offline — No cached products</p></div>';
+                }
+            } catch (dbErr) {
+                grid.innerHTML = '<div class="pos-error"><i class="bi bi-wifi-off fs-2"></i><p>Failed to load products</p></div>';
+            }
         }
     } finally {
         isLoadingProducts = false;
@@ -1204,7 +1297,48 @@ document.getElementById('completeSaleBtn').addEventListener('click', async () =>
             showToast(data.message || 'Sale failed', 'danger');
         }
     } catch (e) {
-        showToast('Network error. Please try again.', 'danger');
+        // ── OFFLINE FALLBACK ──
+        // Network error — process sale offline via IndexedDB
+        console.warn('[POS] Server unreachable, processing sale offline:', e.message);
+        try {
+            const offlineOrder = await OfflinePOS.processSale({
+                items: cart.map(i => ({
+                    product_id: i.product_id,
+                    name: i.product_name,
+                    sku: i.sku || '',
+                    quantity: i.quantity,
+                    price: i.unit_price,
+                    cost_price: i.cost_price || 0,
+                    discount: i.discount_amount || 0,
+                    tax: i.tax_amount || 0,
+                })),
+                customer_id: document.getElementById('selectedCustomerId').value || null,
+                payment_method: currentPayMethod,
+                payment_amount: paymentAmount || totals.grandTotal,
+                discount_type: discount.type,
+                discount_value: discount.value,
+                notes: document.getElementById('orderNotes').value,
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide();
+            updateCustomerDisplay('sale_complete');
+            lastCompletedOrderId = null; // Offline orders don't have server ID yet
+
+            // Show receipt with offline indicator
+            showReceiptModal({
+                id: null,
+                order_number: offlineOrder.order_number,
+                uuid: offlineOrder.uuid,
+                customer: null,
+                items: offlineOrder.items,
+            }, totals, paymentAmount);
+
+            clearCart();
+            showToast('✅ Sale saved offline — will sync when online', 'success');
+        } catch (offlineErr) {
+            console.error('[POS] Offline sale also failed:', offlineErr);
+            showToast('Sale failed. Please try again.', 'danger');
+        }
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Complete Sale';
@@ -1324,20 +1458,41 @@ customerSearch.addEventListener('input', () => {
     const q = customerSearch.value.trim();
     if (!q) { customerDropdown.classList.add('d-none'); return; }
     customerTimer = setTimeout(async () => {
-        const res  = await fetch(`${Routes.customers}?q=${encodeURIComponent(q)}`);
-        const data = await res.json();
-        if (!data.customers.length) { customerDropdown.classList.add('d-none'); return; }
-        customerDropdown.innerHTML = data.customers.map(c => `
-            <div class="customer-option" onclick="selectCustomer(${JSON.stringify(c).replace(/"/g,'&quot;')})">
-                <i class="bi bi-person-circle"></i>
-                <div>
-                    <div class="co-name">${c.name}</div>
-                    <div class="co-meta">${c.phone || ''} ${c.email ? '• ' + c.email : ''}</div>
+        try {
+            const res  = await fetch(`${Routes.customers}?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            if (!data.customers.length) { customerDropdown.classList.add('d-none'); return; }
+            customerDropdown.innerHTML = data.customers.map(c => `
+                <div class="customer-option" onclick="selectCustomer(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+                    <i class="bi bi-person-circle"></i>
+                    <div>
+                        <div class="co-name">${c.name}</div>
+                        <div class="co-meta">${c.phone || ''} ${c.email ? '• ' + c.email : ''}</div>
+                    </div>
+                    <div class="co-points">${c.loyalty_points || 0} pts</div>
                 </div>
-                <div class="co-points">${c.loyalty_points || 0} pts</div>
-            </div>
-        `).join('');
-        customerDropdown.classList.remove('d-none');
+            `).join('');
+            customerDropdown.classList.remove('d-none');
+        } catch (e) {
+            // ── OFFLINE FALLBACK: Search IndexedDB ──
+            try {
+                const localCustomers = await PureDB.searchCustomers(q);
+                if (!localCustomers.length) { customerDropdown.classList.add('d-none'); return; }
+                customerDropdown.innerHTML = localCustomers.map(c => `
+                    <div class="customer-option" onclick="selectCustomer(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+                        <i class="bi bi-person-circle"></i>
+                        <div>
+                            <div class="co-name">${c.name}</div>
+                            <div class="co-meta">${c.phone || ''} ${c.email ? '• ' + c.email : ''}</div>
+                        </div>
+                        <div class="co-points">${c.loyalty_points || 0} pts</div>
+                    </div>
+                `).join('');
+                customerDropdown.classList.remove('d-none');
+            } catch (dbErr) {
+                customerDropdown.classList.add('d-none');
+            }
+        }
     }, 300);
 });
 
@@ -1706,7 +1861,26 @@ async function createBill() {
             showToast(data.message || 'Failed to create bill', 'danger');
         }
     } catch (e) {
-        showToast('Network error. Please try again.', 'danger');
+        // ── OFFLINE FALLBACK ──
+        console.warn('[POS] Server unreachable, creating bill offline:', e.message);
+        try {
+            const offlineBill = await OfflinePOS.createBill({
+                items: cart.map(i => ({
+                    product_id: i.product_id,
+                    name: i.product_name,
+                    quantity: i.quantity,
+                    price: i.unit_price,
+                    discount: i.discount_amount || 0,
+                    tax: i.tax_amount || 0,
+                })),
+                customer_id: document.getElementById('selectedCustomerId').value || null,
+                notes: '',
+            });
+            showToast('📋 Bill saved offline — will sync when online', 'success');
+            clearCart();
+        } catch (offlineErr) {
+            showToast('Failed to create bill. Please try again.', 'danger');
+        }
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-receipt me-2"></i>Create Bill <span id="chargeBtnAmount">Rs. 0.00</span>';
@@ -2344,5 +2518,105 @@ function showToast(message, type = 'info') {
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
 }
+
+// ═══════════════════════════════════════════════════════════
+//  OFFLINE-FIRST INITIALIZATION
+// ═══════════════════════════════════════════════════════════
+
+(async function initOfflineEngine() {
+    try {
+        // 1. Initialize IndexedDB
+        await PureDB.init();
+        console.log('[POS] PureDB initialized');
+
+        // 2. Initialize Sync Engine
+        PureSync.init({
+            apiBase: '/api/v1',
+            csrfToken: CSRF,
+        });
+
+        // 3. Initialize Offline POS with store config
+        await OfflinePOS.init();
+        await OfflinePOS.saveStoreConfig({
+            store_id: {{ $store?->id ?? 'null' }},
+            user_id: {{ auth()->id() }},
+            store_name: @json($store?->name ?? 'My Store'),
+            address: @json($store?->address ?? ''),
+            phone: @json($store?->phone ?? ''),
+            currency: @json($store?->currency ?? 'LKR'),
+            currency_symbol: @json($store?->currency_symbol ?? 'Rs.'),
+            tax_rate: {{ $store?->tax_rate ?? 0 }},
+        });
+
+        // 4. Hydrate if needed (download products/categories/customers to IndexedDB)
+        const needsHydration = await PureDB.needsHydration();
+        if (needsHydration && PureSync.isOnline()) {
+            console.log('[POS] Hydrating local database...');
+            showToast('Syncing product data...', 'info');
+            const stats = await PureSync.pull('products,customers,categories');
+            if (stats) {
+                showToast(`Synced: ${stats.products || 0} products, ${stats.customers || 0} customers`, 'success');
+            }
+        }
+
+        // 5. Wire up sync status indicator
+        const syncDot = document.getElementById('syncDot');
+        const syncLabel = document.getElementById('syncLabel');
+        const syncBadge = document.getElementById('syncPendingBadge');
+        const syncBtn = document.getElementById('btnSyncNow');
+
+        function updateSyncUI(status) {
+            if (!syncDot) return;
+            if (status === 'online') {
+                syncDot.className = 'sync-dot sync-online';
+                syncDot.title = 'Online';
+                syncLabel.textContent = 'Online';
+            } else if (status === 'offline') {
+                syncDot.className = 'sync-dot sync-offline';
+                syncDot.title = 'Offline';
+                syncLabel.textContent = 'Offline';
+            } else if (status === 'syncing') {
+                syncDot.className = 'sync-dot sync-syncing';
+                syncDot.title = 'Syncing...';
+                syncLabel.textContent = 'Syncing';
+            }
+        }
+
+        PureSync.on('online', () => updateSyncUI('online'));
+        PureSync.on('offline', () => updateSyncUI('offline'));
+        PureSync.on('sync_start', () => updateSyncUI('syncing'));
+        PureSync.on('sync_complete', (data) => {
+            updateSyncUI('online');
+            if (data.pushed > 0) showToast(`✅ ${data.pushed} transaction(s) synced!`, 'success');
+        });
+        PureSync.on('sync_error', (data) => {
+            updateSyncUI('online');
+            console.warn('[POS] Sync error:', data.error);
+        });
+        PureSync.on('pending_update', (data) => {
+            if (syncBadge) {
+                if (data.count > 0) {
+                    syncBadge.textContent = data.count;
+                    syncBadge.classList.remove('d-none');
+                    if (syncBtn) syncBtn.classList.remove('d-none');
+                } else {
+                    syncBadge.classList.add('d-none');
+                    if (syncBtn) syncBtn.classList.add('d-none');
+                }
+            }
+        });
+
+        // Set initial status
+        updateSyncUI(PureSync.isOnline() ? 'online' : 'offline');
+
+        // 6. Log DB stats
+        const stats = await PureDB.getStats();
+        console.log('[POS] Local DB:', stats);
+
+    } catch (err) {
+        console.error('[POS] Offline engine init failed:', err);
+        // POS still works in online-only mode even if offline engine fails
+    }
+})();
 </script>
 @endpush

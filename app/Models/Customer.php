@@ -5,12 +5,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Customer extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'store_id','customer_group_id','name','email','phone','address','city',
+        'uuid','store_id','customer_group_id','name','email','phone','address','city',
         'nic','date_of_birth','credit_limit','current_balance','total_purchases',
         'total_orders','loyalty_points','loyalty_tier','notes','is_active'
     ];
@@ -21,6 +22,16 @@ class Customer extends Model
         'current_balance'=> 'decimal:2',
         'total_purchases'=> 'decimal:2',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($customer) {
+            if (empty($customer->uuid)) {
+                $customer->uuid = Str::uuid()->toString();
+            }
+        });
+    }
 
     public function store(): BelongsTo         { return $this->belongsTo(Store::class); }
     public function group(): BelongsTo         { return $this->belongsTo(CustomerGroup::class, 'customer_group_id'); }

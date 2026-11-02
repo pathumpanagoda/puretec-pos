@@ -5,12 +5,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'store_id','category_id','supplier_id','tax_id','name','sku','barcode',
+        'uuid','store_id','category_id','supplier_id','tax_id','name','sku','barcode',
         'description','image','gallery','product_type','cost_price','selling_price',
         'wholesale_price','min_selling_price','stock_quantity','min_stock','max_stock',
         'reorder_level','unit','weight','track_stock','allow_negative_stock',
@@ -29,6 +30,16 @@ class Product extends Model
         'stock_quantity'     => 'decimal:3',
         'expiry_date'        => 'date',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($product) {
+            if (empty($product->uuid)) {
+                $product->uuid = Str::uuid()->toString();
+            }
+        });
+    }
 
     public function store(): BelongsTo              { return $this->belongsTo(Store::class); }
     public function category(): BelongsTo           { return $this->belongsTo(Category::class); }

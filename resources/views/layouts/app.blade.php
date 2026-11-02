@@ -96,69 +96,71 @@ body:has(.impersonation-bar) .main-content {
             <i class="bi bi-grid-1x2"></i><span>Dashboard</span>
         </a>
         @endif
-        @if(auth()->user()->canAccess('pos'))
+        @if(auth()->user()->canAccessFeature('pos'))
         <a href="{{ route('pos.index') }}" class="nav-link {{ request()->routeIs('pos*') ? 'active' : '' }}">
             <i class="bi bi-cart3"></i><span>Point of Sale</span>
             <span class="nav-badge">POS</span>
         </a>
         @endif
 
-        @if(auth()->user()->canAccess('products') || auth()->user()->canAccess('categories') || auth()->user()->canAccess('inventory'))
+        @if(auth()->user()->canAccessFeature('products') || auth()->user()->canAccessFeature('categories') || auth()->user()->canAccessFeature('inventory'))
         <div class="nav-section-label mt-3">Catalogue</div>
         @endif
-        @if(auth()->user()->canAccess('products'))
+        @if(auth()->user()->canAccessFeature('products'))
         <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products*') ? 'active' : '' }}">
             <i class="bi bi-box-seam"></i><span>Products</span>
         </a>
         @endif
-        @if(auth()->user()->canAccess('categories'))
+        @if(auth()->user()->canAccessFeature('categories'))
         <a href="{{ route('categories.index') }}" class="nav-link {{ request()->routeIs('categories*') ? 'active' : '' }}">
             <i class="bi bi-tags"></i><span>Categories</span>
         </a>
         @endif
-        @if(auth()->user()->canAccess('inventory'))
+        @if(auth()->user()->canAccessFeature('inventory'))
         <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory*') ? 'active' : '' }}">
             <i class="bi bi-archive"></i><span>Inventory</span>
         </a>
         @endif
 
-        @if(auth()->user()->canAccess('customers') || auth()->user()->canAccess('suppliers'))
+        @if(auth()->user()->canAccessFeature('customers') || auth()->user()->canAccessFeature('suppliers'))
         <div class="nav-section-label mt-3">People</div>
         @endif
-        @if(auth()->user()->canAccess('customers'))
+        @if(auth()->user()->canAccessFeature('customers'))
         <a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers*') ? 'active' : '' }}">
             <i class="bi bi-people"></i><span>Customers</span>
         </a>
         @endif
-        @if(auth()->user()->canAccess('suppliers'))
+        @if(auth()->user()->canAccessFeature('suppliers'))
         <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers*') ? 'active' : '' }}">
             <i class="bi bi-truck"></i><span>Suppliers</span>
         </a>
         @endif
 
-        @if(auth()->user()->canAccess('orders') || auth()->user()->canAccess('purchases') || auth()->user()->canAccess('expenses'))
+        @if(auth()->user()->canAccessFeature('orders') || auth()->user()->canAccessFeature('purchases') || auth()->user()->canAccessFeature('expenses') || auth()->user()->canAccessFeature('incomes'))
         <div class="nav-section-label mt-3">Finance</div>
         @endif
-        @if(auth()->user()->canAccess('orders'))
+        @if(auth()->user()->canAccessFeature('orders'))
         <a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders*') ? 'active' : '' }}">
             <i class="bi bi-receipt"></i><span>Orders</span>
         </a>
         @endif
-        @if(auth()->user()->canAccess('purchases'))
+        @if(auth()->user()->canAccessFeature('purchases'))
         <a href="{{ route('purchases.index') }}" class="nav-link {{ request()->routeIs('purchases*') ? 'active' : '' }}">
             <i class="bi bi-bag-check"></i><span>Purchases</span>
         </a>
         @endif
-        @if(auth()->user()->canAccess('expenses'))
+        @if(auth()->user()->canAccessFeature('expenses'))
         <a href="{{ route('expenses.index') }}" class="nav-link {{ request()->routeIs('expenses*') ? 'active' : '' }}">
             <i class="bi bi-wallet2"></i><span>Expenses</span>
         </a>
         @endif
+        @if(auth()->user()->canAccessFeature('incomes'))
         <a href="{{ route('incomes.index') }}" class="nav-link {{ request()->routeIs('incomes*') ? 'active' : '' }}">
             <i class="bi bi-cash-stack"></i><span>Income</span>
         </a>
+        @endif
 
-        @if(auth()->user()->canAccess('reports'))
+        @if(auth()->user()->canAccessFeature('reports'))
         <div class="nav-section-label mt-3">Analytics</div>
         <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports*') ? 'active' : '' }}">
             <i class="bi bi-bar-chart-line"></i><span>Reports</span>
@@ -167,9 +169,11 @@ body:has(.impersonation-bar) .main-content {
 
         @if(auth()->user()->isAdmin())
         <div class="nav-section-label mt-3">System</div>
+        @if(auth()->user()->canAccessFeature('users'))
         <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users*') ? 'active' : '' }}">
             <i class="bi bi-person-gear"></i><span>Users</span>
         </a>
+        @endif
         <a href="{{ route('password-reset-requests.index') }}" class="nav-link {{ request()->routeIs('password-reset-requests*') ? 'active' : '' }}">
             <i class="bi bi-key"></i><span>Password Resets</span>
             @php $prPending = \App\Models\PasswordResetRequest::where('store_id', auth()->user()->store_id)->pending()->count(); @endphp
@@ -177,7 +181,7 @@ body:has(.impersonation-bar) .main-content {
                 <span class="nav-badge bg-danger">{{ $prPending }}</span>
             @endif
         </a>
-        @if(auth()->user()->canAccess('settings'))
+        @if(auth()->user()->canAccessFeature('settings'))
         <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings*') ? 'active' : '' }}">
             <i class="bi bi-gear"></i><span>Settings</span>
         </a>
@@ -285,6 +289,10 @@ body:has(.impersonation-bar) .main-content {
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/pure-pos.js') }}"></script>
+<!-- Offline-First Engine -->
+<script src="{{ asset('js/puredb.js') }}"></script>
+<script src="{{ asset('js/sync-engine.js') }}"></script>
+<script src="{{ asset('js/offline-pos.js') }}"></script>
 @stack('scripts')
 
 <script>
@@ -311,6 +319,15 @@ if (themeToggle) {
         html.setAttribute('data-theme', next);
         localStorage.setItem('pure-pos-theme', next);
         if (themeIcon) themeIcon.className = next === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('[SW] Registered:', reg.scope))
+            .catch(err => console.warn('[SW] Registration failed:', err));
     });
 }
 </script>

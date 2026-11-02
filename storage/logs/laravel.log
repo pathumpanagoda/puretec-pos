@@ -3497,3 +3497,18 @@
 #66 C:/Users/pathu/Desktop/puretec pos/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(16): require_once('C://Users//pathu//...')
 #67 {main}
 "} 
+[2026-09-26 15:24:26] local.ERROR: The "--compact" option does not exist. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\RuntimeException(code: 0): The \"--compact\" option does not exist. at D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Input/ArgvInput.php:223)
+[stacktrace]
+#0 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Input/ArgvInput.php(152): Symfony/Component/Console/Input/ArgvInput->addLongOption()
+#1 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Input/ArgvInput.php(85): Symfony/Component/Console/Input/ArgvInput->parseLongOption()
+#2 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Input/ArgvInput.php(74): Symfony/Component/Console/Input/ArgvInput->parseToken()
+#3 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Input/Input.php(56): Symfony/Component/Console/Input/ArgvInput->parse()
+#4 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Command/Command.php(285): Symfony/Component/Console/Input/Input->bind()
+#5 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/laravel/framework/src/Illuminate/Console/Command.php(180): Symfony/Component/Console/Command/Command->run()
+#6 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Application.php(1121): Illuminate/Console/Command->run()
+#7 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Application.php(324): Symfony/Component/Console/Application->doRunCommand()
+#8 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/symfony/console/Application.php(175): Symfony/Component/Console/Application->doRun()
+#9 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(201): Symfony/Component/Console/Application->run()
+#10 D:/Extar/Project Befor upload/Pos puretec/puretec-pos/artisan(24): Illuminate/Foundation/Console/Kernel->handle()
+#11 {main}
+"} 

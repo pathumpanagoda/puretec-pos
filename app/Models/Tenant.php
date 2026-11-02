@@ -62,6 +62,11 @@ class Tenant extends Model
         return $this->hasMany(TenantPayment::class);
     }
 
+    public function clientFeatures(): HasMany
+    {
+        return $this->hasMany(ClientFeature::class);
+    }
+
     // Helper methods
 
     /**

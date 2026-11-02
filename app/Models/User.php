@@ -7,10 +7,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, HasApiTokens;
 
     protected $fillable = [
         'tenant_id','store_id','name','email','username','phone','avatar',
@@ -117,8 +118,30 @@ class User extends Authenticatable
             'orders'     => 'Orders',
             'purchases'  => 'Purchases',
             'expenses'   => 'Expenses',
+            'incomes'    => 'Other Income',
             'reports'    => 'Reports',
             'settings'   => 'Settings',
+            'users'      => 'User Management',
         ];
+    }
+
+    /**
+     * Check if user can access a feature (TWO-LEVEL CHECK).
+     *
+     * Level 1: Is the feature enabled for this client/tenant?
+     * Level 2: Does the user have permission for this feature?
+     *
+     * A user can ONLY access a feature if BOTH levels pass.
+     */
+    public function canAccessFeature(string $feature): bool
+    {
+        // Level 1: Check client feature toggle
+        $featureService = app(\App\Services\FeatureService::class);
+        if (!$featureService->isEnabled($this->tenant_id, $feature)) {
+            return false;
+        }
+
+        // Level 2: Check user permission
+        return $this->canAccess($feature);
     }
 }
