@@ -8,10 +8,15 @@ use Illuminate\Support\Str;
 class InventoryMovement extends Model
 {
     protected $fillable = [
-        'uuid','store_id','product_id','user_id','type','reference_type','reference_id',
+        'uuid','store_id','product_id','user_id','device_id','sync_status','type',
+        'reference_type','reference_id','reference_uuid',
         'quantity','quantity_before','quantity_after','unit_cost','total_cost','notes'
     ];
-    protected $casts = ['quantity' => 'decimal:3', 'unit_cost' => 'decimal:2'];
+    protected $casts = [
+        'quantity' => 'decimal:3',
+        'unit_cost' => 'decimal:2',
+        'total_cost' => 'decimal:2',
+    ];
 
     protected static function boot()
     {

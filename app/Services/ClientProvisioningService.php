@@ -136,7 +136,65 @@ class ClientProvisioningService
 
             'nginx_config' => $this->generateNginxConfig($slug),
             'env_template' => $this->generateEnvTemplate($tenant, $slug),
+            'provisioning_script' => $this->generateBashScript($tenant, $slug),
         ];
+    }
+
+    /**
+     * Generate automated bash provisioning script for VPS deployment.
+     */
+    protected function generateBashScript(Tenant $tenant, string $slug): string
+    {
+        $dbName = 'purepos_' . Str::snake($tenant->code);
+        $domain = $slug . '.puretec.lk';
+
+        return "#!/bin/bash\n" .
+               "# =============================================================================\n" .
+               "# Puretec Pure POS - VPS Client Provisioning Automation Script\n" .
+               "# Tenant: {$tenant->business_name} ({$tenant->code})\n" .
+               "# Subdomain: {$domain}\n" .
+               "# Database: {$dbName}\n" .
+               "# =============================================================================\n\n" .
+               "set -euo pipefail\n\n" .
+               "TENANT_CODE=\"{$tenant->code}\"\n" .
+               "SLUG=\"{$slug}\"\n" .
+               "DOMAIN=\"{$domain}\"\n" .
+               "DB_NAME=\"{$dbName}\"\n" .
+               "DB_USER=\"purepos_{$slug}\"\n" .
+               "DB_PASS=\"\$(openssl rand -hex 12)\"\n" .
+               "TARGET_DIR=\"/var/www/\${SLUG}\"\n" .
+               "MASTER_DIR=\"/var/www/purepos-master\"\n" .
+               "PHP_FPM_SOCK=\"/var/run/php/php8.2-fpm.sock\"\n\n" .
+               "echo \"[1/6] Creating MySQL Database and User...\"\n" .
+               "mysql -e \"CREATE DATABASE IF NOT EXISTS \\\`\${DB_NAME}\\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\"\n" .
+               "mysql -e \"CREATE USER IF NOT EXISTS '\${DB_USER}'@'localhost' IDENTIFIED BY '\${DB_PASS}';\"\n" .
+               "mysql -e \"GRANT ALL PRIVILEGES ON \\\`\${DB_NAME}\\\`.* TO '\${DB_USER}'@'localhost'; FLUSH PRIVILEGES;\"\n\n" .
+               "echo \"[2/6] Copying codebase to \${TARGET_DIR}...\"\n" .
+               "mkdir -p \"\${TARGET_DIR}\"\n" .
+               "if [ -d \"\${MASTER_DIR}\" ]; then\n" .
+               "    rsync -av --exclude='.git' --exclude='storage/logs/*' --exclude='storage/framework/cache/data/*' --exclude='.env' \"\${MASTER_DIR}/\" \"\${TARGET_DIR}/\"\n" .
+               "fi\n\n" .
+               "echo \"[3/6] Generating .env configuration...\"\n" .
+               "cat << 'EOF' > \"\${TARGET_DIR}/.env\"\n" .
+               $this->generateEnvTemplate($tenant, $slug) .
+               "EOF\n\n" .
+               "sed -i \"s/CHANGE_ME_TO_SECURE_PASSWORD/\${DB_PASS}/g\" \"\${TARGET_DIR}/.env\"\n\n" .
+               "echo \"[4/6] Initializing Laravel, migrations and storage link...\"\n" .
+               "cd \"\${TARGET_DIR}\"\n" .
+               "php artisan key:generate --force\n" .
+               "php artisan migrate --force\n" .
+               "php artisan storage:link || true\n" .
+               "chown -R www-data:www-data \"\${TARGET_DIR}\"\n" .
+               "chmod -R 775 \"\${TARGET_DIR}/storage\" \"\${TARGET_DIR}/bootstrap/cache\"\n\n" .
+               "echo \"[5/6] Deploying Nginx server configuration...\"\n" .
+               "cat << 'EOF' > \"/etc/nginx/sites-available/\${DOMAIN}\"\n" .
+               $this->generateNginxConfig($slug) .
+               "EOF\n" .
+               "ln -sf \"/etc/nginx/sites-available/\${DOMAIN}\" \"/etc/nginx/sites-enabled/\${DOMAIN}\"\n" .
+               "nginx -t && systemctl reload nginx\n\n" .
+               "echo \"[6/6] Requesting Let's Encrypt SSL Certificate...\"\n" .
+               "certbot --nginx -d \"\${DOMAIN}\" --non-interactive --agree-tos -m \"admin@puretec.lk\" --redirect || echo \"Certbot can be executed once DNS resolves.\"\n\n" .
+               "echo \"Provisioning complete for \${DOMAIN}\"\n";
     }
 
     /**
@@ -203,7 +261,12 @@ class ClientProvisioningService
      */
     public function suspend(Tenant $tenant, string $reason = 'Suspended by admin'): void
     {
-        $tenant->lock($reason);
+        $tenant->update([
+            'is_active' => false,
+            'is_locked' => true,
+            'locked_at' => now(),
+            'lock_reason' => $reason,
+        ]);
         Log::warning("Client suspended: {$tenant->code} — {$reason}");
     }
 
@@ -212,8 +275,12 @@ class ClientProvisioningService
      */
     public function activate(Tenant $tenant): void
     {
-        $tenant->unlock();
-        $tenant->update(['is_active' => true]);
+        $tenant->update([
+            'is_active' => true,
+            'is_locked' => false,
+            'locked_at' => null,
+            'lock_reason' => null,
+        ]);
         Log::info("Client activated: {$tenant->code}");
     }
 }

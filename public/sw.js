@@ -21,6 +21,7 @@ const FONT_CACHE    = 'pure-pos-fonts-v1';
 
 const PRECACHE_ASSETS = [
     '/',
+    '/pos',
     '/css/pure-pos.css',
     '/css/pos.css',
     '/js/pure-pos.js',

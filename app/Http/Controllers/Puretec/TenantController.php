@@ -171,6 +171,10 @@ class TenantController extends Controller
             'users_count' => $tenant->users()->count(),
             'total_paid' => $tenant->payments()->sum('amount'),
             'pending_amount' => $tenant->pendingAmount(),
+            'devices_count' => \App\Models\DeviceRegistration::where('tenant_id', $tenant->id)->count(),
+            'active_devices_count' => \App\Models\DeviceRegistration::where('tenant_id', $tenant->id)->where('is_active', true)->count(),
+            'features_count' => \App\Models\ClientFeature::where('tenant_id', $tenant->id)->where('is_enabled', true)->count(),
+            'failed_syncs_today' => \App\Models\SyncLog::where('tenant_id', $tenant->id)->where('status', 'failed')->whereDate('created_at', today())->count(),
         ];
 
         return view('puretec.tenants.show', compact('tenant', 'stats'));
@@ -502,5 +506,40 @@ class TenantController extends Controller
         $featureService->updateFeatures($tenant->id, $updates);
 
         return back()->with('success', 'Features updated successfully!');
+    }
+
+    /**
+     * Suspend a client (Phase 8).
+     */
+    public function suspend(Request $request, Tenant $tenant)
+    {
+        $request->validate(['reason' => 'nullable|string|max:500']);
+
+        $provisioning = app(\App\Services\ClientProvisioningService::class);
+        $provisioning->suspend($tenant, $request->reason ?? 'Suspended by admin');
+
+        return back()->with('success', "Client '$tenant->business_name' has been suspended.");
+    }
+
+    /**
+     * Activate a client (Phase 8).
+     */
+    public function activate(Tenant $tenant)
+    {
+        $provisioning = app(\App\Services\ClientProvisioningService::class);
+        $provisioning->activate($tenant);
+
+        return back()->with('success', "Client '$tenant->business_name' has been activated.");
+    }
+
+    /**
+     * Show deployment configuration for a tenant (Phase 9).
+     */
+    public function deployment(Tenant $tenant)
+    {
+        $provisioning = app(\App\Services\ClientProvisioningService::class);
+        $deployment = $provisioning->generateDeploymentConfig($tenant);
+
+        return view('puretec.tenants.deployment', compact('tenant', 'deployment'));
     }
 }

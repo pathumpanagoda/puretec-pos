@@ -5,6 +5,7 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ExpenseController extends Controller
 {
@@ -29,8 +30,27 @@ class ExpenseController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['title' => 'required|string', 'amount' => 'required|numeric|min:0.01', 'expense_date' => 'required|date']);
-        $data             = $request->except('_token');
+        $request->validate([
+            'title'               => 'required|string|max:255',
+            'amount'              => 'required|numeric|min:0.01',
+            'expense_date'        => 'required|date',
+            'expense_category_id' => [
+                'nullable',
+                Rule::exists('expense_categories', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'payment_method'      => 'required|in:cash,card,bank_transfer',
+            'notes'               => 'nullable|string|max:65535',
+        ]);
+        $data = $request->only([
+            'title',
+            'amount',
+            'expense_date',
+            'expense_category_id',
+            'payment_method',
+            'notes',
+        ]);
         $data['store_id'] = Auth::user()->store_id;
         $data['user_id']  = Auth::id();
         Expense::create($data);
@@ -39,19 +59,51 @@ class ExpenseController extends Controller
 
     public function edit(Expense $expense)
     {
+        if ((int) $expense->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $categories = ExpenseCategory::where('store_id', Auth::user()->store_id)->get();
         return view('expenses.edit', compact('expense','categories'));
     }
 
     public function update(Request $request, Expense $expense)
     {
-        $request->validate(['title' => 'required|string', 'amount' => 'required|numeric|min:0.01', 'expense_date' => 'required|date']);
-        $expense->update($request->except('_token','_method'));
+        if ((int) $expense->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'title'               => 'required|string|max:255',
+            'amount'              => 'required|numeric|min:0.01',
+            'expense_date'        => 'required|date',
+            'expense_category_id' => [
+                'nullable',
+                Rule::exists('expense_categories', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'payment_method'      => 'required|in:cash,card,bank_transfer',
+            'notes'               => 'nullable|string|max:65535',
+        ]);
+        $data = $request->only([
+            'title',
+            'amount',
+            'expense_date',
+            'expense_category_id',
+            'payment_method',
+            'notes',
+        ]);
+        $expense->update($data);
         return redirect()->route('expenses.index')->with('success', 'Expense updated!');
     }
 
     public function destroy(Expense $expense)
     {
+        if ((int) $expense->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $expense->delete();
         return back()->with('success', 'Expense deleted!');
     }

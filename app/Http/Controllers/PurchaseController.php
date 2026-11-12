@@ -9,6 +9,8 @@ use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseController extends Controller
 {
@@ -34,9 +36,26 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'supplier_id' => 'nullable|exists:suppliers,id',
-            'order_date'  => 'required|date',
-            'items'       => 'required|array|min:1',
+            'supplier_id' => [
+                'nullable',
+                Rule::exists('suppliers', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'order_date'                => 'required|date',
+            'expected_date'             => 'nullable|date',
+            'notes'                     => 'nullable|string|max:65535',
+            'status'                    => 'nullable|string|in:draft,ordered,partial,received,cancelled',
+            'items'                     => 'required|array|min:1',
+            'items.*.product_id'        => [
+                'required',
+                Rule::exists('products', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'items.*.ordered_quantity'  => 'required|numeric|gt:0',
+            'items.*.unit_cost'         => 'required|numeric|min:0',
+            'items.*.unit'              => 'nullable|string|max:20',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -45,32 +64,37 @@ class PurchaseController extends Controller
             $total    = 0;
 
             foreach ($request->items as $item) {
-                $itemTotal = $item['ordered_quantity'] * $item['unit_cost'];
+                $itemTotal = (float) $item['ordered_quantity'] * (float) $item['unit_cost'];
                 $subtotal += $itemTotal;
                 $total    += $itemTotal;
             }
 
             $po = PurchaseOrder::create([
-                'store_id'    => $storeId,
-                'supplier_id' => $request->supplier_id,
-                'user_id'     => Auth::id(),
-                'order_date'  => $request->order_date,
-                'expected_date'=> $request->expected_date,
-                'subtotal'    => $subtotal,
-                'total_amount'=> $total,
-                'notes'       => $request->notes,
-                'status'      => $request->status ?? 'ordered',
+                'store_id'      => $storeId,
+                'supplier_id'   => $request->supplier_id,
+                'user_id'       => Auth::id(),
+                'order_date'    => $request->order_date,
+                'expected_date' => $request->expected_date,
+                'subtotal'      => $subtotal,
+                'total_amount'  => $total,
+                'notes'         => $request->notes,
+                'status'        => $request->status ?? 'ordered',
             ]);
 
             foreach ($request->items as $item) {
-                $itemTotal = $item['ordered_quantity'] * $item['unit_cost'];
+                $product = Product::where('store_id', $storeId)->find($item['product_id']);
+                if (!$product) {
+                    abort(404);
+                }
+
+                $itemTotal = (float) $item['ordered_quantity'] * (float) $item['unit_cost'];
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $po->id,
-                    'product_id'        => $item['product_id'],
-                    'product_name'      => Product::find($item['product_id'])?->name ?? 'Unknown',
+                    'product_id'        => $product->id,
+                    'product_name'      => $product->name,
                     'ordered_quantity'  => $item['ordered_quantity'],
                     'received_quantity' => 0,
-                    'unit'              => $item['unit'] ?? 'pcs',
+                    'unit'              => $item['unit'] ?? $product->unit ?? 'pcs',
                     'unit_cost'         => $item['unit_cost'],
                     'subtotal'          => $itemTotal,
                     'total'             => $itemTotal,
@@ -83,26 +107,55 @@ class PurchaseController extends Controller
 
     public function show(PurchaseOrder $purchase)
     {
+        if ((int) $purchase->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $purchase->load('items.product','supplier','user');
         return view('purchases.show', compact('purchase'));
     }
 
     public function receive(Request $request, PurchaseOrder $purchase)
     {
+        if ((int) $purchase->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'items'                     => 'required|array|min:1',
+            'items.*.id'                => [
+                'required',
+                'distinct',
+                Rule::exists('purchase_order_items', 'id')->where(function ($query) use ($purchase) {
+                    $query->where('purchase_order_id', $purchase->id);
+                }),
+            ],
+            'items.*.received_quantity' => 'required|numeric|min:0',
+            'update_cost'               => 'nullable|boolean',
+        ]);
+
         DB::transaction(function () use ($request, $purchase) {
             $storeId = Auth::user()->store_id;
-            $allReceived = true;
+            $hasAnyReceived = false;
 
-            foreach ($request->items as $itemData) {
-                $item = PurchaseOrderItem::findOrFail($itemData['id']);
+            foreach ($request->items as $index => $itemData) {
+                $item = $purchase->items()->where('id', $itemData['id'])->firstOrFail();
                 $receivedQty = (float) $itemData['received_quantity'];
-                $item->update(['received_quantity' => $item->received_quantity + $receivedQty]);
+                $remaining = (float) $item->ordered_quantity - (float) $item->received_quantity;
 
-                if ($item->received_quantity < $item->ordered_quantity) $allReceived = false;
+                if ($receivedQty > $remaining) {
+                    throw ValidationException::withMessages([
+                        "items.{$index}.received_quantity" => [
+                            "Received quantity cannot exceed remaining ordered quantity for {$item->product_name}."
+                        ],
+                    ]);
+                }
 
-                // Update product stock
                 if ($receivedQty > 0) {
-                    $product = Product::find($item->product_id);
+                    $hasAnyReceived = true;
+                    $item->update(['received_quantity' => $item->received_quantity + $receivedQty]);
+
+                    $product = Product::where('store_id', $storeId)->find($item->product_id);
                     if ($product) {
                         $before = $product->stock_quantity;
                         $product->increment('stock_quantity', $receivedQty);
@@ -126,10 +179,25 @@ class PurchaseController extends Controller
                 }
             }
 
-            $purchase->update([
-                'status'        => $allReceived ? 'received' : 'partial',
-                'received_date' => now()->toDateString(),
-            ]);
+            $allItems = $purchase->items()->get();
+            $allReceived = $allItems->count() > 0 && $allItems->every(function ($item) {
+                return (float) $item->received_quantity >= (float) $item->ordered_quantity;
+            });
+            $anyReceived = $allItems->contains(function ($item) {
+                return (float) $item->received_quantity > 0;
+            });
+
+            if ($allReceived) {
+                $purchase->update([
+                    'status'        => 'received',
+                    'received_date' => now()->toDateString(),
+                ]);
+            } elseif ($anyReceived) {
+                $purchase->update([
+                    'status'        => 'partial',
+                    'received_date' => $purchase->received_date ?? now()->toDateString(),
+                ]);
+            }
         });
 
         return back()->with('success', 'Stock received successfully!');

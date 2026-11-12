@@ -19,15 +19,25 @@
                 </a>
             </li>
 
-            <li class="nav-section">Tenant Management</li>
+            <li class="nav-section">Client Management</li>
 
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('puretec.tenants.*') ? 'active' : '' }}"
                    href="{{ route('puretec.tenants.index') }}">
                     <i class="bi bi-building"></i>
-                    <span>Tenants</span>
+                    <span>Clients</span>
                 </a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('puretec.users.*') ? 'active' : '' }}"
+                   href="{{ route('puretec.users.index') }}">
+                    <i class="bi bi-people"></i>
+                    <span>Users</span>
+                </a>
+            </li>
+
+            <li class="nav-section">Billing</li>
 
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('puretec.subscriptions.*') ? 'active' : '' }}"
@@ -42,6 +52,38 @@
                    href="{{ route('puretec.payments.index') }}">
                     <i class="bi bi-cash-stack"></i>
                     <span>Payments</span>
+                </a>
+            </li>
+
+            <li class="nav-section">Monitoring</li>
+
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('puretec.sync-monitor.*') ? 'active' : '' }}"
+                   href="{{ route('puretec.sync-monitor.index') }}">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Sync Monitor</span>
+                    @php
+                        $syncFailedToday = \App\Models\SyncLog::where('status', 'failed')->whereDate('created_at', today())->count();
+                    @endphp
+                    @if($syncFailedToday > 0)
+                        <span class="badge bg-danger ms-auto">{{ $syncFailedToday }}</span>
+                    @endif
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('puretec.devices.*') ? 'active' : '' }}"
+                   href="{{ route('puretec.devices.index') }}">
+                    <i class="bi bi-phone"></i>
+                    <span>Devices</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('puretec.audit-log.*') ? 'active' : '' }}"
+                   href="{{ route('puretec.audit-log.index') }}">
+                    <i class="bi bi-journal-text"></i>
+                    <span>Audit Log</span>
                 </a>
             </li>
 
@@ -64,14 +106,14 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('puretec.tenants.create') }}">
                     <i class="bi bi-plus-circle"></i>
-                    <span>New Tenant</span>
+                    <span>New Client</span>
                 </a>
             </li>
 
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('puretec.tenants.index', ['status' => 'locked']) }}">
                     <i class="bi bi-lock"></i>
-                    <span>Locked Tenants</span>
+                    <span>Locked Clients</span>
                 </a>
             </li>
         </ul>
@@ -80,7 +122,7 @@
     <div class="sidebar-footer">
         <div class="system-info">
             <small class="text-muted">Pure POS Platform</small>
-            <small class="text-muted d-block">v1.0.0</small>
+            <small class="text-muted d-block">v2.0.0</small>
         </div>
     </div>
 </aside>

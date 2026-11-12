@@ -34,13 +34,19 @@ class CustomerController extends Controller
     }
 
     /**
-     * Get a single customer by UUID.
+     * Get a single customer by UUID or ID.
      */
     public function show(Request $request, string $uuid)
     {
         $customer = Customer::where('uuid', $uuid)
             ->where('store_id', $request->user()->store_id)
             ->first();
+
+        if (!$customer && is_numeric($uuid)) {
+            $customer = Customer::where('id', (int)$uuid)
+                ->where('store_id', $request->user()->store_id)
+                ->first();
+        }
 
         if (!$customer) {
             return response()->json(['success' => false, 'message' => 'Customer not found.'], 404);
@@ -81,5 +87,47 @@ class CustomerController extends Controller
         ]);
 
         return response()->json(['success' => true, 'data' => $customer], 201);
+    }
+
+    /**
+     * Update customer details.
+     *
+     * PUT/PATCH /api/v1/customers/{uuid}
+     */
+    public function update(Request $request, string $uuid)
+    {
+        $user = $request->user();
+        if (!$user->canAccess('customers') && !$user->canAccess('pos') && !$user->isAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to update customer records.'], 403);
+        }
+
+        $customer = Customer::where('uuid', $uuid)
+            ->where('store_id', $user->store_id)
+            ->first();
+
+        if (!$customer && is_numeric($uuid)) {
+            $customer = Customer::where('id', (int)$uuid)
+                ->where('store_id', $user->store_id)
+                ->first();
+        }
+
+        if (!$customer) {
+            return response()->json(['success' => false, 'message' => 'Customer not found.'], 404);
+        }
+
+        $validated = $request->validate([
+            'name'    => 'sometimes|required|string|max:255',
+            'phone'   => 'nullable|string|max:20',
+            'email'   => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:500',
+            'city'    => 'nullable|string|max:100',
+        ]);
+
+        $customer->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $customer,
+        ]);
     }
 }

@@ -85,6 +85,7 @@ Route::prefix('puretec')->name('puretec.')->group(function () {
         // ── Sync Monitoring (Phase 8) ────────────────────────
         Route::prefix('sync-monitor')->name('sync-monitor.')->group(function () {
             Route::get('/', [SyncMonitorController::class, 'index'])->name('index');
+            Route::get('/failed', [SyncMonitorController::class, 'failed'])->name('failed');
             Route::get('/{tenant}', [SyncMonitorController::class, 'show'])->name('show');
         });
 

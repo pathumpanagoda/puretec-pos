@@ -10,6 +10,8 @@ use App\Models\Register;
 use App\Services\POSService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Payment;
 
 class POSController extends Controller
 {
@@ -108,7 +110,7 @@ class POSController extends Controller
             ->where('is_active', true)
             ->search($term)
             ->limit(10)
-            ->get(['id','name','phone','email','loyalty_points','current_balance']);
+            ->get(['id','uuid','name','phone','email','loyalty_points','current_balance']);
         return response()->json(['customers' => $customers]);
     }
 
@@ -199,6 +201,30 @@ class POSController extends Controller
                 'success' => true,
                 'order'   => $order,
                 'message' => 'Payment approved successfully!',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    /** Cancel a pending payment order and restore stock. */
+    public function cancelPendingBill(Request $request, Order $order)
+    {
+        $storeId = Auth::user()->store_id;
+
+        // Verify order belongs to store
+        if ((int) $order->store_id !== (int) $storeId) {
+            return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+        }
+
+        try {
+            $reason = $request->input('reason', 'Cancelled from POS');
+            $order = $this->posService->cancelPendingBill($order, $reason);
+
+            return response()->json([
+                'success' => true,
+                'order'   => $order,
+                'message' => 'Pending bill cancelled successfully and stock restored.',
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -338,91 +364,195 @@ class POSController extends Controller
     /** Close register. */
     public function closeRegister(Request $request, Register $register)
     {
+        $user = Auth::user();
+        $storeId = (int) $user->store_id;
+
+        // Verify store ownership
+        if ((int) $register->store_id !== $storeId) {
+            return response()->json(['success' => false, 'message' => 'Register not found.'], 404);
+        }
+
+        // Verify register is currently open
+        if ($register->status !== 'open') {
+            return response()->json(['success' => false, 'message' => 'Register session is already closed.'], 422);
+        }
+
         try {
-            $storeId = Auth::user()->store_id;
-            $sessionStart = $register->opened_at ?? now()->subHours(8);
-            $sessionEnd = now();
+            return DB::transaction(function () use ($request, $register, $storeId) {
+                // Lock register row for update
+                $register = Register::where('id', $register->id)
+                    ->where('store_id', $storeId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            // Calculate sales during this session (from opened_at to now)
-            $totalSales = Order::where('store_id', $storeId)
-                ->where('status', 'completed')
-                ->where('created_at', '>=', $sessionStart)
-                ->where('created_at', '<=', $sessionEnd)
-                ->sum('total_amount');
+                if ($register->status !== 'open') {
+                    throw new \Exception('Register session is already closed.');
+                }
 
-            $totalOrders = Order::where('store_id', $storeId)
-                ->where('status', 'completed')
-                ->where('created_at', '>=', $sessionStart)
-                ->where('created_at', '<=', $sessionEnd)
-                ->count();
+                $sessionStart = $register->opened_at ?? now()->subHours(8);
+                $sessionEnd   = now();
 
-            // Calculate cash payments during session
-            $cashPayments = \App\Models\Payment::whereHas('order', fn($q) =>
-                $q->where('store_id', $storeId)
-                  ->where('status', 'completed')
-                  ->where('created_at', '>=', $sessionStart)
-                  ->where('created_at', '<=', $sessionEnd)
-            )->where('method', 'cash')->sum('amount') ?? 0;
+                // Retrieve all payments received during this register session for this store
+                $sessionPayments = Payment::whereHas('order', function ($q) use ($storeId) {
+                        $q->where('store_id', $storeId);
+                    })
+                    ->where('created_at', '>=', $sessionStart)
+                    ->where('created_at', '<=', $sessionEnd)
+                    ->with('order')
+                    ->get();
 
-            // Calculate card payments during session
-            $cardPayments = \App\Models\Payment::whereHas('order', fn($q) =>
-                $q->where('store_id', $storeId)
-                  ->where('status', 'completed')
-                  ->where('created_at', '>=', $sessionStart)
-                  ->where('created_at', '<=', $sessionEnd)
-            )->where('method', 'card')->sum('amount') ?? 0;
+                $grossCashPayments = 0.0;
+                $cardPayments      = 0.0;
+                $otherPayments     = 0.0;
+                $cashRefunds       = 0.0;
 
-            // Calculate refunds during session
-            $totalRefunds = Order::where('store_id', $storeId)
-                ->where('status', 'refunded')
-                ->where('updated_at', '>=', $sessionStart)
-                ->where('updated_at', '<=', $sessionEnd)
-                ->sum('total_amount') ?? 0;
+                // Group cash payments by order_id so order change is allocated accurately per order
+                $cashPaymentsByOrder = [];
 
-            $expectedCash = ($register->opening_balance ?? 0) + $cashPayments - ($register->cash_out ?? 0);
-            $actualCash = (float) $request->get('closing_balance', $expectedCash);
-            $difference = $actualCash - $expectedCash;
+                foreach ($sessionPayments as $payment) {
+                    $amount = (float) $payment->amount;
 
-            $register->update([
-                'closing_balance'  => $actualCash,
-                'expected_balance' => $expectedCash,
-                'total_sales'      => $totalSales,
-                'total_refunds'    => $totalRefunds,
-                'cash_in'          => $cashPayments,
-                'status'           => 'closed',
-                'closed_at'        => $sessionEnd,
-                'notes'            => trim($request->get('notes', '') .
-                    "\nSession Summary:" .
-                    "\nTotal Orders: {$totalOrders}" .
-                    "\nCash: Rs. " . number_format($cashPayments, 2) .
-                    "\nCard: Rs. " . number_format($cardPayments, 2) .
-                    "\nDifference: Rs. " . number_format($difference, 2)),
-            ]);
+                    // Deduct refund only when the application explicitly records a verified completed cash payout on a return order
+                    if ($payment->method === 'cash' && $payment->status === 'completed' && $payment->order?->order_type === 'return') {
+                        $cashRefunds += abs($amount);
+                        continue;
+                    }
 
-            // Calculate duration
-            $duration = $sessionStart->diff($sessionEnd);
-            $durationStr = '';
-            if ($duration->h > 0) $durationStr .= $duration->h . 'h ';
-            $durationStr .= $duration->i . 'm';
+                    // Only count completed positive payments on sales orders
+                    if ($payment->status !== 'completed' || $amount <= 0 || $payment->order?->order_type === 'return') {
+                        continue;
+                    }
 
-            return response()->json([
-                'success' => true,
-                'register' => $register,
-                'summary' => [
-                    'total_orders' => $totalOrders,
-                    'total_sales' => (float) $totalSales,
-                    'cash_payments' => (float) $cashPayments,
-                    'card_payments' => (float) $cardPayments,
-                    'expected_cash' => (float) $expectedCash,
-                    'actual_cash' => (float) $actualCash,
-                    'difference' => (float) $difference,
-                    'session_duration' => $durationStr,
-                ]
-            ]);
+                    if ($payment->method === 'cash') {
+                        $grossCashPayments += $amount;
+                        $orderId = (int) $payment->order_id;
+                        if (!isset($cashPaymentsByOrder[$orderId])) {
+                            $cashPaymentsByOrder[$orderId] = [
+                                'order'         => $payment->order,
+                                'cash_tendered' => 0.0,
+                            ];
+                        }
+                        $cashPaymentsByOrder[$orderId]['cash_tendered'] += $amount;
+                    } elseif ($payment->method === 'card') {
+                        $cardPayments += $amount;
+                    } else {
+                        $otherPayments += $amount;
+                    }
+                }
+
+                // Calculate change given from cash drawer and net cash sales per order
+                $totalCashChange = 0.0;
+                $netCashSales    = 0.0;
+
+                foreach ($cashPaymentsByOrder as $orderId => $info) {
+                    $order = $info['order'];
+                    $cashTendered = $info['cash_tendered'];
+                    $orderChange  = $order ? max(0.0, (float) ($order->change_amount ?? 0)) : 0.0;
+
+                    // Allocate change against the cash portion only:
+                    // Change given from drawer cannot exceed the cash tendered for this order.
+                    $cashChangeGiven = min($cashTendered, $orderChange);
+
+                    $totalCashChange += $cashChangeGiven;
+                    $netCashSales    += ($cashTendered - $cashChangeGiven);
+                }
+
+                $grossCashPayments = round($grossCashPayments, 2);
+                $totalCashChange   = round($totalCashChange, 2);
+                $netCashSales      = round($netCashSales, 2);
+                $cardPayments      = round($cardPayments, 2);
+                $otherPayments     = round($otherPayments, 2);
+                $cashRefunds       = round($cashRefunds, 2);
+
+                // Calculate session order stats (completed during this session)
+                $sessionOrders = Order::where('store_id', $storeId)
+                    ->where('status', 'completed')
+                    ->where(function ($q) use ($sessionStart, $sessionEnd) {
+                        $q->whereBetween('completed_at', [$sessionStart, $sessionEnd])
+                          ->orWhere(function ($sq) use ($sessionStart, $sessionEnd) {
+                              $sq->whereNull('completed_at')
+                                 ->whereBetween('created_at', [$sessionStart, $sessionEnd]);
+                          });
+                    })
+                    ->get();
+
+                $totalSales   = (float) round($sessionOrders->sum('total_amount'), 2);
+                $totalOrders  = $sessionOrders->count();
+
+                $totalRefunds = (float) round(
+                    Order::where('store_id', $storeId)
+                        ->where('status', 'refunded')
+                        ->whereBetween('updated_at', [$sessionStart, $sessionEnd])
+                        ->sum('total_amount'),
+                    2
+                );
+
+                // Expected cash in drawer formula:
+                // Opening Balance + Net Cash Sales - Cash Out - Verified Cash Refunds
+                // Note: registers.cash_in is NOT added here; it represents session cash sales in reports.
+                $openingBalance = (float) ($register->opening_balance ?? 0);
+                $cashOut        = (float) ($register->cash_out ?? 0);
+
+                $expectedCash = round($openingBalance + $netCashSales - $cashOut - $cashRefunds, 2);
+                $actualCash   = $request->has('closing_balance') ? (float) round($request->get('closing_balance'), 2) : $expectedCash;
+                $difference   = round($actualCash - $expectedCash, 2);
+
+                // Update register, persisting net cash sales into cash_in for reporting compatibility
+                $register->update([
+                    'closing_balance'  => $actualCash,
+                    'expected_balance' => $expectedCash,
+                    'total_sales'      => $totalSales,
+                    'total_refunds'    => $totalRefunds,
+                    'cash_in'          => $netCashSales,
+                    'status'           => 'closed',
+                    'closed_at'        => $sessionEnd,
+                    'notes'            => trim($request->get('notes', '') .
+                        "\nSession Summary:" .
+                        "\nTotal Orders: {$totalOrders}" .
+                        "\nNet Cash Sales: Rs. " . number_format($netCashSales, 2) .
+                        "\nGross Cash Tendered: Rs. " . number_format($grossCashPayments, 2) .
+                        "\nChange Given: Rs. " . number_format($totalCashChange, 2) .
+                        "\nCard: Rs. " . number_format($cardPayments, 2) .
+                        "\nCash In (Net Cash Sales): Rs. " . number_format($netCashSales, 2) .
+                        "\nCash Out: Rs. " . number_format($cashOut, 2) .
+                        "\nCash Refunds: Rs. " . number_format($cashRefunds, 2) .
+                        "\nExpected Cash: Rs. " . number_format($expectedCash, 2) .
+                        "\nActual Cash: Rs. " . number_format($actualCash, 2) .
+                        "\nDifference: Rs. " . number_format($difference, 2)),
+                ]);
+
+                // Calculate duration
+                $duration = $sessionStart->diff($sessionEnd);
+                $durationStr = '';
+                if ($duration->h > 0) $durationStr .= $duration->h . 'h ';
+                $durationStr .= $duration->i . 'm';
+
+                return response()->json([
+                    'success'  => true,
+                    'register' => $register,
+                    'summary'  => [
+                        'total_orders'     => $totalOrders,
+                        'total_sales'      => (float) $totalSales,
+                        'gross_cash'       => (float) $grossCashPayments,
+                        'cash_change'      => (float) $totalCashChange,
+                        'net_cash_sales'   => (float) $netCashSales,
+                        'cash_payments'    => (float) $netCashSales, // Preserved for UI backward-compatibility
+                        'card_payments'    => (float) $cardPayments,
+                        'opening_balance'  => (float) $openingBalance,
+                        'cash_in'          => (float) $netCashSales,
+                        'cash_out'         => (float) $cashOut,
+                        'cash_refunds'     => (float) $cashRefunds,
+                        'expected_cash'    => (float) $expectedCash,
+                        'actual_cash'      => (float) $actualCash,
+                        'difference'       => (float) $difference,
+                        'session_duration' => $durationStr,
+                    ],
+                ]);
+            });
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error closing register: ' . $e->getMessage()
+                'message' => 'Error closing register: ' . $e->getMessage(),
             ], 500);
         }
     }

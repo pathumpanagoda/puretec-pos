@@ -26,13 +26,34 @@
             </span>
         </p>
     </div>
-    <div class="btn-group">
+    <div class="btn-group flex-wrap gap-1">
         <a href="{{ route('puretec.tenants.features', $tenant) }}" class="btn btn-outline-info">
-            <i class="bi bi-toggles me-1"></i>Features
+            <i class="bi bi-toggles me-1"></i>Features ({{ $stats['features_count'] }})
+        </a>
+        <a href="{{ route('puretec.tenants.deployment', $tenant) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-server me-1"></i>Deployment
+        </a>
+        <a href="{{ route('puretec.sync-monitor.show', $tenant) }}" class="btn btn-outline-success">
+            <i class="bi bi-arrow-repeat me-1"></i>Sync Monitor
+        </a>
+        <a href="{{ route('puretec.devices.index', ['tenant_id' => $tenant->id]) }}" class="btn btn-outline-dark">
+            <i class="bi bi-phone me-1"></i>Devices ({{ $stats['devices_count'] }})
         </a>
         <a href="{{ route('puretec.tenants.edit', $tenant) }}" class="btn btn-outline-primary">
             <i class="bi bi-pencil me-1"></i>Edit
         </a>
+        @if($tenant->is_active)
+            <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#suspendModal">
+                <i class="bi bi-pause-circle me-1"></i>Suspend
+            </button>
+        @else
+            <form action="{{ route('puretec.tenants.activate', $tenant) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-play-circle me-1"></i>Activate
+                </button>
+            </form>
+        @endif
         @if($tenant->is_locked)
             <form action="{{ route('puretec.tenants.unlock', $tenant) }}" method="POST" class="d-inline">
                 @csrf
@@ -148,7 +169,7 @@
 
     <!-- Stores -->
     <div class="col-lg-6">
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-shop me-2"></i>Stores</h5>
             </div>
@@ -172,6 +193,56 @@
                         @endforeach
                     </ul>
                 @endif
+            </div>
+        </div>
+
+        <!-- License & System Entitlements -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>License & Entitlements</h5>
+                <span class="badge {{ $tenant->plan_badge['class'] }}">{{ $tenant->plan_badge['label'] }}</span>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-sm mb-0">
+                    <tr>
+                        <th width="40%">License Key</th>
+                        <td>
+                            <code>{{ $tenant->license_key }}</code>
+                            <button type="button" class="btn btn-sm btn-link p-0 ms-1" onclick="navigator.clipboard.writeText('{{ $tenant->license_key }}'); alert('License key copied!');" title="Copy License Key">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>License Status</th>
+                        <td>
+                            <span class="badge {{ $tenant->status_badge['class'] }}">{{ $tenant->license_status }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Device Limit</th>
+                        <td>
+                            <strong>{{ $stats['active_devices_count'] }}</strong> active / <strong>{{ $tenant->max_devices }}</strong> allowed
+                            @if($stats['active_devices_count'] >= $tenant->max_devices)
+                                <span class="badge bg-warning text-dark ms-1">Limit Reached</span>
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Features Enabled</th>
+                        <td>
+                            <strong>{{ $stats['features_count'] }}</strong> modules
+                            <a href="{{ route('puretec.tenants.features', $tenant) }}" class="small ms-2">Manage</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Subdomain</th>
+                        <td>
+                            <code>{{ \Illuminate\Support\Str::slug($tenant->business_name) }}.puretec.lk</code>
+                            <a href="{{ route('puretec.tenants.deployment', $tenant) }}" class="small ms-2">Config</a>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -299,6 +370,33 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">Lock Tenant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Suspend Modal -->
+<div class="modal fade" id="suspendModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ route('puretec.tenants.suspend', $tenant) }}" method="POST">
+                @csrf
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="bi bi-pause-circle me-2"></i>Suspend Client</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to suspend <strong>{{ $tenant->business_name }}</strong>?</p>
+                    <p class="text-muted">This disables client access and locks all devices until reactivated.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Suspension Reason</label>
+                        <input type="text" class="form-control" name="reason" value="Account suspended by administrator" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Confirm Suspension</button>
                 </div>
             </form>
         </div>

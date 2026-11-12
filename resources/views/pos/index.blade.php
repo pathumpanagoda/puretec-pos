@@ -21,6 +21,14 @@
         </button>
     </div>
     <div class="topbar-display-controls">
+        <button class="btn-display-control" id="btnSalesHistory" onclick="openSalesHistoryModal()" title="Recent Sales & Refunds">
+            <i class="bi bi-receipt"></i>
+            <span>History</span>
+        </button>
+        <button class="btn-display-control" id="btnDailyReport" onclick="openDailyReportModal()" title="Today's Local Report">
+            <i class="bi bi-graph-up"></i>
+            <span>Report</span>
+        </button>
         <button class="btn-display-control" id="btnDisplayOn" onclick="openCustomerDisplay()" title="Toggle Customer Display">
             <i class="bi bi-display"></i>
             <span>Customer Display</span>
@@ -100,6 +108,7 @@
                 </div>
                 <div id="customerDropdown" class="customer-dropdown d-none"></div>
                 <input type="hidden" id="selectedCustomerId">
+                <input type="hidden" id="selectedCustomerUuid">
             </div>
         </div>
 
@@ -329,6 +338,94 @@
             <div class="modal-footer border-top">
                 <small class="text-muted me-auto"><i class="bi bi-info-circle me-1"></i>Click "Retrieve" to load an order back to cart</small>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SALES HISTORY MODAL ===== -->
+<div class="modal fade" id="salesHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-cpos">
+            <div class="modal-header modal-cpos-header">
+                <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Sales History & Offline Refunds</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="p-3 border-bottom d-flex gap-2">
+                <input type="text" id="salesHistorySearch" class="form-control form-control-sm" placeholder="Search by order # or customer...">
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadSalesHistory()"><i class="bi bi-arrow-repeat"></i></button>
+            </div>
+            <div class="modal-body p-0" id="salesHistoryBody" style="max-height: 60vh; overflow-y: auto;">
+                <div class="text-center text-muted py-4"><i class="bi bi-inbox fs-2"></i><p>Loading sales history...</p></div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DAILY REPORT MODAL ===== -->
+<div class="modal fade" id="dailyReportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content modal-cpos">
+            <div class="modal-header modal-cpos-header">
+                <h5 class="modal-title"><i class="bi bi-graph-up me-2"></i>Daily Sales Summary</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3" id="dailyReportBody">
+                <div class="text-center text-muted py-4"><i class="bi bi-arrow-repeat fs-2 spinner-border"></i><p>Calculating summary...</p></div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-primary" onclick="printDailyReport()"><i class="bi bi-printer me-1"></i>Print Report</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ADD CUSTOMER MODAL ===== -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content modal-cpos">
+            <div class="modal-header modal-cpos-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>New Customer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="mb-2">
+                    <label class="form-label small">Name *</label>
+                    <input type="text" id="newCustomerName" class="form-control form-control-sm" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Phone</label>
+                    <input type="text" id="newCustomerPhone" class="form-control form-control-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Email</label>
+                    <input type="email" id="newCustomerEmail" class="form-control form-control-sm">
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveNewCustomer()"><i class="bi bi-check-lg me-1"></i>Save Customer</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== REFUND MODAL ===== -->
+<div class="modal fade" id="refundOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content modal-cpos">
+            <div class="modal-header modal-cpos-header">
+                <h5 class="modal-title"><i class="bi bi-arrow-return-left me-2"></i>Process Return / Refund</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3" id="refundModalBody"></div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-danger" id="confirmRefundBtn" onclick="submitRefund()"><i class="bi bi-check-circle me-1"></i>Confirm Refund</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -648,6 +745,7 @@ const Routes = {
     bill           : '{{ route("pos.bill") }}',
     pendingPayments: '{{ route("pos.pending-payments") }}',
     approvePayment : '{{ url("pos/approve-payment") }}',  // + /{id}
+    cancelBill     : '{{ url("pos/cancel-bill") }}',  // + /{id}
     hold           : '{{ route("pos.hold") }}',
     held           : '{{ route("pos.held") }}',
     heldRetrieve   : '{{ url("pos/held-orders") }}',  // + /{id}/retrieve
@@ -678,6 +776,7 @@ let lastCompletedOrderId = null;
 
 // Track current held order being edited
 let currentHeldOrderId = null;
+let currentHeldOrderIsOffline = false;
 
 // State
 let cart        = [];
@@ -750,6 +849,22 @@ async function processBarcodeInput(barcode) {
         addToCart(product);
         showToast(`Added: ${product.name}`, 'success');
     } else {
+        const isOffline = !navigator.onLine || (typeof PureSync !== 'undefined' && !PureSync.isOnline());
+        if (isOffline) {
+            try {
+                const localProduct = await PureDB.findByBarcode(barcode);
+                if (localProduct) {
+                    addToCart(localProduct);
+                    showToast(`Added (offline): ${localProduct.name}`, 'success');
+                } else {
+                    showToast('Product not found: ' + barcode, 'warning');
+                }
+            } catch (dbErr) {
+                showToast('Scan error. Try again.', 'danger');
+            }
+            return;
+        }
+
         // Try to fetch from server
         try {
             const res = await fetch(`${Routes.products}?q=${encodeURIComponent(barcode)}`);
@@ -800,6 +915,26 @@ async function loadProducts(category = '', search = '', append = false) {
     if (!hasMoreProducts && append) return;
 
     isLoadingProducts = true;
+
+    const isOffline = !navigator.onLine || (typeof PureSync !== 'undefined' && !PureSync.isOnline());
+    if (isOffline) {
+        if (!append) {
+            try {
+                const localProducts = await PureDB.searchProducts(search, category || null);
+                if (localProducts.length > 0) {
+                    allProducts = localProducts;
+                    hasMoreProducts = false;
+                    renderProducts(localProducts, localProducts.length);
+                } else {
+                    grid.innerHTML = '<div class="pos-error"><i class="bi bi-box-seam fs-2"></i><p>No products cached in local database</p></div>';
+                }
+            } catch (dbErr) {
+                grid.innerHTML = '<div class="pos-error"><i class="bi bi-wifi-off fs-2"></i><p>Failed to load offline products</p></div>';
+            }
+        }
+        isLoadingProducts = false;
+        return;
+    }
 
     try {
         const res = await fetch(`${Routes.products}?q=${encodeURIComponent(search)}&category_id=${category}&page=${currentPage}`);
@@ -1061,9 +1196,13 @@ function removeFromCart(index) {
 function clearCart() {
     cart = [];
     currentCustomer = null;
+    currentHeldOrderId = null;
+    currentHeldOrderIsOffline = false;
     discount = { type: 'none', value: 0, amount: 0, couponCode: '' };
     document.getElementById('customerSearch').value = '';
     document.getElementById('selectedCustomerId').value = '';
+    const uuidEl = document.getElementById('selectedCustomerUuid');
+    if (uuidEl) uuidEl.value = '';
     document.getElementById('clearCustomer').classList.add('d-none');
     document.querySelectorAll('.disc-tab').forEach(t => t.classList.remove('active'));
     document.querySelector('.disc-tab[data-type="none"]').classList.add('active');
@@ -1258,6 +1397,42 @@ function updatePaymentDisplay(fallback = null) {
     }
 }
 
+// Clean up held order after sale completion
+async function cleanupCurrentHeldOrder() {
+    if (!currentHeldOrderId) return;
+    const heldId = currentHeldOrderId;
+    const isOfflineHeld = currentHeldOrderIsOffline;
+
+    try {
+        if (isOfflineHeld) {
+            if (typeof OfflinePOS !== 'undefined' && OfflinePOS.deleteHeldOrder) {
+                await OfflinePOS.deleteHeldOrder(heldId);
+            }
+        } else {
+            const res = await fetch(`${Routes.heldDelete}/${heldId}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': CSRF }
+            });
+            if (!res.ok) {
+                throw new Error(`Server returned HTTP ${res.status}`);
+            }
+            const data = await res.json().catch(() => ({}));
+            if (data && data.success === false) {
+                throw new Error(data.message || 'Server rejected held order deletion');
+            }
+        }
+
+        currentHeldOrderId = null;
+        currentHeldOrderIsOffline = false;
+
+        if (typeof loadHeldOrdersCount === 'function') {
+            await loadHeldOrdersCount();
+        }
+    } catch (cleanupErr) {
+        console.warn('[POS] Failed to delete original held bill after sale:', cleanupErr);
+    }
+}
+
 // ── Complete Sale ──────────────────────────────────────────
 document.getElementById('completeSaleBtn').addEventListener('click', async () => {
     const totals = calcTotals();
@@ -1269,9 +1444,79 @@ document.getElementById('completeSaleBtn').addEventListener('click', async () =>
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
 
+    const isOffline = !navigator.onLine || (typeof PureSync !== 'undefined' && !PureSync.isOnline());
+
+    if (isOffline) {
+        // Immediate offline processing (no network latency)
+        try {
+            const offlineOrder = await OfflinePOS.processSale({
+                items: cart.map(i => ({
+                    product_id: i.product_id,
+                    variant_id: i.variant_id || null,
+                    name: i.product_name,
+                    sku: i.sku || '',
+                    barcode: i.barcode || '',
+                    quantity: i.quantity,
+                    price: i.unit_price,
+                    cost_price: i.cost_price || 0,
+                    discount: i.discount_amount || 0,
+                    tax_rate: parseFloat(i.tax_rate) || 0,
+                    tax: (
+                        (parseFloat(i.quantity) || 0) *
+                        (parseFloat(i.unit_price) || 0)
+                    ) * ((parseFloat(i.tax_rate) || 0) / 100),
+                    unit: i.unit || 'pcs',
+                })),
+                customer_id: (currentCustomer && currentCustomer.id && Number(currentCustomer.id) < 10000000000) ? currentCustomer.id : null,
+                customer_uuid: currentCustomer ? (currentCustomer.uuid || null) : null,
+                customer_name: currentCustomer ? currentCustomer.name : 'Walk-in Customer',
+                customer_phone: currentCustomer ? (currentCustomer.phone || null) : null,
+                customer_email: currentCustomer ? (currentCustomer.email || null) : null,
+                payment_method: currentPayMethod,
+                payment_amount: paymentAmount || totals.grandTotal,
+                card_reference: document.getElementById('cardReference')?.value || null,
+                discount_type: discount.type,
+                discount_value: discount.value,
+                coupon_code: discount.couponCode || null,
+                notes: document.getElementById('orderNotes').value,
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide();
+            updateCustomerDisplay('sale_complete');
+            lastCompletedOrderId = null;
+
+            showReceiptModal({
+                id: null,
+                order_number: offlineOrder.order_number,
+                uuid: offlineOrder.uuid,
+                customer: currentCustomer,
+                items: offlineOrder.items,
+                payments: offlineOrder.payments,
+            }, totals, paymentAmount || totals.grandTotal);
+
+            await cleanupCurrentHeldOrder();
+            clearCart();
+            showToast('✅ Sale recorded offline — will sync when online', 'success');
+        } catch (offlineErr) {
+            console.error('[POS] Offline sale failed:', offlineErr);
+            showToast('Sale failed: ' + offlineErr.message, 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Complete Sale';
+        }
+        return;
+    }
+
     try {
+        const isRealCustomerId = currentCustomer && currentCustomer.id && Number(currentCustomer.id) < 10000000000 && currentCustomer.sync_status !== 'local';
         const payload = {
-            customer_id    : document.getElementById('selectedCustomerId').value || null,
+            customer_id    : isRealCustomerId ? currentCustomer.id : null,
+            customer_uuid  : currentCustomer ? (currentCustomer.uuid || null) : null,
+            customer_name  : currentCustomer ? currentCustomer.name : null,
+            customer_phone : currentCustomer ? (currentCustomer.phone || null) : null,
+            customer_email : currentCustomer ? (currentCustomer.email || null) : null,
+            customer_address: currentCustomer ? (currentCustomer.address || null) : null,
+            customer_city  : currentCustomer ? (currentCustomer.city || null) : null,
             items          : cart.map(i => ({ product_id: i.product_id, variant_id: i.variant_id, quantity: i.quantity, unit_price: i.unit_price, discount_amount: i.discount_amount || 0, tax_rate: i.tax_rate })),
             payments       : [{ method: currentPayMethod, amount: paymentAmount || totals.grandTotal, reference: document.getElementById('cardReference')?.value }],
             subtotal       : totals.subtotal,
@@ -1291,48 +1536,70 @@ document.getElementById('completeSaleBtn').addEventListener('click', async () =>
             bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide();
             updateCustomerDisplay('sale_complete');
             lastCompletedOrderId = data.order.id;
+
+            // If server returned resolved customer with server ID, update PureDB
+            if (data.order && data.order.customer && typeof PureDB !== 'undefined' && PureDB.updateCustomerServerId) {
+                PureDB.updateCustomerServerId(data.order.customer.uuid, data.order.customer.id).catch(err => {
+                    console.warn('[POS] Could not update local customer server ID:', err);
+                });
+            }
+
             showReceiptModal(data.order, totals, paymentAmount);
+            await cleanupCurrentHeldOrder();
             clearCart();
         } else {
             showToast(data.message || 'Sale failed', 'danger');
         }
     } catch (e) {
         // ── OFFLINE FALLBACK ──
-        // Network error — process sale offline via IndexedDB
         console.warn('[POS] Server unreachable, processing sale offline:', e.message);
         try {
             const offlineOrder = await OfflinePOS.processSale({
                 items: cart.map(i => ({
                     product_id: i.product_id,
+                    variant_id: i.variant_id || null,
                     name: i.product_name,
                     sku: i.sku || '',
+                    barcode: i.barcode || '',
                     quantity: i.quantity,
                     price: i.unit_price,
                     cost_price: i.cost_price || 0,
                     discount: i.discount_amount || 0,
-                    tax: i.tax_amount || 0,
+                    tax_rate: parseFloat(i.tax_rate) || 0,
+                    tax: (
+                        (parseFloat(i.quantity) || 0) *
+                        (parseFloat(i.unit_price) || 0)
+                    ) * ((parseFloat(i.tax_rate) || 0) / 100),
+                    unit: i.unit || 'pcs',
                 })),
-                customer_id: document.getElementById('selectedCustomerId').value || null,
+                customer_id: (currentCustomer && currentCustomer.id && Number(currentCustomer.id) < 10000000000) ? currentCustomer.id : null,
+                customer_uuid: currentCustomer ? (currentCustomer.uuid || null) : null,
+                customer_name: currentCustomer ? currentCustomer.name : 'Walk-in Customer',
+                customer_phone: currentCustomer ? (currentCustomer.phone || null) : null,
+                customer_email: currentCustomer ? (currentCustomer.email || null) : null,
                 payment_method: currentPayMethod,
                 payment_amount: paymentAmount || totals.grandTotal,
+                card_reference: document.getElementById('cardReference')?.value || null,
                 discount_type: discount.type,
                 discount_value: discount.value,
+                coupon_code: discount.couponCode || null,
                 notes: document.getElementById('orderNotes').value,
             });
 
             bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide();
             updateCustomerDisplay('sale_complete');
-            lastCompletedOrderId = null; // Offline orders don't have server ID yet
+            lastCompletedOrderId = null;
 
-            // Show receipt with offline indicator
             showReceiptModal({
                 id: null,
                 order_number: offlineOrder.order_number,
                 uuid: offlineOrder.uuid,
-                customer: null,
+                customer: currentCustomer,
                 items: offlineOrder.items,
-            }, totals, paymentAmount);
+                payments: offlineOrder.payments,
+            }, totals, paymentAmount || totals.grandTotal);
 
+            await cleanupCurrentHeldOrder();
             clearCart();
             showToast('✅ Sale saved offline — will sync when online', 'success');
         } catch (offlineErr) {
@@ -1458,48 +1725,85 @@ customerSearch.addEventListener('input', () => {
     const q = customerSearch.value.trim();
     if (!q) { customerDropdown.classList.add('d-none'); return; }
     customerTimer = setTimeout(async () => {
+        let customers = [];
         try {
-            const res  = await fetch(`${Routes.customers}?q=${encodeURIComponent(q)}`);
-            const data = await res.json();
-            if (!data.customers.length) { customerDropdown.classList.add('d-none'); return; }
-            customerDropdown.innerHTML = data.customers.map(c => `
-                <div class="customer-option" onclick="selectCustomer(${JSON.stringify(c).replace(/"/g,'&quot;')})">
-                    <i class="bi bi-person-circle"></i>
-                    <div>
-                        <div class="co-name">${c.name}</div>
-                        <div class="co-meta">${c.phone || ''} ${c.email ? '• ' + c.email : ''}</div>
-                    </div>
-                    <div class="co-points">${c.loyalty_points || 0} pts</div>
-                </div>
-            `).join('');
-            customerDropdown.classList.remove('d-none');
+            if (navigator.onLine && (typeof PureSync === 'undefined' || PureSync.isOnline())) {
+                const res  = await fetch(`${Routes.customers}?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                customers = data.customers || [];
+            } else {
+                customers = await PureDB.searchCustomers(q);
+            }
         } catch (e) {
-            // ── OFFLINE FALLBACK: Search IndexedDB ──
             try {
-                const localCustomers = await PureDB.searchCustomers(q);
-                if (!localCustomers.length) { customerDropdown.classList.add('d-none'); return; }
-                customerDropdown.innerHTML = localCustomers.map(c => `
-                    <div class="customer-option" onclick="selectCustomer(${JSON.stringify(c).replace(/"/g,'&quot;')})">
-                        <i class="bi bi-person-circle"></i>
-                        <div>
-                            <div class="co-name">${c.name}</div>
-                            <div class="co-meta">${c.phone || ''} ${c.email ? '• ' + c.email : ''}</div>
-                        </div>
-                        <div class="co-points">${c.loyalty_points || 0} pts</div>
-                    </div>
-                `).join('');
-                customerDropdown.classList.remove('d-none');
+                customers = await PureDB.searchCustomers(q);
             } catch (dbErr) {
-                customerDropdown.classList.add('d-none');
+                customers = [];
             }
         }
-    }, 300);
+
+        let optionsHtml = customers.map(c => `
+            <div class="customer-option" onclick="selectCustomer(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+                <i class="bi bi-person-circle"></i>
+                <div>
+                    <div class="co-name">${c.name}</div>
+                    <div class="co-meta">${c.phone || ''} ${c.email ? '• ' + c.email : ''}</div>
+                </div>
+                <div class="co-points">${c.loyalty_points || 0} pts</div>
+            </div>
+        `).join('');
+
+        // Always provide a quick "+ Add Customer" option
+        optionsHtml += `
+            <div class="customer-option text-primary border-top" onclick="openAddCustomerModal('${q.replace(/'/g, "\\'")}')">
+                <i class="bi bi-person-plus-fill"></i>
+                <div>
+                    <div class="co-name fw-bold">+ Add "${q}" as new customer</div>
+                    <div class="co-meta">Save offline and select for this cart</div>
+                </div>
+            </div>
+        `;
+
+        customerDropdown.innerHTML = optionsHtml;
+        customerDropdown.classList.remove('d-none');
+    }, 280);
 });
+
+function openAddCustomerModal(initialName = '') {
+    customerDropdown.classList.add('d-none');
+    document.getElementById('newCustomerName').value = initialName;
+    document.getElementById('newCustomerPhone').value = '';
+    document.getElementById('newCustomerEmail').value = '';
+    new bootstrap.Modal(document.getElementById('addCustomerModal')).show();
+}
+
+async function saveNewCustomer() {
+    const name = document.getElementById('newCustomerName').value.trim();
+    const phone = document.getElementById('newCustomerPhone').value.trim();
+    const email = document.getElementById('newCustomerEmail').value.trim();
+
+    if (!name) {
+        showToast('Customer name is required', 'warning');
+        return;
+    }
+
+    try {
+        const customer = await OfflinePOS.createCustomer({ name, phone, email });
+        selectCustomer(customer);
+        bootstrap.Modal.getInstance(document.getElementById('addCustomerModal'))?.hide();
+        showToast(`Customer "${name}" created & selected!`, 'success');
+    } catch (e) {
+        showToast('Failed to create customer: ' + e.message, 'danger');
+    }
+}
 
 function selectCustomer(customer) {
     currentCustomer = customer;
     customerSearch.value = customer.name;
-    document.getElementById('selectedCustomerId').value = customer.id;
+    const isTempId = !customer.id || customer.sync_status === 'local' || Number(customer.id) > 10000000000;
+    document.getElementById('selectedCustomerId').value = isTempId ? '' : customer.id;
+    const uuidEl = document.getElementById('selectedCustomerUuid');
+    if (uuidEl) uuidEl.value = customer.uuid || '';
     document.getElementById('clearCustomer').classList.remove('d-none');
     customerDropdown.classList.add('d-none');
 }
@@ -1508,6 +1812,8 @@ document.getElementById('clearCustomer').addEventListener('click', () => {
     currentCustomer = null;
     customerSearch.value = '';
     document.getElementById('selectedCustomerId').value = '';
+    const uuidEl = document.getElementById('selectedCustomerUuid');
+    if (uuidEl) uuidEl.value = '';
     document.getElementById('clearCustomer').classList.add('d-none');
 });
 
@@ -1591,8 +1897,13 @@ document.getElementById('holdBtn').addEventListener('click', async () => {
     if (!cart.length) return;
     const totals = calcTotals();
 
+    const isRealHoldCustomerId = currentCustomer && currentCustomer.id && Number(currentCustomer.id) < 10000000000 && currentCustomer.sync_status !== 'local';
     const payload = {
-        customer_id     : document.getElementById('selectedCustomerId').value || null,
+        customer_id     : isRealHoldCustomerId ? currentCustomer.id : null,
+        customer_uuid   : currentCustomer ? (currentCustomer.uuid || null) : null,
+        customer_name   : currentCustomer ? currentCustomer.name : null,
+        customer_phone  : currentCustomer ? (currentCustomer.phone || null) : null,
+        customer_email  : currentCustomer ? (currentCustomer.email || null) : null,
         items           : cart.map(i => ({
             product_id      : i.product_id,
             variant_id      : i.variant_id,
@@ -1611,9 +1922,28 @@ document.getElementById('holdBtn').addEventListener('click', async () => {
         discount_amount : totals.discountAmount,
         discount_type   : discount.type,
         discount_value  : discount.value,
+        coupon_code     : discount.couponCode || null,
         total_amount    : totals.grandTotal,
         notes           : null,
     };
+
+    const isOffline = !navigator.onLine || (typeof PureSync !== 'undefined' && !PureSync.isOnline());
+
+    if (isOffline) {
+        try {
+            await OfflinePOS.holdOrder(payload);
+            showToast('Order held locally (offline)!', 'success');
+            updateCustomerDisplay('sale_hold');
+            currentHeldOrderId = null;
+            currentHeldOrderIsOffline = false;
+            clearCart();
+            loadHeldOrdersCount();
+            setTimeout(() => updateCustomerDisplay('ready'), 3000);
+        } catch (e) {
+            showToast('Failed to hold order offline: ' + e.message, 'danger');
+        }
+        return;
+    }
 
     try {
         const res = await fetch(Routes.hold, {
@@ -1626,6 +1956,7 @@ document.getElementById('holdBtn').addEventListener('click', async () => {
             showToast('Order held successfully!', 'success');
             updateCustomerDisplay('sale_hold');
             currentHeldOrderId = null;
+            currentHeldOrderIsOffline = false;
             clearCart();
             loadHeldOrdersCount();
             // Reset customer display after 3 seconds
@@ -1634,7 +1965,19 @@ document.getElementById('holdBtn').addEventListener('click', async () => {
             showToast(data.message || 'Failed to hold order', 'danger');
         }
     } catch (e) {
-        showToast('Network error. Please try again.', 'danger');
+        // Fallback to offline hold
+        try {
+            await OfflinePOS.holdOrder(payload);
+            showToast('Server unreachable — order held locally!', 'warning');
+            updateCustomerDisplay('sale_hold');
+            currentHeldOrderId = null;
+            currentHeldOrderIsOffline = false;
+            clearCart();
+            loadHeldOrdersCount();
+            setTimeout(() => updateCustomerDisplay('ready'), 3000);
+        } catch (offlineErr) {
+            showToast('Failed to hold order: ' + offlineErr.message, 'danger');
+        }
     }
 });
 
@@ -1644,48 +1987,279 @@ document.getElementById('heldOrdersBtn').addEventListener('click', async () => {
 
 async function showHeldOrdersModal() {
     const modal = new bootstrap.Modal(document.getElementById('heldOrdersModal'));
-    const res   = await fetch(Routes.held);
-    const data  = await res.json();
     const body  = document.getElementById('heldOrdersBody');
+    body.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-arrow-repeat fs-2 spinner-border"></i><p>Loading held orders...</p></div>';
+    modal.show();
 
-    if (!data.orders.length) {
+    let orders = [];
+    const isOffline = !navigator.onLine || (typeof PureSync !== 'undefined' && !PureSync.isOnline());
+
+    if (!isOffline) {
+        try {
+            const res   = await fetch(Routes.held);
+            const data  = await res.json();
+            orders = data.orders || [];
+        } catch (e) {
+            console.warn('[POS] Failed to fetch server held orders, using local');
+        }
+    }
+
+    // Always merge offline held orders
+    try {
+        const localHeld = await OfflinePOS.getHeldOrders();
+        const localFormatted = (localHeld || []).map(lh => ({
+            id: lh.uuid || lh.id,
+            uuid: lh.uuid,
+            is_offline: true,
+            order_number: lh.order_number || `HOLD-LOCAL-${lh.uuid ? lh.uuid.slice(0, 8) : (lh.id || '')}`,
+            created_at: lh.held_at || lh.created_at,
+            customer: lh.customer_name ? { name: lh.customer_name } : null,
+            items: lh.items || [],
+            total_amount: lh.total_amount || 0,
+        }));
+        orders = [...orders, ...localFormatted];
+    } catch (dbErr) {
+        console.warn('[POS] Failed to fetch offline held orders:', dbErr);
+    }
+
+    if (!orders.length) {
         body.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox fs-2"></i><p>No held orders</p></div>';
     } else {
-        body.innerHTML = data.orders.map(o => `
+        body.innerHTML = orders.map(o => `
             <div class="held-order-item" data-order-id="${o.id}">
                 <div class="held-order-info">
                     <div class="held-order-header">
                         <strong>${o.order_number}</strong>
+                        ${o.is_offline ? '<span class="badge bg-secondary ms-1">Offline</span>' : ''}
                         <span class="held-order-time text-muted">${formatTimeAgo(o.created_at)}</span>
                     </div>
                     <div class="text-muted small">${o.customer?.name || 'Walk-in'} • ${o.items?.length || 0} items</div>
-                    <div class="held-order-items-preview">${o.items?.slice(0, 3).map(i => i.product_name).join(', ') || ''}${o.items?.length > 3 ? '...' : ''}</div>
+                    <div class="held-order-items-preview">${o.items?.slice(0, 3).map(i => i.product_name || i.name).join(', ') || ''}${o.items?.length > 3 ? '...' : ''}</div>
                 </div>
                 <div class="held-order-total fw-bold">Rs. ${parseFloat(o.total_amount).toFixed(2)}</div>
                 <div class="held-order-actions">
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-primary" onclick="retrieveHeldOrder(${o.id}, 'replace')" title="Replace current cart">
+                        <button class="btn btn-sm btn-primary" onclick="retrieveHeldOrder('${o.id}', 'replace', ${!!o.is_offline})" title="Replace current cart">
                             <i class="bi bi-arrow-counterclockwise me-1"></i>Replace
                         </button>
-                        <button class="btn btn-sm btn-outline-primary" onclick="retrieveHeldOrder(${o.id}, 'add')" title="Add to current cart">
+                        <button class="btn btn-sm btn-outline-primary" onclick="retrieveHeldOrder('${o.id}', 'add', ${!!o.is_offline})" title="Add to current cart">
                             <i class="bi bi-plus-circle me-1"></i>Add
                         </button>
                     </div>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteHeldOrder(${o.id})" title="Delete order">
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteHeldOrder('${o.id}', ${!!o.is_offline})" title="Delete order">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
             </div>
         `).join('');
     }
-    modal.show();
 }
 
 // Retrieve held order into cart
-async function retrieveHeldOrder(orderId, mode = 'replace') {
+async function retrieveHeldOrder(orderId, mode = 'replace', isOffline = false) {
     // Check if cart has items when replacing
     if (mode === 'replace' && cart.length > 0) {
         if (!confirm('Current cart has items. This will replace them. Continue?')) {
+            return;
+        }
+    }
+
+    if (isOffline) {
+        try {
+            const heldOrder = await OfflinePOS.retrieveHeldOrder(orderId);
+            if (heldOrder) {
+                async function resolveProductStock(productId, variantId) {
+                    let prod = (allProducts || []).find(p => p.id == productId);
+                    if (!prod && typeof PureDB !== 'undefined' && PureDB.get) {
+                        try {
+                            prod = await PureDB.get('products', productId);
+                            if (!prod && typeof productId === 'string' && !isNaN(Number(productId))) {
+                                prod = await PureDB.get('products', Number(productId));
+                            } else if (!prod && typeof productId === 'number') {
+                                prod = await PureDB.get('products', String(productId));
+                            }
+                        } catch (e) {
+                            console.warn('[POS] Failed to fetch product from PureDB:', e);
+                        }
+                    }
+
+                    if (!prod) {
+                        console.warn(`[POS] Stock metadata could not be recovered for product ID ${productId}`);
+                        return { stock: 0, track_stock: false };
+                    }
+
+                    const variant = variantId ? (prod.variants || []).find(v => v.id == variantId) : null;
+                    const stock = parseFloat(variant && variant.stock !== undefined ? variant.stock : (prod.stock_quantity ?? prod.stock ?? 0));
+                    const track_stock = Boolean(prod.track_stock);
+
+                    return { stock, track_stock };
+                }
+
+                if (mode === 'replace') {
+                    cart = [];
+                    currentCustomer = null;
+                    discount = { type: 'none', value: 0, amount: 0, couponCode: '' };
+
+                    for (const i of (heldOrder.items || [])) {
+                        const stockMeta = await resolveProductStock(i.product_id, i.variant_id);
+                        cart.push({
+                            product_id: i.product_id,
+                            variant_id: i.variant_id || null,
+                            product_name: i.product_name || i.name,
+                            sku: i.sku || '',
+                            barcode: i.barcode || '',
+                            unit_price: parseFloat(i.unit_price || i.price || 0),
+                            quantity: parseFloat(i.quantity || 1),
+                            total: parseFloat(i.unit_price || i.price || 0) * parseFloat(i.quantity || 1),
+                            cost_price: parseFloat(i.cost_price || 0),
+                            tax_rate: parseFloat(i.tax_rate || 0),
+                            discount_amount: parseFloat(i.discount_amount || i.discount || 0),
+                            unit: i.unit || 'pcs',
+                            stock: stockMeta.stock,
+                            track_stock: stockMeta.track_stock
+                        });
+                    }
+
+                    // Restore customer
+                    let restoredCustomer = null;
+                    const custUuid = heldOrder.customer_uuid || (heldOrder.customer && heldOrder.customer.uuid);
+                    const custId = heldOrder.customer_id || (heldOrder.customer && heldOrder.customer.id);
+
+                    if (typeof PureDB !== 'undefined') {
+                        if (custUuid && PureDB.getCustomerByUUID) {
+                            try {
+                                restoredCustomer = await PureDB.getCustomerByUUID(custUuid);
+                            } catch (e) {
+                                console.warn('[POS] Failed to fetch customer by UUID from PureDB:', e);
+                            }
+                        }
+                        if (!restoredCustomer && custId && PureDB.get) {
+                            try {
+                                restoredCustomer = await PureDB.get('customers', custId);
+                                if (!restoredCustomer && typeof custId === 'string' && !isNaN(Number(custId))) {
+                                    restoredCustomer = await PureDB.get('customers', Number(custId));
+                                } else if (!restoredCustomer && typeof custId === 'number') {
+                                    restoredCustomer = await PureDB.get('customers', String(custId));
+                                }
+                            } catch (e) {
+                                console.warn('[POS] Failed to fetch customer by ID from PureDB:', e);
+                            }
+                        }
+                    }
+
+                    if (!restoredCustomer) {
+                        const custName = heldOrder.customer_name || (heldOrder.customer && heldOrder.customer.name);
+                        if (custName) {
+                            restoredCustomer = {
+                                id: custId || null,
+                                uuid: custUuid || null,
+                                name: custName,
+                                phone: heldOrder.customer_phone || (heldOrder.customer && heldOrder.customer.phone) || '',
+                                email: heldOrder.customer_email || (heldOrder.customer && heldOrder.customer.email) || '',
+                                sync_status: (custId && Number(custId) < 10000000000) ? 'synced' : 'local'
+                            };
+                        }
+                    }
+
+                    if (restoredCustomer) {
+                        selectCustomer(restoredCustomer);
+                    } else {
+                        currentCustomer = null;
+                        if (customerSearch) customerSearch.value = '';
+                        const idEl = document.getElementById('selectedCustomerId');
+                        if (idEl) idEl.value = '';
+                        const uuidEl = document.getElementById('selectedCustomerUuid');
+                        if (uuidEl) uuidEl.value = '';
+                        const clearBtn = document.getElementById('clearCustomer');
+                        if (clearBtn) clearBtn.classList.add('d-none');
+                    }
+
+                    // Restore bill-level discount
+                    const savedType = heldOrder.discount_type;
+                    if (savedType === 'percentage') {
+                        discount = {
+                            type: 'percentage',
+                            value: parseFloat(heldOrder.discount_value || 0),
+                            amount: 0,
+                            couponCode: ''
+                        };
+                    } else if (savedType === 'fixed') {
+                        discount = {
+                            type: 'fixed',
+                            value: parseFloat(heldOrder.discount_value || 0),
+                            amount: 0,
+                            couponCode: ''
+                        };
+                    } else if (savedType === 'coupon') {
+                        discount = {
+                            type: 'coupon',
+                            value: 0,
+                            amount: parseFloat(heldOrder.discount_amount || 0),
+                            couponCode: heldOrder.coupon_code || heldOrder.couponCode || ''
+                        };
+                    } else {
+                        discount = { type: 'none', value: 0, amount: 0, couponCode: '' };
+                    }
+
+                    // Synchronize discount UI
+                    document.querySelectorAll('.disc-tab').forEach(t => t.classList.remove('active'));
+                    const activeTab = document.querySelector(`.disc-tab[data-type="${discount.type}"]`) || document.querySelector('.disc-tab[data-type="none"]');
+                    if (activeTab) activeTab.classList.add('active');
+
+                    const discInputEl = document.getElementById('discountInput');
+                    if (discInputEl) discInputEl.classList.toggle('d-none', !['percentage', 'fixed'].includes(discount.type));
+
+                    const couponInputEl = document.getElementById('couponInput');
+                    if (couponInputEl) couponInputEl.classList.toggle('d-none', discount.type !== 'coupon');
+
+                    const discValEl = document.getElementById('discountValue');
+                    if (discValEl) {
+                        discValEl.value = ['percentage', 'fixed'].includes(discount.type) ? discount.value : '';
+                    }
+
+                    const couponCodeEl = document.getElementById('couponCode');
+                    if (couponCodeEl) {
+                        couponCodeEl.value = discount.type === 'coupon' ? (discount.couponCode || '') : '';
+                    }
+                } else {
+                    for (const heldItem of (heldOrder.items || [])) {
+                        const existing = cart.find(c => c.product_id === heldItem.product_id && (c.variant_id || null) === (heldItem.variant_id || null));
+                        if (existing) {
+                            existing.quantity += parseFloat(heldItem.quantity || 1);
+                            existing.discount_amount = (parseFloat(existing.discount_amount) || 0) + (parseFloat(heldItem.discount_amount || heldItem.discount || 0) || 0);
+                            existing.total = existing.quantity * existing.unit_price;
+                        } else {
+                            const stockMeta = await resolveProductStock(heldItem.product_id, heldItem.variant_id);
+                            cart.push({
+                                product_id: heldItem.product_id,
+                                variant_id: heldItem.variant_id || null,
+                                product_name: heldItem.product_name || heldItem.name,
+                                sku: heldItem.sku || '',
+                                barcode: heldItem.barcode || '',
+                                unit_price: parseFloat(heldItem.unit_price || heldItem.price || 0),
+                                quantity: parseFloat(heldItem.quantity || 1),
+                                total: parseFloat(heldItem.unit_price || heldItem.price || 0) * parseFloat(heldItem.quantity || 1),
+                                cost_price: parseFloat(heldItem.cost_price || 0),
+                                tax_rate: parseFloat(heldItem.tax_rate || 0),
+                                discount_amount: parseFloat(heldItem.discount_amount || heldItem.discount || 0),
+                                unit: heldItem.unit || 'pcs',
+                                stock: stockMeta.stock,
+                                track_stock: stockMeta.track_stock
+                            });
+                        }
+                    }
+                }
+
+                currentHeldOrderId = orderId;
+                currentHeldOrderIsOffline = true;
+                updateCartUI();
+                loadHeldOrdersCount();
+                bootstrap.Modal.getInstance(document.getElementById('heldOrdersModal'))?.hide();
+                showToast(mode === 'add' ? 'Items added from offline hold' : 'Offline held order retrieved!', 'success');
+                return;
+            }
+        } catch (e) {
+            showToast('Failed to retrieve offline held order: ' + e.message, 'danger');
             return;
         }
     }
@@ -1703,14 +2277,10 @@ async function retrieveHeldOrder(orderId, mode = 'replace') {
 
                 // Load items into cart
                 cart = data.items;
-                currentHeldOrderId = orderId;
 
                 // Set customer if exists
                 if (data.customer) {
-                    currentCustomer = data.customer;
-                    document.getElementById('customerSearch').value = data.customer.name;
-                    document.getElementById('selectedCustomerId').value = data.customer.id;
-                    document.getElementById('clearCustomer').classList.remove('d-none');
+                    selectCustomer(data.customer);
                 }
 
                 // Set discount if exists
@@ -1741,11 +2311,8 @@ async function retrieveHeldOrder(orderId, mode = 'replace') {
                 });
             }
 
-            // Delete the held order since we're loading it
-            await fetch(`${Routes.heldDelete}/${orderId}`, {
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': CSRF }
-            });
+            currentHeldOrderId = orderId;
+            currentHeldOrderIsOffline = false;
 
             updateCartUI();
             loadHeldOrdersCount();
@@ -1767,8 +2334,20 @@ async function retrieveHeldOrder(orderId, mode = 'replace') {
 }
 
 // Delete held order
-async function deleteHeldOrder(orderId) {
+async function deleteHeldOrder(orderId, isOffline = false) {
     if (!confirm('Delete this held order? This cannot be undone.')) {
+        return;
+    }
+
+    if (isOffline) {
+        try {
+            await OfflinePOS.deleteHeldOrder(orderId);
+            showToast('Offline held order deleted', 'success');
+            loadHeldOrdersCount();
+            showHeldOrdersModal();
+        } catch (e) {
+            showToast('Failed to delete offline order: ' + e.message, 'danger');
+        }
         return;
     }
 
@@ -1788,24 +2367,42 @@ async function deleteHeldOrder(orderId) {
             showToast(data.message || 'Failed to delete order', 'danger');
         }
     } catch (e) {
-        showToast('Network error. Please try again.', 'danger');
+        // Fallback: try deleting local
+        try {
+            await OfflinePOS.deleteHeldOrder(orderId);
+            showToast('Held order deleted locally', 'success');
+            loadHeldOrdersCount();
+            showHeldOrdersModal();
+        } catch (dbErr) {
+            showToast('Network error. Please try again.', 'danger');
+        }
     }
 }
 
 // Load held orders count for badge
 async function loadHeldOrdersCount() {
+    let count = 0;
     try {
-        const res = await fetch(Routes.held);
-        const data = await res.json();
-        const badge = document.getElementById('heldBadge');
-        if (data.orders.length > 0) {
-            badge.textContent = data.orders.length;
+        if (navigator.onLine && (typeof PureSync === 'undefined' || PureSync.isOnline())) {
+            const res = await fetch(Routes.held);
+            const data = await res.json();
+            count += (data.orders || []).length;
+        }
+    } catch (e) {}
+
+    try {
+        const local = await OfflinePOS.getHeldOrders();
+        count += (local || []).length;
+    } catch (e) {}
+
+    const badge = document.getElementById('heldBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count;
             badge.classList.remove('d-none');
         } else {
             badge.classList.add('d-none');
         }
-    } catch (e) {
-        console.error('Failed to load held orders count');
     }
 }
 
@@ -1835,8 +2432,13 @@ async function createBill() {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Bill...';
 
     try {
+        const isRealBillCustomerId = currentCustomer && currentCustomer.id && Number(currentCustomer.id) < 10000000000 && currentCustomer.sync_status !== 'local';
         const payload = {
-            customer_id    : document.getElementById('selectedCustomerId').value || null,
+            customer_id    : isRealBillCustomerId ? currentCustomer.id : null,
+            customer_uuid  : currentCustomer ? (currentCustomer.uuid || null) : null,
+            customer_name  : currentCustomer ? currentCustomer.name : null,
+            customer_phone : currentCustomer ? (currentCustomer.phone || null) : null,
+            customer_email : currentCustomer ? (currentCustomer.email || null) : null,
             items          : cart.map(i => ({ product_id: i.product_id, variant_id: i.variant_id, quantity: i.quantity, unit_price: i.unit_price, discount_amount: i.discount_amount || 0, tax_rate: i.tax_rate })),
             subtotal       : totals.subtotal,
             tax_amount     : totals.taxAmount,
@@ -1855,7 +2457,13 @@ async function createBill() {
 
         if (data.success) {
             showToast('Bill created! Awaiting payment approval.', 'success');
+            if (data.order && data.order.customer && typeof PureDB !== 'undefined' && PureDB.updateCustomerServerId) {
+                PureDB.updateCustomerServerId(data.order.customer.uuid, data.order.customer.id).catch(err => {
+                    console.warn('[POS] Could not update local customer server ID:', err);
+                });
+            }
             showBillReceipt(data.order, totals);
+            await cleanupCurrentHeldOrder();
             clearCart();
         } else {
             showToast(data.message || 'Failed to create bill', 'danger');
@@ -1867,16 +2475,25 @@ async function createBill() {
             const offlineBill = await OfflinePOS.createBill({
                 items: cart.map(i => ({
                     product_id: i.product_id,
+                    variant_id: i.variant_id || null,
                     name: i.product_name,
                     quantity: i.quantity,
                     price: i.unit_price,
                     discount: i.discount_amount || 0,
                     tax: i.tax_amount || 0,
                 })),
-                customer_id: document.getElementById('selectedCustomerId').value || null,
-                notes: '',
+                customer_id: (currentCustomer && currentCustomer.id && Number(currentCustomer.id) < 10000000000) ? currentCustomer.id : null,
+                customer_uuid: currentCustomer ? (currentCustomer.uuid || null) : null,
+                customer_name: currentCustomer ? currentCustomer.name : 'Walk-in Customer',
+                customer_phone: currentCustomer ? (currentCustomer.phone || null) : null,
+                customer_email: currentCustomer ? (currentCustomer.email || null) : null,
+                discount_type: discount.type,
+                discount_value: discount.value,
+                coupon_code: discount.couponCode || null,
+                notes: document.getElementById('orderNotes')?.value || '',
             });
             showToast('📋 Bill saved offline — will sync when online', 'success');
+            await cleanupCurrentHeldOrder();
             clearCart();
         } catch (offlineErr) {
             showToast('Failed to create bill. Please try again.', 'danger');
@@ -1969,6 +2586,9 @@ async function showPendingPaymentsModal() {
                     </div>
                     <div class="held-order-total fw-bold text-primary fs-5">Rs. ${parseFloat(o.total_amount).toLocaleString('en-LK', {minimumFractionDigits: 2})}</div>
                     <div class="held-order-actions">
+                        <button class="btn btn-outline-danger me-2" onclick="cancelPendingPayment(${o.id})">
+                            <i class="bi bi-x-circle me-1"></i>Cancel Bill
+                        </button>
                         <button class="btn btn-success" onclick="openApprovePaymentModal(${JSON.stringify(o).replace(/"/g, '&quot;')})">
                             <i class="bi bi-check-circle me-1"></i>Approve & Pay
                         </button>
@@ -1982,6 +2602,33 @@ async function showPendingPaymentsModal() {
 }
 
 // Load pending payments count
+// Cancel pending payment bill
+async function cancelPendingPayment(orderId) {
+    if (!confirm('Are you sure you want to cancel this pending bill? Restoring items to inventory cannot be undone.')) {
+        return;
+    }
+    try {
+        const res = await fetch(`${Routes.cancelBill}/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({ reason: 'Cancelled from POS pending payments queue' })
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast('Success', data.message || 'Bill cancelled successfully', 'success');
+            showPendingPaymentsModal();
+            loadPendingPaymentsCount();
+        } else {
+            toast('Error', data.message || 'Failed to cancel bill', 'danger');
+        }
+    } catch (e) {
+        toast('Error', 'Network error while cancelling bill', 'danger');
+    }
+}
+
 async function loadPendingPaymentsCount() {
     if (!canProcessPayment) return;
     try {
@@ -2244,35 +2891,75 @@ function openRegisterPrompt() {
 }
 document.getElementById('openRegisterBtn').addEventListener('click', async () => {
     const balance = parseFloat(document.getElementById('openingBalance').value) || 0;
-    await fetch(Routes.registerOpen, { method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}, body: JSON.stringify({ opening_balance: balance }) });
-    bootstrap.Modal.getInstance(document.getElementById('registerModal'))?.hide();
-    showToast('Register opened!', 'success');
-    setTimeout(() => location.reload(), 1000);
+    const isOffline = !navigator.onLine || (typeof PureSync !== 'undefined' && !PureSync.isOnline());
+
+    if (isOffline) {
+        try {
+            await OfflinePOS.openRegister({ opening_balance: balance, notes: 'Opened offline' });
+            bootstrap.Modal.getInstance(document.getElementById('registerModal'))?.hide();
+            showToast('✅ Register opened offline — will sync when online', 'success');
+        } catch (err) {
+            showToast('Failed to open register offline: ' + err.message, 'danger');
+        }
+        return;
+    }
+
+    try {
+        await fetch(Routes.registerOpen, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({ opening_balance: balance })
+        });
+        bootstrap.Modal.getInstance(document.getElementById('registerModal'))?.hide();
+        showToast('Register opened!', 'success');
+        setTimeout(() => location.reload(), 1000);
+    } catch (err) {
+        try {
+            await OfflinePOS.openRegister({ opening_balance: balance, notes: 'Opened offline (fallback)' });
+            bootstrap.Modal.getInstance(document.getElementById('registerModal'))?.hide();
+            showToast('✅ Register opened offline (server unreachable)', 'warning');
+        } catch (offlineErr) {
+            showToast('Failed to open register: ' + offlineErr.message, 'danger');
+        }
+    }
 });
 
 // Close Register
 async function openCloseRegisterModal() {
-    if (!currentRegisterId) {
+    let activeReg = null;
+    try {
+        activeReg = await OfflinePOS.getCurrentRegister();
+    } catch (e) {}
+
+    if (!currentRegisterId && !activeReg) {
         showToast('No active register session', 'warning');
         return;
     }
 
-    // Show loading state
-    document.getElementById('crSessionStart').textContent = registerOpenedAt;
-    document.getElementById('crOpeningBalance').textContent = `Rs. ${registerOpeningBalance.toFixed(2)}`;
+    const openedAt = activeReg ? new Date(activeReg.opened_at).toLocaleString('en-GB') : registerOpenedAt;
+    const openingBal = activeReg ? (activeReg.opening_balance || 0) : registerOpeningBalance;
+
+    document.getElementById('crSessionStart').textContent = openedAt || 'Today';
+    document.getElementById('crOpeningBalance').textContent = `Rs. ${openingBal.toFixed(2)}`;
 
     // Calculate duration
-    const startTime = new Date('{{ $register?->opened_at ?? "" }}');
+    const startTime = activeReg ? new Date(activeReg.opened_at) : new Date('{{ $register?->opened_at ?? "" }}');
     const now = new Date();
-    const diffMs = now - startTime;
+    const diffMs = Math.max(0, now - (isNaN(startTime.getTime()) ? now : startTime));
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     document.getElementById('crDuration').textContent = `${hours}h ${mins}m`;
 
-    // For now, show estimates (actual data would come from server)
-    // We'll update these when we have the session data endpoint
-    document.getElementById('crExpectedCash').textContent = `Rs. ${registerOpeningBalance.toFixed(2)}`;
-    document.getElementById('actualCashCount').value = registerOpeningBalance;
+    // Local report calculation for expected cash
+    try {
+        const report = await OfflinePOS.getDailyReport();
+        const expected = openingBal + (report.payments?.cash || 0) - (report.totals?.refunds || 0);
+        document.getElementById('crExpectedCash').textContent = `Rs. ${expected.toFixed(2)}`;
+        document.getElementById('actualCashCount').value = expected.toFixed(2);
+    } catch (e) {
+        document.getElementById('crExpectedCash').textContent = `Rs. ${openingBal.toFixed(2)}`;
+        document.getElementById('actualCashCount').value = openingBal.toFixed(2);
+    }
 
     new bootstrap.Modal(document.getElementById('closeRegisterModal')).show();
 }
@@ -2299,8 +2986,6 @@ document.getElementById('actualCashCount')?.addEventListener('input', function()
 
 // Confirm close register
 document.getElementById('confirmCloseRegisterBtn')?.addEventListener('click', async () => {
-    if (!currentRegisterId) return;
-
     const actualCash = parseFloat(document.getElementById('actualCashCount').value) || 0;
     const notes = document.getElementById('closeRegisterNotes').value;
 
@@ -2308,10 +2993,27 @@ document.getElementById('confirmCloseRegisterBtn')?.addEventListener('click', as
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Closing...';
 
+    const isOffline = !navigator.onLine || (typeof PureSync !== 'undefined' && !PureSync.isOnline());
+
+    if (isOffline || !currentRegisterId) {
+        try {
+            const closedReg = await OfflinePOS.closeRegister({ closing_balance: actualCash, notes: notes });
+            bootstrap.Modal.getInstance(document.getElementById('closeRegisterModal'))?.hide();
+            showToast('✅ Register closed offline — will sync when online', 'success');
+            if (closedReg) {
+                alert(`Offline Session Summary:\n\nExpected Cash: Rs. ${Number(closedReg.expected_cash || 0).toFixed(2)}\nActual Cash: Rs. ${Number(actualCash).toFixed(2)}\nDifference: Rs. ${Number(closedReg.difference || 0).toFixed(2)}`);
+            }
+        } catch (err) {
+            showToast('Failed to close register offline: ' + err.message, 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-box-arrow-right me-2"></i>Close Register';
+        }
+        return;
+    }
+
     try {
         const url = `${Routes.registerClose}/${currentRegisterId}/close`;
-        console.log('Closing register:', url);
-
         const res = await fetch(url, {
             method: 'POST',
             headers: {
@@ -2322,19 +3024,13 @@ document.getElementById('confirmCloseRegisterBtn')?.addEventListener('click', as
             body: JSON.stringify({ closing_balance: actualCash, notes: notes })
         });
 
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error('Close register error:', res.status, errorText);
-            throw new Error(`Server error: ${res.status}`);
-        }
-
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
         const data = await res.json();
 
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('closeRegisterModal'))?.hide();
             showToast('Register closed successfully!', 'success');
 
-            // Show summary
             if (data.summary) {
                 setTimeout(() => {
                     alert(`Session Summary:\n\nTotal Orders: ${data.summary.total_orders}\nTotal Sales: Rs. ${Number(data.summary.total_sales).toFixed(2)}\nCash: Rs. ${Number(data.summary.cash_payments).toFixed(2)}\nCard: Rs. ${Number(data.summary.card_payments).toFixed(2)}\nDifference: Rs. ${Number(data.summary.difference).toFixed(2)}`);
@@ -2347,13 +3043,370 @@ document.getElementById('confirmCloseRegisterBtn')?.addEventListener('click', as
             showToast(data.message || 'Failed to close register', 'danger');
         }
     } catch (e) {
-        console.error('Close register exception:', e);
-        showToast('Error: ' + e.message, 'danger');
+        try {
+            const closedReg = await OfflinePOS.closeRegister({ closing_balance: actualCash, notes: notes });
+            bootstrap.Modal.getInstance(document.getElementById('closeRegisterModal'))?.hide();
+            showToast('✅ Register closed offline (server unreachable)', 'warning');
+        } catch (offlineErr) {
+            showToast('Error: ' + e.message, 'danger');
+        }
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-box-arrow-right me-2"></i>Close Register';
     }
 });
+
+// ═══════════════════════════════════════════════════════════
+// SALES HISTORY, REFUNDS & DAILY REPORTS
+// ═══════════════════════════════════════════════════════════
+let currentSalesHistory = [];
+let currentRefundOrder = null;
+
+async function openSalesHistoryModal() {
+    new bootstrap.Modal(document.getElementById('salesHistoryModal')).show();
+    await loadSalesHistory();
+}
+
+async function loadSalesHistory() {
+    const query = document.getElementById('salesHistorySearch')?.value?.trim()?.toLowerCase() || '';
+    const body = document.getElementById('salesHistoryBody');
+    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div> <p class="mt-2 text-muted">Loading orders...</p></div>';
+
+    try {
+        currentSalesHistory = await OfflinePOS.getSalesHistory(50);
+        let filtered = currentSalesHistory;
+        if (query) {
+            filtered = currentSalesHistory.filter(o =>
+                (o.order_number && o.order_number.toLowerCase().includes(query)) ||
+                (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+                (o.uuid && o.uuid.toLowerCase().includes(query))
+            );
+        }
+
+        if (!filtered.length) {
+            body.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox fs-2"></i><p>No sales found</p></div>';
+            return;
+        }
+
+        body.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="small text-uppercase">
+                            <th>Order #</th>
+                            <th>Time</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(o => {
+                            const isReturn = o.order_type === 'return';
+                            const isRefunded = o.status === 'refunded';
+                            const isOfflineOnly = o.sync_status === 'pending';
+                            const itemsCount = (o.items || []).reduce((sum, it) => sum + (parseFloat(it.quantity) || 1), 0);
+                            const total = parseFloat(o.total_amount || o.total || 0);
+
+                            return `
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">${o.order_number || o.uuid?.slice(0,8)}</div>
+                                        ${isReturn ? '<span class="badge bg-danger">Return</span>' : ''}
+                                        ${isOfflineOnly ? '<span class="badge bg-warning text-dark"><i class="bi bi-cloud-arrow-up"></i> Pending Sync</span>' : '<span class="badge bg-success-subtle text-success">Saved</span>'}
+                                    </td>
+                                    <td class="small text-muted">${formatTimeAgo(o.created_at)}</td>
+                                    <td>${o.customer_name || 'Walk-in'}</td>
+                                    <td>${itemsCount}</td>
+                                    <td class="fw-bold ${isReturn ? 'text-danger' : 'text-primary'}">Rs. ${total.toFixed(2)}</td>
+                                    <td>
+                                        <span class="badge ${isRefunded ? 'bg-danger' : 'bg-success'}">${o.status || 'completed'}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary" onclick="reprintOfflineReceipt('${o.uuid}')" title="Reprint Receipt">
+                                                <i class="bi bi-printer"></i>
+                                            </button>
+                                            ${(!isReturn && !isRefunded) ? `
+                                                <button class="btn btn-outline-danger" onclick="openRefundModal('${o.uuid}')" title="Return / Refund">
+                                                    <i class="bi bi-arrow-return-left"></i>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (e) {
+        body.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-2"></i><p>Failed to load sales history: ${e.message}</p></div>`;
+    }
+}
+
+document.getElementById('salesHistorySearch')?.addEventListener('input', () => {
+    loadSalesHistory();
+});
+
+async function reprintOfflineReceipt(orderUuid) {
+    try {
+        const order = currentSalesHistory.find(o => o.uuid === orderUuid) || await PureDB.getOrder(orderUuid);
+        if (!order) {
+            showToast('Order not found', 'danger');
+            return;
+        }
+
+        const totals = {
+            subtotal: parseFloat(order.subtotal || order.total_amount || 0),
+            discountAmount: parseFloat(order.discount_amount || 0),
+            taxAmount: parseFloat(order.tax_amount || 0),
+            grandTotal: parseFloat(order.total_amount || 0),
+        };
+
+        const paid = (order.payments && order.payments.length)
+            ? order.payments.reduce((acc, p) => acc + parseFloat(p.amount || 0), 0)
+            : totals.grandTotal;
+
+        showReceiptModal(order, totals, paid);
+    } catch (e) {
+        showToast('Failed to generate receipt: ' + e.message, 'danger');
+    }
+}
+
+async function openRefundModal(orderUuid) {
+    currentRefundOrder = currentSalesHistory.find(o => o.uuid === orderUuid) || await PureDB.getOrder(orderUuid);
+    if (!currentRefundOrder) {
+        showToast('Order not found', 'danger');
+        return;
+    }
+
+    const body = document.getElementById('refundModalBody');
+    const items = currentRefundOrder.items || [];
+
+    body.innerHTML = `
+        <div class="mb-3">
+            <strong>Order:</strong> ${currentRefundOrder.order_number} &bull; <span class="text-muted">${currentRefundOrder.customer_name || 'Walk-in'}</span>
+        </div>
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="text-center">Orig Qty</th>
+                        <th class="text-center" style="width: 100px;">Refund Qty</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map((item, idx) => `
+                        <tr>
+                            <td>
+                                <div class="fw-bold">${item.name || item.product_name}</div>
+                            </td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="text-center">
+                                <input type="number" class="form-control form-control-sm text-center refund-qty-input"
+                                       data-idx="${idx}" data-price="${item.price || item.unit_price}"
+                                       min="0" max="${item.quantity}" step="1" value="${item.quantity}"
+                                       oninput="updateRefundTotals()">
+                            </td>
+                            <td class="text-end">Rs. ${parseFloat(item.price || item.unit_price).toFixed(2)}</td>
+                            <td class="text-end fw-bold item-refund-subtotal" id="refundSubtotal${idx}">
+                                Rs. ${(parseFloat(item.price || item.unit_price) * parseFloat(item.quantity)).toFixed(2)}
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded mb-3">
+            <span class="fw-bold">Total Refund Amount:</span>
+            <span class="fs-5 fw-bold text-danger" id="totalRefundDisplay">Rs. 0.00</span>
+        </div>
+        <div class="mb-2">
+            <label class="form-label small fw-bold">Reason for Return</label>
+            <select id="refundReason" class="form-select form-select-sm">
+                <option value="Customer Return">Customer Return</option>
+                <option value="Defective / Damaged">Defective / Damaged</option>
+                <option value="Wrong Item">Wrong Item</option>
+                <option value="Overcharged">Overcharged / Pricing Error</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="refundRestockCheck" checked>
+            <label class="form-check-label small" for="refundRestockCheck">
+                Restock returned items to local inventory
+            </label>
+        </div>
+    `;
+
+    updateRefundTotals();
+    new bootstrap.Modal(document.getElementById('refundOrderModal')).show();
+}
+
+function updateRefundTotals() {
+    if (!currentRefundOrder) return;
+    let totalRefund = 0;
+    const inputs = document.querySelectorAll('.refund-qty-input');
+    inputs.forEach(input => {
+        const idx = input.dataset.idx;
+        const price = parseFloat(input.dataset.price) || 0;
+        const qty = parseFloat(input.value) || 0;
+        const sub = price * qty;
+        totalRefund += sub;
+        const subEl = document.getElementById(`refundSubtotal${idx}`);
+        if (subEl) subEl.textContent = `Rs. ${sub.toFixed(2)}`;
+    });
+    const totalEl = document.getElementById('totalRefundDisplay');
+    if (totalEl) totalEl.textContent = `Rs. ${totalRefund.toFixed(2)}`;
+}
+
+async function submitRefund() {
+    if (!currentRefundOrder) return;
+    const btn = document.getElementById('confirmRefundBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+
+    try {
+        const itemsToRefund = [];
+        const inputs = document.querySelectorAll('.refund-qty-input');
+        const restock = document.getElementById('refundRestockCheck')?.checked ?? true;
+        const reason = document.getElementById('refundReason')?.value || 'Customer Return';
+
+        inputs.forEach(input => {
+            const idx = parseInt(input.dataset.idx);
+            const qty = parseFloat(input.value) || 0;
+            if (qty > 0) {
+                const item = currentRefundOrder.items[idx];
+                itemsToRefund.push({
+                    product_id: item.product_id,
+                    name: item.name || item.product_name,
+                    quantity: qty,
+                    price: parseFloat(item.price || item.unit_price || 0),
+                    refund_amount: parseFloat(item.price || item.unit_price || 0) * qty,
+                    restock: restock,
+                });
+            }
+        });
+
+        if (!itemsToRefund.length) {
+            showToast('Please specify at least one item quantity to refund', 'warning');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Confirm Refund';
+            return;
+        }
+
+        const refundOrder = await OfflinePOS.processRefund({
+            original_order_id: currentRefundOrder.id || null,
+            original_order_uuid: currentRefundOrder.uuid,
+            items: itemsToRefund,
+            reason: reason,
+            notes: `Refund for ${currentRefundOrder.order_number}`,
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('refundOrderModal'))?.hide();
+        showToast(`✅ Refund processed: ${refundOrder.order_number}`, 'success');
+
+        // Show refund receipt
+        showReceiptModal(refundOrder, {
+            subtotal: parseFloat(refundOrder.subtotal || 0),
+            discountAmount: 0,
+            taxAmount: 0,
+            grandTotal: parseFloat(refundOrder.total_amount || 0),
+        }, parseFloat(refundOrder.total_amount || 0));
+
+        // Refresh sales history if modal is open
+        await loadSalesHistory();
+        // Refresh product list in POS to reflect returned stock
+        loadProducts(currentCategoryFilter, document.getElementById('productSearch')?.value || '');
+
+    } catch (e) {
+        showToast('Refund failed: ' + e.message, 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Confirm Refund';
+    }
+}
+
+// ── Daily Report ──────────────────────────────────────────
+async function openDailyReportModal() {
+    new bootstrap.Modal(document.getElementById('dailyReportModal')).show();
+    const body = document.getElementById('dailyReportBody');
+    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Calculating local shift totals...</p></div>';
+
+    try {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const report = await OfflinePOS.getDailyReport(todayStr);
+
+        body.innerHTML = `
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light text-center">
+                        <small class="text-muted d-block">Gross Sales</small>
+                        <strong class="fs-5 text-success">Rs. ${(report.totals.gross_sales || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light text-center">
+                        <small class="text-muted d-block">Refunds / Returns</small>
+                        <strong class="fs-5 text-danger">- Rs. ${(report.totals.refunds || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light text-center">
+                        <small class="text-muted d-block">Total Discounts</small>
+                        <strong class="fs-6 text-warning">Rs. ${(report.totals.discounts || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light text-center">
+                        <small class="text-muted d-block">Net Sales</small>
+                        <strong class="fs-5 text-primary">Rs. ${(report.totals.net_sales || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header bg-white py-2 small fw-bold">Payment Methods Breakdown</div>
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between py-1 border-bottom small">
+                        <span><i class="bi bi-cash-stack text-success me-2"></i>Cash</span>
+                        <strong>Rs. ${(report.payments.cash || 0).toFixed(2)}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom small">
+                        <span><i class="bi bi-credit-card text-primary me-2"></i>Card</span>
+                        <strong>Rs. ${(report.payments.card || 0).toFixed(2)}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom small">
+                        <span><i class="bi bi-phone text-info me-2"></i>Mobile / QR</span>
+                        <strong>Rs. ${(report.payments.mobile || 0).toFixed(2)}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 small">
+                        <span><i class="bi bi-bank text-secondary me-2"></i>Bank Transfer</span>
+                        <strong>Rs. ${(report.payments.bank_transfer || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light small">
+                <span>Total Orders Today: <strong>${report.order_count || 0}</strong></span>
+                <span>Pending Sync: <strong class="${report.pending_sync_count > 0 ? 'text-warning' : 'text-success'}">${report.pending_sync_count || 0}</strong></span>
+            </div>
+        `;
+    } catch (e) {
+        body.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-2"></i><p>Failed to generate report: ${e.message}</p></div>`;
+    }
+}
+
+function printDailyReport() {
+    window.print();
+}
 
 // ── Keyboard Shortcuts ────────────────────────────────────
 document.addEventListener('keydown', e => {
@@ -2535,7 +3588,7 @@ function showToast(message, type = 'info') {
             csrfToken: CSRF,
         });
 
-        // 3. Initialize Offline POS with store config
+        // 3. Initialize Offline POS with store config & cache authorized user
         await OfflinePOS.init();
         await OfflinePOS.saveStoreConfig({
             store_id: {{ $store?->id ?? 'null' }},
@@ -2548,6 +3601,24 @@ function showToast(message, type = 'info') {
             tax_rate: {{ $store?->tax_rate ?? 0 }},
         });
 
+        @if(auth()->check())
+        @php
+            $authUser = auth()->user();
+            $userPerms = !empty($authUser->permissions) ? $authUser->permissions : $authUser->getRolePermissions();
+            $userPinHash = $authUser->pin ? hash('sha256', (string)$authUser->pin) : null;
+        @endphp
+        await OfflinePOS.cacheCurrentUser({
+            id: {{ $authUser->id }},
+            name: @json($authUser->name),
+            email: @json($authUser->email),
+            username: @json($authUser->username),
+            role: @json($authUser->role ?? 'cashier'),
+            permissions: @json($userPerms),
+            store_id: {{ $store?->id ?? 'null' }},
+            pin_hash: @json($userPinHash),
+        });
+        @endif
+
         // 4. Hydrate if needed (download products/categories/customers to IndexedDB)
         const needsHydration = await PureDB.needsHydration();
         if (needsHydration && PureSync.isOnline()) {
@@ -2559,40 +3630,137 @@ function showToast(message, type = 'info') {
             }
         }
 
-        // 5. Wire up sync status indicator
+        // 5. Wire up sync status indicator & offline detection
         const syncDot = document.getElementById('syncDot');
         const syncLabel = document.getElementById('syncLabel');
         const syncBadge = document.getElementById('syncPendingBadge');
         const syncBtn = document.getElementById('btnSyncNow');
+        const offlineBanner = document.getElementById('offlineBanner');
+        const syncIndicator = document.getElementById('syncStatusIndicator');
 
-        function updateSyncUI(status) {
+        let _prevOnlineState = PureSync.isOnline();
+
+        function updateSyncUI(status, detail) {
             if (!syncDot) return;
+
+            // Offline banner
+            if (offlineBanner) {
+                if (status === 'offline') {
+                    offlineBanner.classList.remove('d-none');
+                } else {
+                    offlineBanner.classList.add('d-none');
+                }
+            }
+
+            // Sync dot + label
+            syncDot.classList.remove('sync-online', 'sync-offline', 'sync-syncing', 'sync-failed', 'sync-auth-expired');
             if (status === 'online') {
-                syncDot.className = 'sync-dot sync-online';
-                syncDot.title = 'Online';
+                syncDot.classList.add('sync-online');
+                syncDot.title = 'Online — Connected';
                 syncLabel.textContent = 'Online';
+                syncLabel.className = 'sync-label';
             } else if (status === 'offline') {
-                syncDot.className = 'sync-dot sync-offline';
-                syncDot.title = 'Offline';
+                syncDot.classList.add('sync-offline');
+                syncDot.title = 'Offline — Local mode';
                 syncLabel.textContent = 'Offline';
+                syncLabel.className = 'sync-label sync-label-offline';
             } else if (status === 'syncing') {
-                syncDot.className = 'sync-dot sync-syncing';
-                syncDot.title = 'Syncing...';
+                syncDot.classList.add('sync-syncing');
+                syncDot.title = 'Synchronizing...';
                 syncLabel.textContent = 'Syncing';
+                syncLabel.className = 'sync-label sync-label-syncing';
+                // Animate sync button
+                if (syncBtn) syncBtn.classList.add('sync-spinning');
+            } else if (status === 'failed') {
+                syncDot.classList.add('sync-failed');
+                syncDot.title = 'Sync failed — click to retry';
+                syncLabel.textContent = 'Sync Failed';
+                syncLabel.className = 'sync-label sync-label-failed';
+            } else if (status === 'auth_expired') {
+                syncDot.classList.add('sync-auth-expired');
+                syncDot.title = 'Session expired — re-login required';
+                syncLabel.textContent = 'Session Expired';
+                syncLabel.className = 'sync-label sync-label-auth';
+            } else if (status === 'conflict') {
+                syncDot.classList.add('sync-failed');
+                syncDot.title = 'Sync conflicts detected';
+                syncLabel.textContent = 'Conflicts';
+                syncLabel.className = 'sync-label sync-label-failed';
+            }
+
+            // Stop sync button animation after sync ends
+            if (status !== 'syncing' && syncBtn) {
+                syncBtn.classList.remove('sync-spinning');
             }
         }
 
-        PureSync.on('online', () => updateSyncUI('online'));
-        PureSync.on('offline', () => updateSyncUI('offline'));
-        PureSync.on('sync_start', () => updateSyncUI('syncing'));
+        // ── PureSync Event Listeners ──────────────────────────────
+
+        PureSync.on('online', () => {
+            updateSyncUI('online');
+            // If was offline, show reconnection toast
+            if (!_prevOnlineState) {
+                showToast('✅ Connection restored — syncing...', 'success');
+            }
+            _prevOnlineState = true;
+        });
+
+        PureSync.on('offline', () => {
+            updateSyncUI('offline');
+            if (_prevOnlineState) {
+                showToast('⚠️ Offline — POS continues working locally', 'warning');
+            }
+            _prevOnlineState = false;
+        });
+
+        PureSync.on('sync_start', () => {
+            updateSyncUI('syncing');
+        });
+
         PureSync.on('sync_complete', (data) => {
             updateSyncUI('online');
-            if (data.pushed > 0) showToast(`✅ ${data.pushed} transaction(s) synced!`, 'success');
+            if (data.pushed > 0) {
+                showToast(`✅ ${data.pushed} transaction(s) synced!`, 'success');
+            }
+            if (data.conflicts > 0) {
+                showToast(`⚠️ ${data.conflicts} sync conflict(s) detected`, 'warning');
+                updateSyncUI('conflict');
+            }
+            if (data.failed > 0 && data.pushed === 0) {
+                showToast(`❌ ${data.failed} transaction(s) failed to sync`, 'danger');
+                updateSyncUI('failed');
+            }
         });
+
         PureSync.on('sync_error', (data) => {
-            updateSyncUI('online');
+            updateSyncUI('failed');
             console.warn('[POS] Sync error:', data.error);
+            showToast('Sync error: ' + (data.error || 'Unknown'), 'danger');
         });
+
+        PureSync.on('auth_expired', () => {
+            updateSyncUI('auth_expired');
+            showToast('🔒 Session expired. Please re-login to sync.', 'danger');
+        });
+
+        PureSync.on('sync_progress', (progress) => {
+            if (syncLabel && progress.total > 0) {
+                syncLabel.textContent = `Syncing ${progress.current}/${progress.total}`;
+            }
+        });
+
+        PureSync.on('pull_complete', (stats) => {
+            if (stats) {
+                const parts = [];
+                if (stats.products) parts.push(`${stats.products} products`);
+                if (stats.customers) parts.push(`${stats.customers} customers`);
+                if (stats.categories) parts.push(`${stats.categories} categories`);
+                if (parts.length > 0) {
+                    console.log('[POS] Data refreshed:', parts.join(', '));
+                }
+            }
+        });
+
         PureSync.on('pending_update', (data) => {
             if (syncBadge) {
                 if (data.count > 0) {
@@ -2604,6 +3772,16 @@ function showToast(message, type = 'info') {
                     if (syncBtn) syncBtn.classList.add('d-none');
                 }
             }
+            // Show failed count in badge if any
+            if (data.failed > 0 && syncBadge) {
+                syncBadge.textContent = `${data.count}`;
+                syncBadge.title = `${data.count} pending, ${data.failed} failed`;
+            }
+        });
+
+        PureSync.on('state_change', (fullStatus) => {
+            console.log('[POS] Sync state:', fullStatus.connectionState, fullStatus.syncState,
+                'Pending:', fullStatus.pendingCount, 'Failed:', fullStatus.failedCount);
         });
 
         // Set initial status

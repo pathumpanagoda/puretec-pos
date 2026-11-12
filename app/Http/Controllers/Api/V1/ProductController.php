@@ -62,6 +62,13 @@ class ProductController extends Controller
             ->with('category:id,uuid,name,code,color,icon')
             ->first();
 
+        if (!$product && is_numeric($uuid)) {
+            $product = Product::where('id', (int)$uuid)
+                ->where('store_id', $request->user()->store_id)
+                ->with('category:id,uuid,name,code,color,icon')
+                ->first();
+        }
+
         if (!$product) {
             return response()->json(['success' => false, 'message' => 'Product not found.'], 404);
         }

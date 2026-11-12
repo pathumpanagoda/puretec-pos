@@ -6,6 +6,7 @@ use App\Models\IncomeCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class IncomeController extends Controller
 {
@@ -65,7 +66,12 @@ class IncomeController extends Controller
             'title' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0.01',
             'income_date' => 'required|date',
-            'income_category_id' => 'nullable|exists:income_categories,id',
+            'income_category_id' => [
+                'nullable',
+                Rule::exists('income_categories', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
             'payment_method' => 'required|in:cash,bank_transfer,cheque,other',
             'received_from' => 'nullable|string|max:255',
             'reference_number' => 'nullable|string|max:100',
@@ -99,6 +105,10 @@ class IncomeController extends Controller
 
     public function edit(Income $income)
     {
+        if ((int) $income->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $categories = IncomeCategory::where('store_id', Auth::user()->store_id)
             ->where('is_active', true)->get();
         return view('incomes.edit', compact('income', 'categories'));
@@ -106,11 +116,20 @@ class IncomeController extends Controller
 
     public function update(Request $request, Income $income)
     {
+        if ((int) $income->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0.01',
             'income_date' => 'required|date',
-            'income_category_id' => 'nullable|exists:income_categories,id',
+            'income_category_id' => [
+                'nullable',
+                Rule::exists('income_categories', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
             'payment_method' => 'required|in:cash,bank_transfer,cheque,other',
             'received_from' => 'nullable|string|max:255',
             'reference_number' => 'nullable|string|max:100',
@@ -144,6 +163,10 @@ class IncomeController extends Controller
 
     public function destroy(Income $income)
     {
+        if ((int) $income->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         if ($income->attachment) {
             Storage::disk('public')->delete($income->attachment);
         }
@@ -155,14 +178,30 @@ class IncomeController extends Controller
     // Quick add category
     public function storeCategory(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:100',
+        if ($request->has('name') && is_string($request->name)) {
+            $request->merge(['name' => trim($request->name)]);
+        }
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('income_categories', 'name')->where(function ($query) {
+                    return $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'color' => [
+                'nullable',
+                'string',
+                'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/',
+            ],
         ]);
 
         $category = IncomeCategory::create([
             'store_id' => Auth::user()->store_id,
-            'name' => $request->name,
-            'color' => $request->color ?? '#4CAF50',
+            'name'     => $validated['name'],
+            'color'    => !empty($validated['color']) ? $validated['color'] : '#4CAF50',
         ]);
 
         return response()->json(['success' => true, 'category' => $category]);

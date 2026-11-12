@@ -178,4 +178,43 @@ class Tenant extends Model
         }
         return ['label' => 'Active', 'class' => 'bg-success'];
     }
+
+    /**
+     * Get computed license key for this client.
+     */
+    public function getLicenseKeyAttribute(): string
+    {
+        $hash = strtoupper(substr(hash('sha256', "PURETEC:{$this->id}:{$this->code}:" . ($this->created_at ?? '2026-01-01')), 0, 12));
+        return "LIC-" . strtoupper($this->code) . "-" . substr($hash, 0, 4) . "-" . substr($hash, 4, 4) . "-" . substr($hash, 8, 4);
+    }
+
+    /**
+     * Get max allowed POS devices based on plan tier.
+     */
+    public function getMaxDevicesAttribute(): int
+    {
+        return match ($this->subscription_plan) {
+            'basic' => 1,
+            'standard' => 3,
+            'premium' => 10,
+            default => 1,
+        };
+    }
+
+    /**
+     * Get license status description.
+     */
+    public function getLicenseStatusAttribute(): string
+    {
+        if ($this->is_locked) {
+            return 'Locked (' . ($this->lock_reason ?? 'Payment overdue') . ')';
+        }
+        if (!$this->is_active) {
+            return 'Suspended / Inactive';
+        }
+        if ($this->isOnTrial()) {
+            return 'Trial (Expires ' . ($this->trial_ends_at ? $this->trial_ends_at->format('M d, Y') : 'soon') . ')';
+        }
+        return 'Active / Licensed';
+    }
 }

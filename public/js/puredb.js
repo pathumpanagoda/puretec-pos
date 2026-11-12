@@ -23,7 +23,7 @@
 
 const PureDB = (function () {
     const DB_NAME = 'pure_pos';
-    const DB_VERSION = 2; // bumped for schema migration
+    const DB_VERSION = 3; // bumped for offline users, registers, and held_orders
     let _db = null;
     let _initPromise = null;
 
@@ -61,6 +61,17 @@ const PureDB = (function () {
             { name: 'status', keyPath: 'status', unique: false },
             { name: 'created_at', keyPath: 'created_at', unique: false },
             { name: 'uuid', keyPath: 'uuid', unique: false },
+        ]},
+        users:      { keyPath: 'id', indexes: [
+            { name: 'username', keyPath: 'username', unique: false },
+            { name: 'email', keyPath: 'email', unique: false },
+        ]},
+        registers:  { keyPath: 'id', indexes: [
+            { name: 'status', keyPath: 'status', unique: false },
+            { name: 'opened_at', keyPath: 'opened_at', unique: false },
+        ]},
+        held_orders:{ keyPath: 'uuid', indexes: [
+            { name: 'created_at', keyPath: 'created_at', unique: false },
         ]},
         settings:   { keyPath: 'key' },
         meta:       { keyPath: 'key' },
@@ -117,6 +128,16 @@ const PureDB = (function () {
                 };
 
                 console.log('[PureDB] Database opened successfully (v' + DB_VERSION + ')');
+
+                // Request persistent storage protection against browser eviction
+                if (navigator.storage && navigator.storage.persist) {
+                    navigator.storage.persist().then(granted => {
+                        if (granted) {
+                            console.log('[PureDB] Storage persistence enabled: offline POS data protected from browser eviction');
+                        }
+                    }).catch(() => {});
+                }
+
                 resolve(_db);
             };
 
@@ -351,6 +372,10 @@ const PureDB = (function () {
                     }
 
                     products = products.filter(p => p.is_active !== false);
+                    products.forEach(p => {
+                        if (p.stock === undefined) p.stock = parseFloat(p.stock_quantity || 0);
+                        if (p.allow_negative === undefined) p.allow_negative = !!p.allow_negative_stock;
+                    });
                     products.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                     resolve(products);
                 };
@@ -365,19 +390,34 @@ const PureDB = (function () {
     async function findByBarcode(barcode) {
         try {
             const result = await getOneByIndex('products', 'barcode', barcode);
-            if (result) return result;
+            if (result) {
+                if (result.stock === undefined) result.stock = parseFloat(result.stock_quantity || 0);
+                if (result.allow_negative === undefined) result.allow_negative = !!result.allow_negative_stock;
+                return result;
+            }
         } catch (e) { /* fallback */ }
         const all = await getAll('products');
-        return all.find(p => p.barcode === barcode) || null;
+        const found = all.find(p => p.barcode === barcode || p.sku === barcode) || null;
+        if (found) {
+            if (found.stock === undefined) found.stock = parseFloat(found.stock_quantity || 0);
+            if (found.allow_negative === undefined) found.allow_negative = !!found.allow_negative_stock;
+        }
+        return found;
     }
 
     async function updateProductStock(productId, quantityChange) {
         const product = await get('products', productId);
         if (product && product.track_stock) {
-            product.stock_quantity = Math.max(0, (product.stock_quantity || 0) + quantityChange);
+            const current = parseFloat(product.stock_quantity ?? product.stock ?? 0);
+            const allowNeg = product.allow_negative_stock || product.allow_negative;
+            const updated = allowNeg ? (current + quantityChange) : Math.max(0, current + quantityChange);
+            product.stock_quantity = updated;
+            product.stock = updated;
             product._local_stock_modified = true;
             await put('products', product);
+            return updated;
         }
+        return null;
     }
 
     // ── Customer Operations ──────────────────────────────────────
@@ -410,6 +450,78 @@ const PureDB = (function () {
                 resolve([]);
             }
         });
+    }
+
+    async function createCustomerOffline(customerData) {
+        const uuid = customerData.uuid || generateUUID();
+        const id = customerData.id || Date.now();
+        const customer = {
+            id: id,
+            uuid: uuid,
+            name: customerData.name,
+            phone: customerData.phone || '',
+            email: customerData.email || '',
+            address: customerData.address || '',
+            city: customerData.city || '',
+            loyalty_points: 0,
+            loyalty_tier: 'bronze',
+            is_active: true,
+            sync_status: 'local',
+            created_at: new Date().toISOString(),
+        };
+
+        await put('customers', customer);
+
+        // Queue for server sync
+        await addToSyncQueue('customer', uuid, 'create', {
+            name: customer.name,
+            phone: customer.phone,
+            email: customer.email,
+            address: customer.address,
+            city: customer.city,
+        });
+
+        return customer;
+    }
+
+    async function getCustomerByUUID(uuid) {
+        if (!uuid) return null;
+        await _ensureDB();
+        return new Promise((resolve) => {
+            try {
+                const tx = _db.transaction('customers', 'readonly');
+                const store = tx.objectStore('customers');
+                const index = store.index('uuid');
+                const request = index.get(uuid);
+                request.onsuccess = () => resolve(request.result || null);
+                request.onerror = () => resolve(null);
+            } catch (e) {
+                resolve(null);
+            }
+        });
+    }
+
+    async function updateCustomerServerId(uuid, serverId) {
+        if (!uuid || !serverId) return null;
+        await _ensureDB();
+        try {
+            const customer = await getCustomerByUUID(uuid);
+            if (!customer) return null;
+
+            const oldId = customer.id;
+            customer.id = Number(serverId);
+            customer.sync_status = 'synced';
+
+            // If the previous ID was a temporary timestamp, remove old key to prevent duplicates
+            if (oldId && oldId !== customer.id) {
+                await remove('customers', oldId);
+            }
+            await put('customers', customer);
+            return customer;
+        } catch (e) {
+            console.warn('[PureDB] Failed to update customer server ID:', e);
+            return null;
+        }
     }
 
     // ── Sync Queue Operations (PRODUCTION RELIABLE) ─────────────
@@ -501,15 +613,33 @@ const PureDB = (function () {
         }
     }
 
-    async function getPendingSyncItems() {
+    async function getPendingSyncItems(includeExhausted = false) {
         const all = await getAll('sync_queue');
         return all.filter(item =>
             item.status === 'pending' || item.status === 'failed'
         ).filter(item =>
-            item.attempts < (item.max_attempts || 10)
+            includeExhausted || item.attempts < (item.max_attempts || 10)
         ).sort((a, b) =>
             new Date(a.created_at) - new Date(b.created_at)
         );
+    }
+
+    async function resetFailedAttempts() {
+        try {
+            const all = await getAll('sync_queue');
+            for (const item of all) {
+                if (item.status === 'failed') {
+                    item.status = 'pending';
+                    item.attempts = 0;
+                    item.error_message = null;
+                    await put('sync_queue', item);
+                }
+            }
+            return true;
+        } catch (e) {
+            console.error('[PureDB] resetFailedAttempts failed:', e);
+            return false;
+        }
     }
 
     async function markSynced(syncItemId) {
@@ -667,6 +797,16 @@ const PureDB = (function () {
         } catch (e) { /* non-critical */ }
     }
 
+    async function markOrderConflict(uuid, errorMessage) {
+        const order = await get('orders', uuid);
+        if (order) {
+            order.sync_status = 'conflict';
+            order.sync_error = errorMessage;
+            order.conflict_at = new Date().toISOString();
+            await put('orders', order);
+        }
+    }
+
     // ── Data Hydration ───────────────────────────────────────────
 
     /**
@@ -707,6 +847,288 @@ const PureDB = (function () {
         if (!lastHydration) return true;
         const fourHoursAgo = new Date(Date.now() - 4 * 3600000).toISOString();
         return lastHydration < fourHoursAgo;
+    }
+
+    // ── Offline User Authentication & Management ─────────────────
+
+    async function hashCredential(credential, salt = 'purepos_salt_v1') {
+        if (!credential) return null;
+        try {
+            const enc = new TextEncoder();
+            const data = enc.encode(salt + ':' + credential);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (e) {
+            let hash = 0;
+            const str = salt + ':' + credential;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return 'h_' + Math.abs(hash).toString(16);
+        }
+    }
+
+    async function saveAuthorizedUser(user, rawCredential = null) {
+        if (!user || !user.id) return;
+        const record = {
+            id: user.id,
+            uuid: user.uuid || generateUUID(),
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            role: user.role || 'cashier',
+            permissions: user.permissions || [],
+            store_id: user.store_id || null,
+            updated_at: new Date().toISOString(),
+        };
+
+        if (rawCredential) {
+            record.pin_hash = await hashCredential(rawCredential);
+        } else if (user.pin_hash) {
+            record.pin_hash = user.pin_hash;
+        }
+
+        await put('users', record);
+        return record;
+    }
+
+    async function getAuthorizedUsers() {
+        const users = await getAll('users');
+        return users.map(u => ({
+            id: u.id,
+            uuid: u.uuid,
+            name: u.name,
+            username: u.username,
+            email: u.email,
+            role: u.role,
+            permissions: u.permissions,
+            store_id: u.store_id,
+        }));
+    }
+
+    async function verifyOfflineUser(login, credential) {
+        if (!login || !credential) return null;
+        const allUsers = await getAll('users');
+        const l = login.toLowerCase().trim();
+        const user = allUsers.find(u =>
+            (u.username && u.username.toLowerCase() === l) ||
+            (u.email && u.email.toLowerCase() === l)
+        );
+        if (!user) return null;
+
+        const hash = await hashCredential(credential);
+        if (user.pin_hash && user.pin_hash === hash) {
+            return {
+                id: user.id,
+                uuid: user.uuid,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                permissions: user.permissions || [],
+                store_id: user.store_id,
+            };
+        }
+        return null;
+    }
+
+    // ── Offline Held Orders ──────────────────────────────────────
+
+    async function saveHeldOrder(heldOrder) {
+        heldOrder.uuid = heldOrder.uuid || generateUUID();
+        heldOrder.created_at = heldOrder.created_at || new Date().toISOString();
+        await put('held_orders', heldOrder);
+        return heldOrder;
+    }
+
+    async function getHeldOrders() {
+        const orders = await getAll('held_orders');
+        return orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    async function removeHeldOrder(uuid) {
+        return await remove('held_orders', uuid);
+    }
+
+    // ── Sales History & Offline Reports ──────────────────────────
+
+    async function getSalesHistory(limit = 50, filters = {}) {
+        const allOrders = await getAll('orders');
+        let filtered = allOrders.filter(o => o.status === 'completed' || o.status === 'refunded' || o.order_type === 'return');
+
+        if (filters.search) {
+            const q = filters.search.toLowerCase().trim();
+            filtered = filtered.filter(o =>
+                (o.order_number && o.order_number.toLowerCase().includes(q)) ||
+                (o.customer_name && o.customer_name.toLowerCase().includes(q))
+            );
+        }
+
+        if (filters.date) {
+            filtered = filtered.filter(o => (o.created_at || '').startsWith(filters.date));
+        }
+
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        return filtered.slice(0, limit);
+    }
+
+    async function getDailyReport(dateStr = null) {
+        const targetDate = dateStr || new Date().toISOString().slice(0, 10);
+        const allOrders = await getAll('orders');
+        const dayOrders = allOrders.filter(o =>
+            (o.created_at || '').startsWith(targetDate) && o.status !== 'cancelled'
+        );
+
+        let grossSales = 0;
+        let totalDiscounts = 0;
+        let totalTax = 0;
+        let totalReturns = 0;
+        const paymentBreakdown = { cash: 0, card: 0, mobile_payment: 0, bank_transfer: 0, other: 0 };
+        const productCounts = {};
+
+        dayOrders.forEach(o => {
+            if (o.order_type === 'return') {
+                totalReturns += parseFloat(o.total_amount || 0);
+            } else {
+                grossSales += parseFloat(o.subtotal || o.total_amount || 0);
+                totalDiscounts += parseFloat(o.discount_amount || 0);
+                totalTax += parseFloat(o.tax_amount || 0);
+
+                (o.payments || []).forEach(p => {
+                    const method = p.method || 'cash';
+                    const amt = parseFloat(p.amount || 0);
+                    if (paymentBreakdown[method] !== undefined) {
+                        paymentBreakdown[method] += amt;
+                    } else {
+                        paymentBreakdown.other += amt;
+                    }
+                });
+
+                (o.items || []).forEach(item => {
+                    const name = item.product_name || 'Item';
+                    const qty = parseFloat(item.quantity || 0);
+                    productCounts[name] = (productCounts[name] || 0) + qty;
+                });
+            }
+        });
+
+        const netSales = Math.max(0, grossSales - totalDiscounts + totalTax - totalReturns);
+        const pendingSyncCount = await getPendingSyncCount();
+
+        return {
+            date: targetDate,
+            total_orders: dayOrders.filter(o => o.order_type !== 'return').length,
+            total_returns: dayOrders.filter(o => o.order_type === 'return').length,
+            gross_sales: Math.round(grossSales * 100) / 100,
+            discounts: Math.round(totalDiscounts * 100) / 100,
+            tax: Math.round(totalTax * 100) / 100,
+            returns_amount: Math.round(totalReturns * 100) / 100,
+            net_sales: Math.round(netSales * 100) / 100,
+            payments: paymentBreakdown,
+            top_products: Object.entries(productCounts)
+                .map(([name, qty]) => ({ name, qty }))
+                .sort((a, b) => b.qty - a.qty)
+                .slice(0, 10),
+            pending_sync: pendingSyncCount,
+        };
+    }
+
+    // ── Offline Register Operations ──────────────────────────────
+
+    async function openRegisterOffline(data) {
+        const id = data.id || generateUUID();
+        const register = {
+            id: id,
+            uuid: id,
+            opening_balance: parseFloat(data.opening_balance || 0),
+            status: 'open',
+            opened_at: data.opened_at || new Date().toISOString(),
+            closed_at: null,
+            closing_balance: null,
+            expected_balance: null,
+            difference: null,
+            notes: data.notes || '',
+            user_id: data.user_id || null,
+            sync_status: 'local',
+        };
+
+        await put('registers', register);
+        await setSetting('active_register_id', id);
+
+        await addToSyncQueue('register', id, 'create', {
+            id: id,
+            action: 'open',
+            opening_balance: register.opening_balance,
+            opened_at: register.opened_at,
+            notes: register.notes,
+        });
+
+        return register;
+    }
+
+    async function getActiveRegister() {
+        const activeId = await getSetting('active_register_id');
+        if (!activeId) return null;
+        const reg = await get('registers', activeId);
+        return (reg && reg.status === 'open') ? reg : null;
+    }
+
+    async function closeRegisterOffline(actualCash, notes = '') {
+        const register = await getActiveRegister();
+        if (!register) throw new Error('No active open register session found.');
+
+        const allOrders = await getAll('orders');
+        const shiftOrders = allOrders.filter(o =>
+            o.created_at >= register.opened_at && o.status !== 'cancelled'
+        );
+
+        let cashSales = 0;
+        let cashRefunds = 0;
+        shiftOrders.forEach(o => {
+            (o.payments || []).forEach(p => {
+                if (p.method === 'cash') {
+                    if (o.order_type === 'return') {
+                        cashRefunds += parseFloat(p.amount || 0);
+                    } else {
+                        cashSales += parseFloat(p.amount || 0);
+                    }
+                }
+            });
+        });
+
+        const expectedCash = register.opening_balance + cashSales - cashRefunds;
+        const actual = parseFloat(actualCash || 0);
+        const difference = actual - expectedCash;
+
+        register.closing_balance = actual;
+        register.expected_balance = Math.round(expectedCash * 100) / 100;
+        register.difference = Math.round(difference * 100) / 100;
+        register.closed_at = new Date().toISOString();
+        register.status = 'closed';
+        register.notes = notes;
+        register.total_cash_sales = cashSales;
+        register.total_cash_refunds = cashRefunds;
+        register.total_orders = shiftOrders.length;
+
+        await put('registers', register);
+        await setSetting('active_register_id', null);
+
+        await addToSyncQueue('register', register.uuid, 'update', {
+            id: register.id,
+            action: 'close',
+            closing_balance: register.closing_balance,
+            expected_balance: register.expected_balance,
+            difference: register.difference,
+            closed_at: register.closed_at,
+            notes: register.notes,
+            total_sales: cashSales,
+            total_refunds: cashRefunds,
+            total_orders: shiftOrders.length,
+        });
+
+        return register;
     }
 
     // ── Utility ──────────────────────────────────────────────────
@@ -753,16 +1175,24 @@ const PureDB = (function () {
         // Products
         searchProducts, findByBarcode, updateProductStock,
         // Customers
-        searchCustomers,
+        searchCustomers, createCustomerOffline, getCustomerByUUID, updateCustomerServerId,
+        // Auth (Offline)
+        saveAuthorizedUser, getAuthorizedUsers, verifyOfflineUser, hashCredential,
+        // Held Orders
+        saveHeldOrder, getHeldOrders, removeHeldOrder,
+        // Registers
+        openRegisterOffline, getActiveRegister, closeRegisterOffline,
+        // Sales History & Reports
+        getSalesHistory, getDailyReport,
         // Sync Queue (production reliable)
         addToSyncQueue, getPendingSyncItems, markSynced, markSyncFailed,
         getPendingSyncCount, getFailedSyncCount, getSyncedCount,
         cleanupSyncedItems, syncQueueHasUUID,
-        recoverFromBackup,
+        recoverFromBackup, resetFailedAttempts,
         // Meta/Settings
         getMeta, setMeta, getSetting, setSetting,
         // Orders
-        saveOfflineOrder, getLocalOrders, markOrderSynced,
+        saveOfflineOrder, getLocalOrders, markOrderSynced, markOrderConflict,
         // Hydration
         hydrate, needsHydration,
         // Utility

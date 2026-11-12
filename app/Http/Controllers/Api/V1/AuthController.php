@@ -31,16 +31,43 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'login'     => 'required|string',
-            'password'  => 'required|string',
-            'device_id' => 'nullable|string|max:64',
-            'device_name' => 'nullable|string|max:255',
-            'device_type' => 'nullable|in:web,pwa,mobile_android,mobile_ios',
+            'login'        => 'required|string',
+            'password'     => 'required|string',
+            'client_code'  => 'nullable|string|max:64',
+            'device_id'    => 'nullable|string|max:64',
+            'device_name'  => 'nullable|string|max:255',
+            'device_type'  => 'nullable|in:web,pwa,mobile_android,mobile_ios',
+            'app_version'  => 'nullable|string|max:20',
+            'os_info'      => 'nullable|string|max:255',
         ]);
 
         // Try email or username login
         $field = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        $user = User::where($field, $request->login)->where('is_active', true)->first();
+        $query = User::where($field, $request->login)->where('is_active', true);
+
+        // Scope to tenant if client_code provided
+        if ($request->filled('client_code')) {
+            $clientCode = trim($request->client_code);
+            $tenant = \App\Models\Tenant::where('code', $clientCode)
+                ->orWhere('id', is_numeric($clientCode) ? (int)$clientCode : 0)
+                ->first();
+
+            if (!$tenant) {
+                $slug = Str::slug($clientCode);
+                $tenant = \App\Models\Tenant::all()->first(fn($t) => Str::slug($t->business_name) === $slug);
+            }
+
+            if ($tenant) {
+                $query->where('tenant_id', $tenant->id);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid client code.',
+                ], 404);
+            }
+        }
+
+        $user = $query->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             $this->auditLog->logFailedLogin($request->login);
@@ -258,8 +285,10 @@ class AuthController extends Controller
                 'tenant_id'    => $user->tenant_id,
                 'store_id'     => $user->store_id,
                 'user_id'      => $user->id,
-                'device_name'  => $request->device_name ?? 'Unknown',
-                'device_type'  => $request->device_type ?? 'web',
+                'device_name'  => $request->device_name ?? 'Mobile Device',
+                'device_type'  => $request->device_type ?? 'mobile_android',
+                'app_version'  => $request->app_version ?? null,
+                'os_info'      => $request->os_info ?? null,
                 'last_seen_at' => now(),
                 'is_active'    => true,
             ]

@@ -1,23 +1,23 @@
 /**
  * =============================================================
- * PureSync v2 — Production Sync Engine for Pure POS
+ * PureSync v2.1 — Production Sync Engine for Pure POS
  * =============================================================
  *
  * CRITICAL IMPROVEMENTS:
- *   - Exponential backoff retry
+ *   - Exponential backoff retry with max limit
  *   - Deduplication before push (prevent double-send)
  *   - Per-item error handling (one failure doesn't block others)
- *   - Conflict detection and resolution
+ *   - Multi-device conflict detection and status tracking
  *   - Heartbeat with configurable interval
- *   - Incremental pull with sync cursor
- *   - Sync status state machine
+ *   - Incremental pull with cursor-based synchronization
+ *   - Sync status state machine: ONLINE, OFFLINE, SYNCING, SYNCED, FAILED, CONFLICT, AUTH_EXPIRED
  *   - Stock movement sync support
- *   - Manual sync trigger
- *   - Recovery from localStorage backup
+ *   - Manual sync trigger with retry reset
+ *   - Authentication expiry handling (HTTP 401/419) without losing queue
+ *   - Credentials inclusion for same-origin sessions
+ *   - Disaster recovery from localStorage backup
  *
- * States: ONLINE, OFFLINE, SYNCING, SYNCED, FAILED, CONFLICT
- *
- * Author: Puretec | Version: 2.0.0
+ * Author: Puretec | Version: 2.1.0
  * =============================================================
  */
 
@@ -43,9 +43,9 @@ const PureSync = (function () {
     let _state = {
         // Connection
         isOnline: navigator.onLine,
-        connectionState: 'UNKNOWN', // ONLINE, OFFLINE
-        // Sync
-        syncState: 'IDLE',         // IDLE, SYNCING, SYNCED, FAILED, CONFLICT
+        connectionState: navigator.onLine ? 'ONLINE' : 'OFFLINE',
+        // Sync State
+        syncState: 'IDLE', // IDLE, SYNCING, SYNCED, FAILED, CONFLICT, AUTH_EXPIRED
         isSyncing: false,
         lastPush: null,
         lastPull: null,
@@ -77,8 +77,14 @@ const PureSync = (function () {
     function init(config = {}) {
         Object.assign(_config, config);
 
+        // Auto-extract CSRF token from page meta if available
         const meta = document.querySelector('meta[name="csrf-token"]');
-        if (meta) _config.csrfToken = meta.content;
+        if (meta && !_config.csrfToken) _config.csrfToken = meta.content;
+
+        // Auto-detect Sanctum token from local storage if not explicitly provided
+        if (!_config.token) {
+            _config.token = localStorage.getItem('purepos_auth_token') || localStorage.getItem('auth_token') || null;
+        }
 
         _config.deviceId = _getDeviceId();
 
@@ -89,10 +95,15 @@ const PureSync = (function () {
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && _state.isOnline) {
                 _updatePendingCount();
+                // If there are pending items, trigger a push
+                if (_state.pendingCount > 0 && !_state.isSyncing) {
+                    console.log('[PureSync] Tab active with pending items — triggering push');
+                    pushAll();
+                }
             }
         });
 
-        // Handle beforeunload — warn if pending syncs
+        // Handle beforeunload — warn cashier if pending syncs exist
         window.addEventListener('beforeunload', (e) => {
             if (_state.pendingCount > 0) {
                 e.preventDefault();
@@ -105,28 +116,50 @@ const PureSync = (function () {
         _startAutoPull();
         _updatePendingCount();
 
-        // Recover any backed-up sync items
-        PureDB.recoverFromBackup();
+        // Listen for Service Worker background sync trigger
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'SYNC_TRIGGER') {
+                    console.log('[PureSync] Background sync triggered by Service Worker');
+                    if (_state.isOnline && !_state.isSyncing) {
+                        pushAll();
+                    }
+                }
+            });
+        }
 
-        console.log('[PureSync] Initialized v2. Online:', _state.isOnline, 'Device:', _config.deviceId);
+        // Disaster recovery check: restore any backed-up items missing from IndexedDB
+        if (typeof PureDB !== 'undefined' && PureDB.recoverFromBackup) {
+            PureDB.recoverFromBackup();
+        }
+
+        console.log('[PureSync] Initialized v2.1. Online:', _state.isOnline, 'Device:', _config.deviceId);
     }
 
     // ── Network Detection ────────────────────────────────────────
 
     function _handleOnline() {
-        console.log('[PureSync] Network: Online');
+        console.log('[PureSync] Network connection detected: Online');
         _state.isOnline = true;
         _state.connectionState = 'ONLINE';
         _state.retryCount = 0;
         _notify('online');
         _notify('state_change', getFullStatus());
 
-        // Auto-push when coming back online (with small delay for network stabilization)
-        setTimeout(() => pushAll(), 3000);
+        // Trigger push + pull after brief stabilization delay
+        setTimeout(async () => {
+            await pushAll();
+            // Incremental pull to refresh products/customers/categories
+            try {
+                await pull();
+            } catch (e) {
+                console.warn('[PureSync] Pull after reconnect failed:', e.message);
+            }
+        }, 2500);
     }
 
     function _handleOffline() {
-        console.log('[PureSync] Network: Offline');
+        console.log('[PureSync] Network connection lost: Offline');
         _state.isOnline = false;
         _state.connectionState = 'OFFLINE';
         _state.syncState = 'IDLE';
@@ -145,6 +178,7 @@ const PureSync = (function () {
                 const response = await fetch(_config.apiBase + _config.healthEndpoint, {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin',
                     signal: controller.signal,
                 });
 
@@ -159,6 +193,8 @@ const PureSync = (function () {
                         _notify('state_change', getFullStatus());
                         pushAll();
                     }
+                } else if (response.status === 401 || response.status === 419) {
+                    _notify('auth_expired', { status: response.status });
                 }
             } catch (e) {
                 if (_state.isOnline) {
@@ -181,7 +217,7 @@ const PureSync = (function () {
         }, _config.pullInterval);
     }
 
-    // ── Push Sync ────────────────────────────────────────────────
+    // ── Push Synchronization (Robust Batching & Idempotency) ─────
 
     async function pushAll() {
         if (_state.isSyncing || !_state.isOnline) return;
@@ -195,23 +231,24 @@ const PureSync = (function () {
         try {
             const pendingItems = await PureDB.getPendingSyncItems();
 
-            if (pendingItems.length === 0) {
+            if (!pendingItems || pendingItems.length === 0) {
                 _state.isSyncing = false;
                 _state.syncState = 'SYNCED';
                 _state.retryCount = 0;
                 await _updatePendingCount();
-                _notify('sync_complete', { pushed: 0 });
+                _notify('sync_complete', { pushed: 0, failed: 0 });
                 _notify('state_change', getFullStatus());
                 return;
             }
 
-            console.log(`[PureSync] Pushing ${pendingItems.length} items...`);
+            console.log(`[PureSync] Processing ${pendingItems.length} pending items...`);
             _state.syncProgress = { current: 0, total: pendingItems.length };
 
             let totalPushed = 0;
             let totalFailed = 0;
+            let totalConflicts = 0;
 
-            // Process in batches
+            // Process sequentially in manageable chunks
             for (let i = 0; i < pendingItems.length; i += _config.batchSize) {
                 const batch = pendingItems.slice(i, i + _config.batchSize);
 
@@ -219,48 +256,55 @@ const PureSync = (function () {
                     const result = await _pushBatch(batch);
                     totalPushed += result.pushed;
                     totalFailed += result.failed;
+                    if (result.conflicts) totalConflicts += result.conflicts;
                     _state.syncProgress.current = Math.min(i + _config.batchSize, pendingItems.length);
                     _notify('sync_progress', _state.syncProgress);
                 } catch (batchError) {
                     console.error('[PureSync] Batch push failed:', batchError);
                     totalFailed += batch.length;
-                    // Don't break — try remaining batches
+                    // Check for auth failure
+                    if (batchError.message && batchError.message.includes('Authentication expired')) {
+                        break;
+                    }
                 }
             }
 
             _state.lastPush = new Date().toISOString();
             _state.isSyncing = false;
-            _state.retryCount = 0;
 
-            if (totalFailed > 0) {
+            if (totalConflicts > 0) {
+                _state.syncState = 'CONFLICT';
+            } else if (totalFailed > 0) {
                 _state.syncState = 'FAILED';
                 _scheduleRetry();
             } else {
                 _state.syncState = 'SYNCED';
+                _state.retryCount = 0;
             }
 
             await _updatePendingCount();
-            _notify('sync_complete', { pushed: totalPushed, failed: totalFailed });
+            _notify('sync_complete', { pushed: totalPushed, failed: totalFailed, conflicts: totalConflicts });
             _notify('state_change', getFullStatus());
 
         } catch (error) {
             console.error('[PureSync] Push failed:', error);
             _state.isSyncing = false;
-            _state.syncState = 'FAILED';
+            _state.syncState = error.isAuth ? 'AUTH_EXPIRED' : 'FAILED';
             _state.lastError = error.message;
             _state.syncErrors.push({ time: new Date().toISOString(), error: error.message });
-            // Keep only last 20 errors
-            if (_state.syncErrors.length > 20) _state.syncErrors.splice(0, _state.syncErrors.length - 20);
+            if (_state.syncErrors.length > 20) _state.syncErrors.shift();
             _state.errorCount++;
 
-            _scheduleRetry();
+            if (!error.isAuth) {
+                _scheduleRetry();
+            }
             _notify('sync_error', { error: error.message });
             _notify('state_change', getFullStatus());
         }
     }
 
     async function _pushBatch(items) {
-        // Deduplicate: ensure no duplicate UUIDs in the batch
+        // Deduplicate within the batch by UUID
         const seenUUIDs = new Set();
         const uniqueItems = items.filter(item => {
             if (seenUUIDs.has(item.uuid)) return false;
@@ -290,27 +334,40 @@ const PureSync = (function () {
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const timeoutId = setTimeout(() => controller.abort(), 35000);
 
-        const response = await fetch(_config.apiBase + _config.pushEndpoint, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({
-                device_id: _config.deviceId,
-                transactions: transactions,
-            }),
-            signal: controller.signal,
-        });
+        let response;
+        try {
+            response = await fetch(_config.apiBase + _config.pushEndpoint, {
+                method: 'POST',
+                headers: headers,
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    device_id: _config.deviceId,
+                    transactions: transactions,
+                }),
+                signal: controller.signal,
+            });
+        } finally {
+            clearTimeout(timeoutId);
+        }
 
-        clearTimeout(timeoutId);
+        // Handle authentication expiry without losing local transactions
+        if (response.status === 401 || response.status === 419) {
+            _notify('auth_expired', { status: response.status });
+            const authErr = new Error('Authentication expired. Please re-authenticate.');
+            authErr.isAuth = true;
+            throw authErr;
+        }
 
         if (!response.ok) {
-            throw new Error(`Push failed with status ${response.status}`);
+            throw new Error(`Push rejected by server with HTTP status ${response.status}`);
         }
 
         const data = await response.json();
         let pushed = 0;
         let failed = 0;
+        let conflicts = 0;
 
         if (data.success && data.data && data.data.results) {
             for (const result of data.data.results) {
@@ -318,38 +375,45 @@ const PureSync = (function () {
                 if (!item) continue;
 
                 if (result.status === 'success' || result.status === 'duplicate') {
+                    // Confirmed by server: mark as synced and remove disaster backup
                     await PureDB.markSynced(item.id);
                     if (item.entity_type === 'order') {
                         await PureDB.markOrderSynced(item.uuid);
                     }
+                    if (item.entity_type === 'customer' && result.entity_id && PureDB.updateCustomerServerId) {
+                        await PureDB.updateCustomerServerId(item.uuid, result.entity_id);
+                    }
                     pushed++;
                 } else if (result.status === 'conflict') {
-                    // Mark as conflict for manual resolution
+                    // Multi-device conflict detected: mark item as conflict, retain for review
                     const queueItem = await PureDB.get('sync_queue', item.id);
                     if (queueItem) {
                         queueItem.status = 'conflict';
-                        queueItem.error_message = result.message || 'Data conflict';
+                        queueItem.error_message = result.message || 'Data conflict recorded on server';
                         await PureDB.put('sync_queue', queueItem);
                     }
-                    _state.syncState = 'CONFLICT';
-                    failed++;
+                    if (item.entity_type === 'order' && PureDB.markOrderConflict) {
+                        await PureDB.markOrderConflict(item.uuid, result.message);
+                    }
+                    conflicts++;
                 } else {
-                    await PureDB.markSyncFailed(item.id, result.message || 'Unknown error');
+                    // Processing error: keep item in queue and increment attempt counter
+                    await PureDB.markSyncFailed(item.id, result.message || 'Sync processing failed');
                     failed++;
                 }
             }
         }
 
-        return { pushed, failed };
+        return { pushed, failed, conflicts };
     }
 
     /**
-     * Schedule a retry with exponential backoff.
+     * Exponential backoff retry handler.
      */
     function _scheduleRetry() {
         _state.retryCount++;
         if (_state.retryCount > _config.maxRetryAttempts) {
-            console.warn('[PureSync] Max retry attempts reached');
+            console.warn(`[PureSync] Max retry attempts (${_config.maxRetryAttempts}) reached. Awaiting next network event or manual trigger.`);
             return;
         }
 
@@ -358,7 +422,7 @@ const PureSync = (function () {
             _config.retryMaxDelay
         );
 
-        console.log(`[PureSync] Retry ${_state.retryCount} in ${delay / 1000}s`);
+        console.log(`[PureSync] Scheduling retry ${_state.retryCount} in ${delay / 1000}s`);
 
         if (_intervals.retryTimer) clearTimeout(_intervals.retryTimer);
         _intervals.retryTimer = setTimeout(() => {
@@ -368,7 +432,7 @@ const PureSync = (function () {
         }, delay);
     }
 
-    // ── Pull Sync ────────────────────────────────────────────────
+    // ── Incremental Pull Synchronization ─────────────────────────
 
     async function pull(types = 'products,customers,categories') {
         if (!_state.isOnline) return null;
@@ -388,23 +452,35 @@ const PureSync = (function () {
                 headers['X-CSRF-TOKEN'] = _config.csrfToken;
             }
 
-            let url = _config.apiBase + _config.pullEndpoint + '?types=' + types;
-            if (since) url += '&since=' + encodeURIComponent(since);
-            if (syncCursor) url += '&cursor=' + encodeURIComponent(syncCursor);
+            let url = _config.apiBase + _config.pullEndpoint + '?types=' + encodeURIComponent(types);
+            if (syncCursor && parseInt(syncCursor, 10) > 0) {
+                url += '&cursor=' + encodeURIComponent(syncCursor);
+            } else if (since) {
+                url += '&since=' + encodeURIComponent(since);
+            }
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: headers,
-                signal: controller.signal,
-            });
+            let response;
+            try {
+                response = await fetch(url, {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'same-origin',
+                    signal: controller.signal,
+                });
+            } finally {
+                clearTimeout(timeoutId);
+            }
 
-            clearTimeout(timeoutId);
+            if (response.status === 401 || response.status === 419) {
+                _notify('auth_expired', { status: response.status });
+                throw new Error('Authentication expired during pull');
+            }
 
             if (!response.ok) {
-                throw new Error(`Pull failed with status ${response.status}`);
+                throw new Error(`Pull failed with HTTP status ${response.status}`);
             }
 
             const data = await response.json();
@@ -413,12 +489,14 @@ const PureSync = (function () {
                 const stats = await PureDB.hydrate(data.data);
                 _state.lastPull = data.synced_at || new Date().toISOString();
                 await PureDB.setMeta('last_pull', _state.lastPull);
-                if (data.sync_cursor) {
+
+                if (data.sync_cursor && parseInt(data.sync_cursor, 10) > 0) {
                     await PureDB.setMeta('sync_cursor', data.sync_cursor);
                 }
+
                 _notify('pull_complete', stats);
                 _notify('state_change', getFullStatus());
-                console.log('[PureSync] Pull complete:', stats);
+                console.log('[PureSync] Pull complete:', stats, 'Cursor:', data.sync_cursor);
                 return stats;
             }
 
@@ -437,45 +515,7 @@ const PureSync = (function () {
         return await pull();
     }
 
-    /**
-     * Hydrate IndexedDB from the web POS page (existing endpoints).
-     */
-    async function hydrateFromPageData(productsUrl, categoriesUrl, customersUrl) {
-        try {
-            const headers = {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': _config.csrfToken,
-            };
-
-            const [productsRes, customersRes] = await Promise.all([
-                fetch(productsUrl || '/pos/products/search?limit=9999', { headers }),
-                fetch(customersUrl || '/customers?format=json&limit=9999', { headers }).catch(() => null),
-            ]);
-
-            const data = {};
-
-            if (productsRes && productsRes.ok) {
-                const prodData = await productsRes.json();
-                data.products = prodData.products || prodData.data || prodData;
-            }
-
-            if (customersRes && customersRes.ok) {
-                const custData = await customersRes.json();
-                data.customers = custData.customers || custData.data || custData;
-            }
-
-            if (data.products || data.customers) {
-                const stats = await PureDB.hydrate(data);
-                console.log('[PureSync] Page data hydration:', stats);
-                return stats;
-            }
-        } catch (error) {
-            console.error('[PureSync] Page data hydration failed:', error);
-        }
-        return null;
-    }
-
-    // ── Event System ─────────────────────────────────────────────
+    // ── Event Subscription System ────────────────────────────────
 
     function on(event, callback) {
         _state.listeners.push({ event, callback });
@@ -492,7 +532,7 @@ const PureSync = (function () {
             .filter(l => l.event === event)
             .forEach(l => {
                 try { l.callback(data); }
-                catch (e) { console.error('[PureSync] Listener error:', e); }
+                catch (e) { console.error('[PureSync] Listener error for ' + event + ':', e); }
             });
     }
 
@@ -501,7 +541,7 @@ const PureSync = (function () {
     function _getDeviceId() {
         let deviceId = localStorage.getItem('purepos_device_id');
         if (!deviceId) {
-            deviceId = PureDB.generateUUID();
+            deviceId = PureDB.generateUUID ? PureDB.generateUUID() : 'dev_' + Math.random().toString(36).substring(2, 12);
             localStorage.setItem('purepos_device_id', deviceId);
         }
         return deviceId;
@@ -512,12 +552,24 @@ const PureSync = (function () {
             _state.pendingCount = await PureDB.getPendingSyncCount();
             _state.failedCount = await PureDB.getFailedSyncCount();
             _notify('pending_update', { count: _state.pendingCount, failed: _state.failedCount });
+
+            // Register for background sync if supported and there are pending items
+            if (_state.pendingCount > 0 && 'serviceWorker' in navigator && navigator.serviceWorker.ready) {
+                try {
+                    const reg = await navigator.serviceWorker.ready;
+                    if (reg.sync) {
+                        await reg.sync.register('purepos-sync');
+                    }
+                } catch (bgErr) {
+                    // Background sync not supported or permission denied — non-critical
+                }
+            }
         } catch (e) {
-            // DB might not be ready yet
+            // Non-critical if DB initializing
         }
     }
 
-    // ── Status ───────────────────────────────────────────────────
+    // ── Status Inspection ────────────────────────────────────────
 
     function getFullStatus() {
         return {
@@ -546,16 +598,44 @@ const PureSync = (function () {
         return _state.isOnline;
     }
 
-    // ── Manual Trigger ──────────────────────────────────────────
+    // ── Manual Sync Trigger (Reset Retry Timer & Force Sync) ─────
 
     async function syncNow() {
         if (!_state.isOnline) {
-            _notify('sync_error', { error: 'Cannot sync while offline' });
+            _notify('sync_error', { error: 'Cannot synchronize while offline.' });
             return;
         }
+
         _state.retryCount = 0;
+        if (_intervals.retryTimer) {
+            clearTimeout(_intervals.retryTimer);
+            _intervals.retryTimer = null;
+        }
+
+        // Reset any failed attempt counts so exhausted items are retried
+        if (typeof PureDB !== 'undefined' && PureDB.resetFailedAttempts) {
+            await PureDB.resetFailedAttempts();
+        }
+
         await pushAll();
         await pull();
+    }
+
+    /**
+     * Get failed sync items for display to the cashier.
+     */
+    async function getFailedItems() {
+        try {
+            if (typeof PureDB !== 'undefined' && PureDB.getPendingSyncItems) {
+                const all = await PureDB.getPendingSyncItems();
+                return (all || []).filter(item =>
+                    item.status === 'failed' || item.status === 'conflict' || (item.attempts && item.attempts >= _config.maxRetryAttempts)
+                );
+            }
+            return [];
+        } catch (e) {
+            return [];
+        }
     }
 
     // ── Cleanup ──────────────────────────────────────────────────
@@ -575,8 +655,8 @@ const PureSync = (function () {
         pushAll,
         pull,
         fullRefresh,
-        hydrateFromPageData,
         syncNow,
+        getFailedItems,
         on,
         off,
         getStatus,

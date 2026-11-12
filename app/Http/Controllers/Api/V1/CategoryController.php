@@ -27,4 +27,25 @@ class CategoryController extends Controller
 
         return response()->json(['success' => true, 'data' => $categories]);
     }
+
+    /**
+     * Get a single category by id or uuid.
+     */
+    public function show(Request $request, string $id)
+    {
+        $category = Category::where('store_id', $request->user()->store_id)
+            ->where(function ($q) use ($id) {
+                $q->where('uuid', $id);
+                if (is_numeric($id)) {
+                    $q->orWhere('id', (int)$id);
+                }
+            })
+            ->first();
+
+        if (!$category) {
+            return response()->json(['success' => false, 'message' => 'Category not found.'], 404);
+        }
+
+        return response()->json(['success' => true, 'data' => $category]);
+    }
 }

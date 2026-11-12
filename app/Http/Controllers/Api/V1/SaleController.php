@@ -29,6 +29,14 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+
+        if (!$user->canAccess('orders') && !$user->canAccess('pos') && !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to view sales records.',
+            ], 403);
+        }
+
         $query = Order::where('store_id', $user->store_id)
             ->with(['customer:id,name,phone', 'user:id,name', 'payments:id,order_id,method,amount,status']);
 
@@ -62,7 +70,16 @@ class SaleController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $order = Order::where('store_id', $request->user()->store_id)
+        $user = $request->user();
+
+        if (!$user->canAccess('orders') && !$user->canAccess('pos') && !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to view sale details.',
+            ], 403);
+        }
+
+        $order = Order::where('store_id', $user->store_id)
             ->with(['items', 'payments', 'customer', 'user'])
             ->find($id);
 
@@ -83,6 +100,24 @@ class SaleController extends Controller
      */
     public function store(Request $request)
     {
+        $user = $request->user();
+
+        if (!$user->canAccess('pos') && !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to create sales.',
+            ], 403);
+        }
+
+        if ($user->currentAccessToken() && method_exists($user->currentAccessToken(), 'can')) {
+            if (!$user->tokenCan('sales:create') && !$user->tokenCan('*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'API token lacks sales:create ability.',
+                ], 403);
+            }
+        }
+
         $request->validate([
             'uuid'                  => 'nullable|uuid',
             'items'                 => 'required|array|min:1',
@@ -92,7 +127,8 @@ class SaleController extends Controller
             'payments'              => 'required|array|min:1',
             'payments.*.method'     => 'required|string',
             'payments.*.amount'     => 'required|numeric|min:0',
-            'customer_id'           => 'nullable|integer',
+            'customer_id'           => 'nullable',
+            'customer_uuid'         => 'nullable|string|max:36',
         ]);
 
         $user = $request->user();

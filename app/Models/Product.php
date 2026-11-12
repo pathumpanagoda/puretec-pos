@@ -15,7 +15,8 @@ class Product extends Model
         'description','image','gallery','product_type','cost_price','selling_price',
         'wholesale_price','min_selling_price','stock_quantity','min_stock','max_stock',
         'reorder_level','unit','weight','track_stock','allow_negative_stock',
-        'has_variants','is_featured','is_active','is_taxable','expiry_date','location','notes'
+        'has_variants','is_featured','is_active','is_taxable','expiry_date','location','notes',
+        'sync_version'
     ];
     protected $casts = [
         'gallery'            => 'array',
@@ -29,6 +30,7 @@ class Product extends Model
         'selling_price'      => 'decimal:2',
         'stock_quantity'     => 'decimal:3',
         'expiry_date'        => 'date',
+        'sync_version'       => 'integer',
     ];
 
     protected static function boot()
@@ -37,6 +39,11 @@ class Product extends Model
         static::creating(function ($product) {
             if (empty($product->uuid)) {
                 $product->uuid = Str::uuid()->toString();
+            }
+        });
+        static::saving(function ($product) {
+            if (!$product->isDirty('sync_version')) {
+                $product->sync_version = (int) (microtime(true) * 1000);
             }
         });
     }

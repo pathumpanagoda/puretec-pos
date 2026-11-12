@@ -92,8 +92,8 @@ class User extends Authenticatable
     {
         $rolePermissions = [
             'super_admin' => ['*'],
-            'admin'       => ['dashboard','pos','products','categories','customers','suppliers','orders','purchases','inventory','employees','expenses','reports','settings','users'],
-            'manager'     => ['dashboard','pos','products','categories','customers','suppliers','orders','purchases','inventory','expenses','reports'],
+            'admin'       => ['dashboard','pos','products','categories','customers','suppliers','orders','purchases','inventory','employees','expenses','incomes','reports','settings','users'],
+            'manager'     => ['dashboard','pos','products','categories','customers','suppliers','orders','purchases','inventory','expenses','incomes','reports'],
             'cashier'     => ['dashboard','pos','customers','orders'],
             'inventory'   => ['dashboard','products','categories','suppliers','purchases','inventory'],
             'viewer'      => ['dashboard','reports'],

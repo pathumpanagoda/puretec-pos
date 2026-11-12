@@ -1007,3 +1007,41 @@ code {
     background: rgba(37, 99, 235, 0.2);
     color: var(--nf-dark);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   TASK 10 — PURETEC ADMIN RESPONSIVE UI IMPROVEMENTS
+   Preserving all desktop designs, fonts, colors, branding, and layouts.
+   ══════════════════════════════════════════════════════════════════ */
+
+.puretec-main {
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+@media (max-width: 767.98px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .modal-body {
+        max-height: calc(85vh - 120px);
+        overflow-y: auto;
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    pre code {
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+}

@@ -17,15 +17,17 @@ class Order extends Model
         'discount_value','coupon_code','table_number','notes','internal_notes',
         'loyalty_points_earned','loyalty_points_used','completed_at',
         'billed_by','payment_processed_by','billed_at','payment_approved_at',
-        'device_id','synced_at','sync_status','source'
+        'device_id','synced_at','sync_status','sync_attempts','sync_error','source'
     ];
     protected $casts = [
         'completed_at'        => 'datetime',
+        'synced_at'           => 'datetime',
         'billed_at'           => 'datetime',
         'payment_approved_at' => 'datetime',
         'subtotal'            => 'decimal:2',
         'total_amount'        => 'decimal:2',
         'paid_amount'         => 'decimal:2',
+        'sync_attempts'       => 'integer',
     ];
 
     protected static function boot()

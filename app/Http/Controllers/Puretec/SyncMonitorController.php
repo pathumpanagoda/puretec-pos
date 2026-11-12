@@ -75,4 +75,37 @@ class SyncMonitorController extends Controller
 
         return view('puretec.sync-monitor-detail', compact('tenant', 'recentLogs', 'failedLogs', 'devices', 'stats'));
     }
+
+    /**
+     * Failed synchronization monitoring across all tenants.
+     */
+    public function failed(Request $request)
+    {
+        $query = SyncLog::with(['tenant:id,business_name,code', 'store:id,name', 'user:id,name'])
+            ->where('status', 'failed')
+            ->latest();
+
+        if ($request->filled('tenant_id')) {
+            $query->where('tenant_id', $request->tenant_id);
+        }
+        if ($request->filled('entity_type')) {
+            $query->where('entity_type', $request->entity_type);
+        }
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $failedLogs = $query->paginate(50);
+        $tenants = Tenant::where('is_active', true)->pluck('business_name', 'id');
+        $entityTypes = SyncLog::where('status', 'failed')->distinct()->pluck('entity_type');
+
+        $stats = [
+            'total_failed' => SyncLog::where('status', 'failed')->count(),
+            'failed_today' => SyncLog::where('status', 'failed')->whereDate('created_at', today())->count(),
+            'conflict_total' => SyncLog::where('status', 'conflict')->count(),
+            'affected_tenants' => SyncLog::where('status', 'failed')->distinct('tenant_id')->count('tenant_id'),
+        ];
+
+        return view('puretec.sync-monitor-failed', compact('failedLogs', 'tenants', 'entityTypes', 'stats'));
+    }
 }

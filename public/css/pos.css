@@ -871,13 +871,15 @@
 /* ── Responsive POS ──────────────────────────────────────────────── */
 @media (max-width: 1200px) {
   .pos-right { width: 300px; }
-  .pos-products-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+  .pos-products-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 6px; }
+  .product-card { width: 100%; min-width: 0; max-width: 100%; }
   .cat-slider-btn { width: 24px; height: 24px; font-size: 12px; }
 }
 
 @media (max-width: 992px) {
   .pos-right { width: 280px; }
-  .pos-products-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+  .pos-products-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+  .product-card { width: 100%; min-width: 0; max-width: 100%; }
   .product-info { padding: 5px 6px 6px; }
   .product-name { font-size: 10px; }
   .product-price { font-size: 11px; }
@@ -886,13 +888,18 @@
   .payment-modal-grid { grid-template-columns: 180px 1fr; min-height: 400px; }
   .pm-amount-display { font-size: 22px; }
   .numpad-btn { padding: 7px; font-size: 12px; }
+  /* General modal sizing for laptops/tablets */
+  .modal-dialog.modal-xl,
+  .modal-dialog.modal-lg { max-width: 95vw; margin: 12px auto; }
+  .modal-body { max-height: calc(85vh - 120px); overflow-y: auto; }
 }
 
 @media (max-width: 767px) {
   .pos-wrapper { flex-direction: column; }
-  .pos-left  { height: 50vh; border-right: none; border-bottom: 1px solid #2a2a2a; }
-  .pos-right { width: 100%; height: 50vh; flex: 1; }
+  .pos-left  { height: 48vh; border-right: none; border-bottom: 1px solid #2a2a2a; }
+  .pos-right { width: 100%; height: 52vh; flex: 1; }
   .pos-products-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 5px; }
+  .product-card { width: 100%; min-width: 0; max-width: 100%; }
   .cat-slider-btn { width: 22px; height: 22px; font-size: 11px; margin: 0 2px; }
   /* Payment Modal - Single Column, Full Height */
   #paymentModal .modal-dialog { max-width: 100%; margin: 0; height: 100vh; }
@@ -914,10 +921,16 @@
   .btn-complete-sale { padding: 8px; font-size: 12px; }
   .pm-notes-row { margin-bottom: 4px; }
   .pm-notes-row input { padding: 5px 8px; font-size: 10px; }
+  /* General modals on mobile */
+  .modal-dialog { max-width: calc(100% - 16px); margin: 8px auto; }
+  .modal-body { max-height: calc(88vh - 110px); overflow-y: auto; padding: 12px; }
+  .modal-footer { padding: 8px 12px; flex-wrap: wrap; gap: 6px; }
+  .modal-footer .btn { flex: 1 1 auto; }
 }
 
 @media (max-width: 480px) {
-  .pos-products-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .pos-products-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .product-card { width: 100%; min-width: 0; max-width: 100%; }
   .pos-left { height: 45vh; }
   .pos-right { height: 55vh; }
   .product-info { padding: 4px 5px 5px; }

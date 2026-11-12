@@ -10,6 +10,7 @@ use App\Services\POSService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
@@ -29,12 +30,36 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
+        if ((int) $order->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $order->load('items.product','payments','customer','user');
         return view('orders.show', compact('order'));
     }
 
     public function edit(Order $order)
     {
+        if ((int) $order->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
+        if ($order->status === 'pending_payment') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot edit a pending bill. Pending bills must be managed through the POS pending-bill workflow.');
+        }
+
+        if ($order->status === 'completed') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot edit a completed order. Use refund instead.');
+        }
+
+        if ($order->status === 'refunded') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot edit a refunded order.');
+        }
+
+        if ($order->status === 'cancelled') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot edit a cancelled order.');
+        }
+
         $order->load('items.product', 'payments', 'customer', 'user');
         $storeId = Auth::user()->store_id;
         $customers = Customer::where('store_id', $storeId)->where('is_active', true)->orderBy('name')->get();
@@ -44,16 +69,48 @@ class OrderController extends Controller
 
     public function update(Request $request, Order $order)
     {
+        if ((int) $order->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
+        if ($order->status === 'pending_payment') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot modify a pending bill. Pending bills must be managed through the POS pending-bill workflow.');
+        }
+
+        if ($order->status === 'completed') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot modify a completed order. Use refund instead.');
+        }
+
+        if ($order->status === 'refunded') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot modify a refunded order.');
+        }
+
+        if ($order->status === 'cancelled') {
+            return redirect()->route('orders.show', $order)->with('error', 'Cannot modify a cancelled order.');
+        }
+
         $request->validate([
-            'customer_id' => 'nullable|exists:customers,id',
+            'customer_id' => [
+                'nullable',
+                Rule::exists('customers', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
             'discount_type' => 'nullable|in:fixed,percentage',
             'discount_value' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_id' => [
+                'required',
+                Rule::exists('products', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
+
+        $storeId = Auth::user()->store_id;
 
         DB::beginTransaction();
         try {
@@ -72,7 +129,7 @@ class OrderController extends Controller
 
             // Add new items
             foreach ($request->items as $itemData) {
-                $product = Product::find($itemData['product_id']);
+                $product = Product::where('store_id', $storeId)->findOrFail($itemData['product_id']);
                 $quantity = $itemData['quantity'];
                 $unitPrice = $itemData['unit_price'];
                 $costPrice = $product->cost_price ?? 0;
@@ -140,12 +197,20 @@ class OrderController extends Controller
 
     public function printReceipt(Order $order)
     {
+        if ((int) $order->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $order->load('items','payments','customer','user','store');
         return view('orders.receipt', compact('order'));
     }
 
     public function printInvoice(Request $request, Order $order)
     {
+        if ((int) $order->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $order->load('items','payments','customer','user','store');
         $size = $request->get('size', 'a4');
         return view('orders.invoice', compact('order', 'size'));
@@ -153,6 +218,10 @@ class OrderController extends Controller
 
     public function refund(Request $request, Order $order)
     {
+        if ((int) $order->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $request->validate(['items' => 'required|array', 'reason' => 'nullable|string']);
         try {
             $refunded = $this->posService->processRefund($order, $request->items, $request->reason ?? '');
@@ -164,9 +233,30 @@ class OrderController extends Controller
 
     public function destroy(Order $order)
     {
-        if ($order->status === 'completed') return back()->with('error', 'Cannot delete a completed order. Use refund instead.');
-        $order->delete();
-        return back()->with('success', 'Order deleted!');
+        if ((int) $order->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
+        if ($order->status === 'completed') {
+            return back()->with('error', 'Cannot delete a completed order. Use refund instead.');
+        }
+
+        if ($order->status === 'refunded') {
+            return back()->with('error', 'Cannot delete a refunded order.');
+        }
+
+        try {
+            DB::transaction(function () use ($order) {
+                if ($order->status === 'pending_payment') {
+                    $this->posService->cancelPendingBill($order, 'Order deleted from orders management');
+                }
+                $order->delete();
+            });
+
+            return back()->with('success', 'Order deleted!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete order: ' . $e->getMessage());
+        }
     }
 
     /**

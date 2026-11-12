@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -57,8 +58,35 @@ class ProductController extends Controller
             'selling_price' => 'required|numeric|min:0',
             'cost_price'    => 'nullable|numeric|min:0',
             'stock_quantity'=> 'nullable|numeric|min:0',
-            'category_id'   => 'nullable|exists:categories,id',
-            'sub_category_id' => 'nullable|exists:categories,id',
+            'category_id'   => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'sub_category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) use ($request) {
+                    $query->where('store_id', Auth::user()->store_id);
+                    if ($request->filled('category_id')) {
+                        $query->where('parent_id', $request->category_id);
+                    } else {
+                        $query->whereNull('id');
+                    }
+                }),
+            ],
+            'supplier_id'   => [
+                'nullable',
+                Rule::exists('suppliers', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'tax_id'        => [
+                'nullable',
+                Rule::exists('taxes', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
         ]);
 
         $storeId = Auth::user()->store_id;
@@ -132,6 +160,10 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        if ((int) $product->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $storeId    = Auth::user()->store_id;
         $categories = Category::where('store_id', $storeId)->where('is_active', true)->get();
         $suppliers  = Supplier::where('store_id', $storeId)->where('is_active', true)->get();
@@ -141,14 +173,60 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        if ((int) $product->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $request->validate([
             'name'          => 'required|string|max:255',
             'selling_price' => 'required|numeric|min:0',
             'cost_price'    => 'nullable|numeric|min:0',
+            'category_id'   => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'sub_category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) use ($request) {
+                    $query->where('store_id', Auth::user()->store_id);
+                    if ($request->filled('category_id')) {
+                        $query->where('parent_id', $request->category_id);
+                    } else {
+                        $query->whereNull('id');
+                    }
+                }),
+            ],
+            'supplier_id'   => [
+                'nullable',
+                Rule::exists('suppliers', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'tax_id'        => [
+                'nullable',
+                Rule::exists('taxes', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
             'image'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $data = $request->except('_token','_method','image','remove_image');
+        $data = $request->except('_token','_method','image','remove_image','store_id','sub_category_id');
+        unset($data['store_id']);
+
+        // Use sub_category_id if provided, otherwise keep category_id
+        if ($request->filled('sub_category_id')) {
+            $data['category_id'] = $request->sub_category_id;
+        }
+
+        // Clean up null/empty values for foreign keys
+        foreach (['category_id', 'supplier_id', 'tax_id'] as $field) {
+            if (array_key_exists($field, $data) && ($data[$field] === '' || $data[$field] === null)) {
+                $data[$field] = null;
+            }
+        }
 
         // Handle image removal
         if ($request->has('remove_image') && $request->remove_image) {
@@ -175,6 +253,10 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        if ((int) $product->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         // Delete product image from storage
         if ($product->image) {
             $imagePath = str_replace('storage/', '', $product->image);
@@ -229,6 +311,10 @@ class ProductController extends Controller
 
     public function adjustStock(Request $request, Product $product)
     {
+        if ((int) $product->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $request->validate([
             'quantity' => 'required|numeric',
             'type'     => 'required|in:adjustment,damage,expired',
@@ -251,6 +337,10 @@ class ProductController extends Controller
      */
     public function quickUpdate(Request $request, Product $product)
     {
+        if ((int) $product->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $request->validate([
             'name'          => 'required|string|max:255',
             'sku'           => 'nullable|string|max:100',
@@ -263,9 +353,35 @@ class ProductController extends Controller
             'min_stock'     => 'nullable|numeric|min:0',
             'reorder_level' => 'nullable|numeric|min:0',
             'unit'          => 'nullable|string|max:20',
-            'category_id'   => 'nullable|exists:categories,id',
-            'supplier_id'   => 'nullable|exists:suppliers,id',
-            'tax_id'        => 'nullable|exists:taxes,id',
+            'category_id'   => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'sub_category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(function ($query) use ($request) {
+                    $query->where('store_id', Auth::user()->store_id);
+                    if ($request->filled('category_id')) {
+                        $query->where('parent_id', $request->category_id);
+                    } else {
+                        $query->whereNull('id');
+                    }
+                }),
+            ],
+            'supplier_id'   => [
+                'nullable',
+                Rule::exists('suppliers', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
+            'tax_id'        => [
+                'nullable',
+                Rule::exists('taxes', 'id')->where(function ($query) {
+                    $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
             'is_active'     => 'nullable',
             'track_stock'   => 'nullable',
             'is_featured'   => 'nullable',
@@ -281,6 +397,11 @@ class ProductController extends Controller
             'category_id', 'supplier_id', 'tax_id',
             'is_active', 'track_stock', 'is_featured'
         ]);
+        unset($data['store_id']);
+
+        if ($request->filled('sub_category_id')) {
+            $data['category_id'] = $request->sub_category_id;
+        }
 
         // Convert checkbox values to boolean
         $data['is_active'] = $request->input('is_active') == '1' || $request->input('is_active') === true;
@@ -356,6 +477,10 @@ class ProductController extends Controller
      */
     public function toggleStatus(Product $product)
     {
+        if ((int) $product->store_id !== (int) Auth::user()->store_id) {
+            abort(404);
+        }
+
         $product->update(['is_active' => !$product->is_active]);
 
         return response()->json([
@@ -647,7 +772,7 @@ class ProductController extends Controller
      */
     public function showImport()
     {
-        return view('products.import');
+        return redirect()->route('products.index');
     }
 
     /**

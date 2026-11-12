@@ -30,8 +30,13 @@ use App\Http\Controllers\Api\V1\HealthController;
 // ── Public (Unauthenticated) ─────────────────────────────────
 Route::prefix('v1')->group(function () {
 
+    // Client Identification (Rate limited, for shared mobile apps / PWA)
+    Route::middleware('throttle:30,1')->group(function () {
+        Route::match(['GET', 'POST'], '/client/identify/{code?}', [ConfigController::class, 'identifyClient']);
+    });
+
     // Authentication (rate limited)
-    Route::middleware('throttle:5,1')->group(function () {
+    Route::middleware('throttle:10,1')->group(function () {
         Route::post('/auth/login', [AuthController::class, 'login']);
         Route::post('/auth/register-device', [AuthController::class, 'registerDevice']);
     });
@@ -46,8 +51,8 @@ Route::prefix('v1')->group(function () {
     });
 });
 
-// ── Authenticated (Token Required) ───────────────────────────
-Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
+// ── Authenticated (Token Required & Rate Limited) ────────────
+Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
 
     // ── Auth ─────────────────────────────────────────────────
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -71,11 +76,13 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
 
     // ── Categories ───────────────────────────────────────────
     Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
     // ── Customers ────────────────────────────────────────────
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::get('/customers/{uuid}', [CustomerController::class, 'show']);
     Route::post('/customers', [CustomerController::class, 'store']);
+    Route::match(['PUT', 'PATCH'], '/customers/{uuid}', [CustomerController::class, 'update']);
 
     // ── Sales ────────────────────────────────────────────────
     Route::post('/sales', [SaleController::class, 'store']);
@@ -85,6 +92,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     // ── Inventory ────────────────────────────────────────────
     Route::get('/inventory', [InventoryController::class, 'index']);
     Route::get('/stock-movements', [InventoryController::class, 'movements']);
+    Route::post('/stock-movements', [InventoryController::class, 'store']);
 
     // ── Devices ──────────────────────────────────────────────
     Route::post('/devices/register', [DeviceController::class, 'register']);

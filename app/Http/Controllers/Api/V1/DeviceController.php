@@ -33,6 +33,23 @@ class DeviceController extends Controller
 
         $user = $request->user();
 
+        // Enforce max device limit if registering a new device
+        if ($user->tenant) {
+            $existing = DeviceRegistration::where('device_id', $request->device_id)->first();
+            if (!$existing || !$existing->is_active) {
+                $activeCount = DeviceRegistration::where('tenant_id', $user->tenant_id)
+                    ->where('is_active', true)
+                    ->count();
+                $maxDevices = $user->tenant->max_devices ?? 5;
+                if ($activeCount >= $maxDevices) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Device limit reached ({$maxDevices} allowed). Please revoke unused devices first.",
+                    ], 403);
+                }
+            }
+        }
+
         $device = DeviceRegistration::updateOrCreate(
             ['device_id' => $request->device_id],
             [

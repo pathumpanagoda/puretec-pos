@@ -13,7 +13,7 @@ class Customer extends Model
     protected $fillable = [
         'uuid','store_id','customer_group_id','name','email','phone','address','city',
         'nic','date_of_birth','credit_limit','current_balance','total_purchases',
-        'total_orders','loyalty_points','loyalty_tier','notes','is_active'
+        'total_orders','loyalty_points','loyalty_tier','notes','is_active','sync_version'
     ];
     protected $casts = [
         'is_active'      => 'boolean',
@@ -21,6 +21,7 @@ class Customer extends Model
         'credit_limit'   => 'decimal:2',
         'current_balance'=> 'decimal:2',
         'total_purchases'=> 'decimal:2',
+        'sync_version'   => 'integer',
     ];
 
     protected static function boot()
@@ -29,6 +30,11 @@ class Customer extends Model
         static::creating(function ($customer) {
             if (empty($customer->uuid)) {
                 $customer->uuid = Str::uuid()->toString();
+            }
+        });
+        static::saving(function ($customer) {
+            if (!$customer->isDirty('sync_version')) {
+                $customer->sync_version = (int) (microtime(true) * 1000);
             }
         });
     }

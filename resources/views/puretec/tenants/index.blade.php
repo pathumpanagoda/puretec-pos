@@ -95,13 +95,34 @@
                             <td class="text-end">
                                 <div class="btn-group">
                                     <a href="{{ route('puretec.tenants.show', $tenant) }}"
-                                       class="btn btn-sm btn-outline-primary" title="View">
+                                       class="btn btn-sm btn-outline-primary" title="View Details & License">
                                         <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ route('puretec.tenants.features', $tenant) }}"
+                                       class="btn btn-sm btn-outline-info" title="Manage Features">
+                                        <i class="bi bi-toggles"></i>
+                                    </a>
+                                    <a href="{{ route('puretec.tenants.deployment', $tenant) }}"
+                                       class="btn btn-sm btn-outline-dark" title="Deployment Config">
+                                        <i class="bi bi-server"></i>
                                     </a>
                                     <a href="{{ route('puretec.tenants.edit', $tenant) }}"
                                        class="btn btn-sm btn-outline-secondary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
+                                    @if($tenant->is_active)
+                                        <button type="button" class="btn btn-sm btn-outline-warning" title="Suspend Client"
+                                                data-bs-toggle="modal" data-bs-target="#suspendModal{{ $tenant->id }}">
+                                            <i class="bi bi-pause-circle"></i>
+                                        </button>
+                                    @else
+                                        <form action="{{ route('puretec.tenants.activate', $tenant) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Activate Client">
+                                                <i class="bi bi-play-circle"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                     @if($tenant->is_locked)
                                         <form action="{{ route('puretec.tenants.unlock', $tenant) }}" method="POST" class="d-inline">
                                             @csrf
@@ -115,6 +136,33 @@
                                             <i class="bi bi-lock"></i>
                                         </button>
                                     @endif
+                                </div>
+
+                                <!-- Suspend Modal -->
+                                <div class="modal fade text-start" id="suspendModal{{ $tenant->id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form action="{{ route('puretec.tenants.suspend', $tenant) }}" method="POST">
+                                                @csrf
+                                                <div class="modal-header bg-warning text-dark">
+                                                    <h5 class="modal-title"><i class="bi bi-pause-circle me-2"></i>Suspend Client</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Suspend <strong>{{ $tenant->business_name }}</strong>?</p>
+                                                    <p class="text-muted small">This immediately disables client operations and locks system access.</p>
+                                                    <div class="mb-3">
+                                                        <label class="form-label small">Suspension Reason</label>
+                                                        <input type="text" class="form-control form-control-sm" name="reason" value="Suspended by administrator" required>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-warning btn-sm">Confirm Suspend</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Lock Modal -->

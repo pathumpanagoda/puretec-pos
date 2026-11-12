@@ -60,7 +60,7 @@ class FeatureDefinition extends Model
             ['code' => 'suppliers',    'name' => 'Suppliers',           'group' => 'standard', 'icon' => 'bi-truck',           'sort_order' => 12, 'is_default' => true,  'is_core' => false],
             ['code' => 'purchases',    'name' => 'Purchases',           'group' => 'standard', 'icon' => 'bi-bag-check',       'sort_order' => 13, 'is_default' => true,  'is_core' => false],
             ['code' => 'expenses',     'name' => 'Expenses',            'group' => 'standard', 'icon' => 'bi-wallet2',         'sort_order' => 14, 'is_default' => true,  'is_core' => false],
-            ['code' => 'incomes',      'name' => 'Other Income',        'group' => 'standard', 'icon' => 'bi-cash-coin',       'sort_order' => 15, 'is_default' => false, 'is_core' => false],
+            ['code' => 'incomes',      'name' => 'Other Income',        'group' => 'standard', 'icon' => 'bi-cash-coin',       'sort_order' => 15, 'is_default' => true,  'is_core' => false],
             ['code' => 'reports',      'name' => 'Reports',             'group' => 'standard', 'icon' => 'bi-graph-up',        'sort_order' => 16, 'is_default' => true,  'is_core' => false],
             ['code' => 'settings',     'name' => 'Settings',            'group' => 'standard', 'icon' => 'bi-gear',            'sort_order' => 17, 'is_default' => true,  'is_core' => false],
             ['code' => 'users',        'name' => 'User Management',     'group' => 'standard', 'icon' => 'bi-person-gear',     'sort_order' => 18, 'is_default' => true,  'is_core' => false],

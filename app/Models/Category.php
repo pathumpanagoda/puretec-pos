@@ -13,9 +13,12 @@ class Category extends Model
 
     protected $fillable = [
         'uuid','store_id','parent_id','name','slug','code','description',
-        'image','color','icon','sort_order','is_active'
+        'image','color','icon','sort_order','is_active','sync_version'
     ];
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = [
+        'is_active'    => 'boolean',
+        'sync_version' => 'integer',
+    ];
 
     protected static function boot()
     {
@@ -23,6 +26,11 @@ class Category extends Model
         static::creating(function ($category) {
             if (empty($category->uuid)) {
                 $category->uuid = Str::uuid()->toString();
+            }
+        });
+        static::saving(function ($category) {
+            if (!$category->isDirty('sync_version')) {
+                $category->sync_version = (int) (microtime(true) * 1000);
             }
         });
     }

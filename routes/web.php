@@ -47,6 +47,7 @@ Route::middleware(['auth', 'tenant.scope', 'tenant.lock'])->group(function () {
         Route::post('/bill',                    [POSController::class, 'createBill'])->name('bill');
         Route::get('/pending-payments',         [POSController::class, 'getPendingPayments'])->name('pending-payments');
         Route::post('/approve-payment/{order}', [POSController::class, 'approvePayment'])->name('approve-payment');
+        Route::post('/cancel-bill/{order}',     [POSController::class, 'cancelPendingBill'])->name('cancel-bill');
         Route::post('/hold',                    [POSController::class, 'holdOrder'])->name('hold');
         Route::get('/held-orders',              [POSController::class, 'getHeldOrders'])->name('held');
         Route::get('/held-orders/{order}/retrieve', [POSController::class, 'retrieveHeldOrder'])->name('held.retrieve');
@@ -74,14 +75,14 @@ Route::middleware(['auth', 'tenant.scope', 'tenant.lock'])->group(function () {
         Route::post('/products/{product}/quick-update', [ProductController::class, 'quickUpdate'])->name('products.quick-update');
         Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::match(['get', 'post'], '/products/price-tags', [ProductController::class, 'priceTags'])->name('products.price-tags');
-        Route::resource('products', ProductController::class);
+        Route::resource('products', ProductController::class)->except(['show']);
     });
 
     // Categories — Feature: categories
     Route::middleware(['feature:categories', 'permission:categories'])->group(function () {
         Route::post('/categories/quick', [CategoryController::class, 'storeQuick'])->name('categories.quick');
         Route::get('/categories/suggest-code', [CategoryController::class, 'suggestCode'])->name('categories.suggest-code');
-        Route::resource('categories', CategoryController::class);
+        Route::resource('categories', CategoryController::class)->except(['show']);
     });
 
     // Customers — Feature: customers
@@ -91,7 +92,7 @@ Route::middleware(['auth', 'tenant.scope', 'tenant.lock'])->group(function () {
 
     // Suppliers — Feature: suppliers
     Route::middleware(['feature:suppliers', 'permission:suppliers'])->group(function () {
-        Route::resource('suppliers', SupplierController::class);
+        Route::resource('suppliers', SupplierController::class)->except(['show']);
     });
 
     // Orders — Feature: orders
@@ -118,12 +119,12 @@ Route::middleware(['auth', 'tenant.scope', 'tenant.lock'])->group(function () {
 
     // Expenses — Feature: expenses
     Route::middleware(['feature:expenses', 'permission:expenses'])->group(function () {
-        Route::resource('expenses', ExpenseController::class);
+        Route::resource('expenses', ExpenseController::class)->except(['show']);
     });
 
     // Income — Feature: incomes
     Route::middleware(['feature:incomes', 'permission:incomes'])->group(function () {
-        Route::resource('incomes', IncomeController::class);
+        Route::resource('incomes', IncomeController::class)->except(['show']);
         Route::post('/incomes/category', [IncomeController::class, 'storeCategory'])->name('incomes.category.store');
     });
 
