@@ -868,19 +868,25 @@ a:hover { color: var(--cp-blue-400); }
 .auth-subtitle { color: rgba(255,255,255,.4); font-size: 15px; }
 .form-label { color: rgba(255,255,255,.7); font-weight: 600; }
 .form-control-auth {
-  background: rgba(255,255,255,.06);
+  background: #fff;
   border: 1.5px solid rgba(255,255,255,.1);
-  color: #f0f0f0; border-radius: 12px;
+  color: #1f2937; caret-color: #1f2937; border-radius: 12px;
   padding: 14px 18px 14px 48px; font-size: 15px;
   transition: all .25s;
 }
 .form-control-auth:focus {
-  background: rgba(255,255,255,.08);
+  background: #fff;
   border-color: var(--cp-primary);
   box-shadow: 0 0 0 4px rgba(201,162,39,.15);
-  color: #f0f0f0;
+  color: #1f2937;
 }
-.form-control-auth::placeholder { color: rgba(255,255,255,.25); }
+.form-control-auth::placeholder { color: #9ca3af; }
+.form-control-auth:-webkit-autofill,
+.form-control-auth:-webkit-autofill:hover,
+.form-control-auth:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1f2937;
+  box-shadow: 0 0 0 1000px #fff inset;
+}
 .input-icon-wrap { position: relative; }
 .input-icon {
   position: absolute; left: 16px; top: 50%; transform: translateY(-50%);

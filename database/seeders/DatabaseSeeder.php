@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(FeatureDefinitionSeeder::class);
+
         // Create default store
         $store = Store::create([
             'name'           => 'Pure POS - Main Store',
