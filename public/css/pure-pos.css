@@ -890,16 +890,16 @@ a:hover { color: var(--cp-blue-400); }
 .input-icon-wrap { position: relative; }
 .input-icon {
   position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-  color: rgba(255,255,255,.35); font-size: 18px; z-index: 1;
+  color: #6b7280; font-size: 18px; z-index: 1;
 }
 .input-icon-right {
   position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
   background: none; border: none;
-  color: rgba(255,255,255,.35); cursor: pointer;
+  color: #6b7280; cursor: pointer;
   padding: 6px; font-size: 18px;
   transition: color .2s;
 }
-.input-icon-right:hover { color: rgba(255,255,255,.6); }
+.input-icon-right:hover { color: #1f2937; }
 .btn-auth {
   background: var(--cp-primary);
   border: none; color: #0d0d0d;
