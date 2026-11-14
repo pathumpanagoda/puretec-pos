@@ -1199,30 +1199,33 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #c9a227, #a07c15);
-  border: none;
-  border-radius: 20px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
   font-size: 13px;
-  font-weight: 600;
-  color: #0d0d0d;
-  box-shadow: 0 2px 8px rgba(201, 162, 39, 0.4);
+  font-weight: 500;
+  color: #e5e5e5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 .topbar-cashier-info span {
   white-space: nowrap;
 }
-.topbar-cashier-info i { font-size: 18px; opacity: 1; }
+.topbar-cashier-info i {
+  font-size: 16px;
+  color: #c9a227;
+  opacity: 0.95;
+}
 .cashier-session-badge {
   background: #10b981;
   color: #fff;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
-  animation: pulse-badge 2s infinite;
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.3);
 }
 @keyframes pulse-badge {
   0%, 100% { opacity: 1; }
@@ -1350,6 +1353,14 @@
 .pos-menu-icon-wrap.icon-display {
   background: rgba(14, 165, 233, 0.15);
   color: #0ea5e9;
+}
+.pos-menu-icon-wrap.icon-end-shift {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.pos-menu-item.pos-menu-danger:hover,
+.pos-menu-item.pos-menu-danger:focus {
+  background: rgba(239, 68, 68, 0.12) !important;
 }
 .pos-menu-text {
   flex: 1;
@@ -1787,7 +1798,8 @@
 
 /* POS topbar */
 [data-theme="light"] .pos-topbar-controls { background: linear-gradient(135deg, #faf7f0 0%, #f5f0e8 100%); border: 1px solid #e0d5c0; }
-[data-theme="light"] .topbar-cashier-info { background: linear-gradient(135deg, #b8941e, #9a7c18); color: #fff; box-shadow: 0 2px 8px rgba(184,148,30,.4); }
+[data-theme="light"] .topbar-cashier-info { background: #ffffff; border: 1px solid #e0d5c0; color: #2c2417; box-shadow: 0 1px 3px rgba(44,36,23,.06); }
+[data-theme="light"] .topbar-cashier-info i { color: #b8941e; }
 [data-theme="light"] .topbar-display-controls { border-left: 1px solid #e0d5c0; }
 [data-theme="light"] .btn-display-control { background: #fff; color: #7a6e5d; box-shadow: 0 1px 3px rgba(44,36,23,.08); }
 [data-theme="light"] .btn-display-control:hover { background: #fef6e0; color: #b8941e; }
