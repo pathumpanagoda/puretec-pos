@@ -213,21 +213,25 @@ body:has(.impersonation-bar) .main-content {
     <header class="topbar">
         <div class="topbar-left">
             <button class="topbar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+            @unless(request()->routeIs('pos.*'))
             <nav aria-label="breadcrumb" class="d-none d-md-block">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     @yield('breadcrumb')
                 </ol>
             </nav>
+            @endunless
         </div>
         <div class="topbar-center">
             @yield('topbar-center')
         </div>
         <div class="topbar-right">
             <div class="topbar-clock" id="topbarClock"></div>
+            @unless(request()->routeIs('pos.*'))
             <a href="{{ route('pos.index') }}" class="btn-pos-quick" title="Open POS">
                 <i class="bi bi-cart3"></i>
             </a>
+            @endunless
             <div class="topbar-theme">
                 <button class="btn-theme-toggle" id="themeToggle" title="Toggle theme">
                     <i class="bi bi-moon-stars" id="themeIcon"></i>

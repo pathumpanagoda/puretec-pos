@@ -4,7 +4,7 @@
 
 @section('topbar-center')
 <div class="pos-topbar-controls">
-    <div class="topbar-cashier-info" id="topbarCashierInfo">
+    <div class="topbar-cashier-info" id="topbarCashierInfo" title="Active Cashier">
         <i class="bi bi-person-badge"></i>
         <span>{{ auth()->user()->name }}</span>
         @if($register)
@@ -12,7 +12,7 @@
         @endif
     </div>
     <!-- Sync Status Indicator -->
-    <div class="topbar-sync-status" id="syncStatusIndicator">
+    <div class="topbar-sync-status" id="syncStatusIndicator" title="Sync Status">
         <div class="sync-dot" id="syncDot" title="Online"></div>
         <span class="sync-label" id="syncLabel">Online</span>
         <span class="sync-badge d-none" id="syncPendingBadge" title="Pending sync items">0</span>
@@ -21,19 +21,53 @@
         </button>
     </div>
     <div class="topbar-display-controls">
-        <button class="btn-display-control" id="btnSalesHistory" onclick="openSalesHistoryModal()" title="Recent Sales & Refunds">
-            <i class="bi bi-receipt"></i>
-            <span>History</span>
-        </button>
-        <button class="btn-display-control" id="btnDailyReport" onclick="openDailyReportModal()" title="Today's Local Report">
-            <i class="bi bi-graph-up"></i>
-            <span>Report</span>
-        </button>
-        <button class="btn-display-control" id="btnDisplayOn" onclick="openCustomerDisplay()" title="Toggle Customer Display">
-            <i class="bi bi-display"></i>
-            <span>Customer Display</span>
-            <i class="bi bi-toggle-off" id="displayToggleIcon"></i>
-        </button>
+        <!-- POS Tools & Reports Dropdown -->
+        <div class="dropdown pos-actions-dropdown">
+            <button class="btn-display-control btn-pos-menu dropdown-toggle" type="button" id="posMenuDropdown" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false" title="POS Tools & Records">
+                <i class="bi bi-grid-fill"></i>
+                <span>POS Tools</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end pos-actions-menu shadow-lg" aria-labelledby="posMenuDropdown">
+                <li>
+                    <button class="dropdown-item pos-menu-item d-flex align-items-center gap-3" id="btnSalesHistory" type="button" onclick="openSalesHistoryModal()">
+                        <div class="pos-menu-icon-wrap icon-history">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="pos-menu-text">
+                            <div class="pos-menu-title">Sales History</div>
+                            <small class="pos-menu-desc">View past orders, reprint receipt & refunds</small>
+                        </div>
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item pos-menu-item d-flex align-items-center gap-3" id="btnDailyReport" type="button" onclick="openDailyReportModal()">
+                        <div class="pos-menu-icon-wrap icon-report">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div class="pos-menu-text">
+                            <div class="pos-menu-title">Daily Summary</div>
+                            <small class="pos-menu-desc">Shift sales, discounts & cash breakdown</small>
+                        </div>
+                    </button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button class="dropdown-item pos-menu-item d-flex align-items-center gap-3" id="btnDisplayOn" type="button" onclick="openCustomerDisplay()">
+                        <div class="pos-menu-icon-wrap icon-display">
+                            <i class="bi bi-display"></i>
+                        </div>
+                        <div class="pos-menu-text flex-grow-1">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="pos-menu-title">Customer Display</span>
+                                <i class="bi bi-toggle-off pos-toggle-indicator" id="displayToggleIcon"></i>
+                            </div>
+                            <small class="pos-menu-desc">Toggle secondary customer checkout screen</small>
+                        </div>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
         @if($register)
         <button class="btn-display-control btn-close-register" onclick="openCloseRegisterModal()" title="Close Register & End Shift">
             <i class="bi bi-stop-circle"></i>
@@ -54,6 +88,10 @@
             <div class="pos-search-wrap">
                 <i class="bi bi-search pos-search-icon"></i>
                 <input type="text" id="productSearch" class="pos-search-input" placeholder="Search products, scan barcode... (F2)" autocomplete="off">
+                <button type="button" id="clearSearchBtn" class="pos-clear-search-btn d-none" onclick="clearProductSearch()" title="Clear search (Esc)">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+                <span class="pos-search-kbd d-none d-sm-inline-block" title="Press F2 to search">F2</span>
                 <button id="barcodeBtn" class="pos-barcode-btn" title="Barcode Scanner"><i class="bi bi-upc-scan"></i></button>
             </div>
         </div>
@@ -1920,7 +1958,22 @@ document.querySelectorAll('.cat-btn').forEach(btn => {
 
 // ── Product Search ────────────────────────────────────────
 let searchTimer;
+function clearProductSearch() {
+    const input = document.getElementById('productSearch');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+    if (clearBtn) clearBtn.classList.add('d-none');
+    loadProducts(currentCategoryFilter, '');
+}
+
 document.getElementById('productSearch').addEventListener('input', e => {
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (clearBtn) {
+        clearBtn.classList.toggle('d-none', !e.target.value);
+    }
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => loadProducts(currentCategoryFilter, e.target.value), 350);
 });
@@ -3581,7 +3634,14 @@ document.addEventListener('keydown', e => {
     if (e.key === 'F2') { e.preventDefault(); document.getElementById('productSearch').focus(); }
     if (e.key === 'F4') { e.preventDefault(); if (cart.length) document.getElementById('holdBtn').click(); }
     if (e.key === 'F9') { e.preventDefault(); if (cart.length) openPayment('cash'); }
-    if (e.key === 'Escape') { document.getElementById('productSearch').blur(); }
+    if (e.key === 'Escape') {
+        const pSearch = document.getElementById('productSearch');
+        if (pSearch && pSearch.value) {
+            clearProductSearch();
+        } else if (pSearch) {
+            pSearch.blur();
+        }
+    }
 });
 
 // ── Customer Display (Persistent Second Screen) ──────────────────────

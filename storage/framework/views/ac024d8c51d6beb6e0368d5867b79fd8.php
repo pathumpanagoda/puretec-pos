@@ -213,21 +213,25 @@ body:has(.impersonation-bar) .main-content {
     <header class="topbar">
         <div class="topbar-left">
             <button class="topbar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+            <?php if (! (request()->routeIs('pos.*'))): ?>
             <nav aria-label="breadcrumb" class="d-none d-md-block">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="<?php echo e(route('dashboard')); ?>">Home</a></li>
                     <?php echo $__env->yieldContent('breadcrumb'); ?>
                 </ol>
             </nav>
+            <?php endif; ?>
         </div>
         <div class="topbar-center">
             <?php echo $__env->yieldContent('topbar-center'); ?>
         </div>
         <div class="topbar-right">
             <div class="topbar-clock" id="topbarClock"></div>
+            <?php if (! (request()->routeIs('pos.*'))): ?>
             <a href="<?php echo e(route('pos.index')); ?>" class="btn-pos-quick" title="Open POS">
                 <i class="bi bi-cart3"></i>
             </a>
+            <?php endif; ?>
             <div class="topbar-theme">
                 <button class="btn-theme-toggle" id="themeToggle" title="Toggle theme">
                     <i class="bi bi-moon-stars" id="themeIcon"></i>

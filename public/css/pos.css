@@ -1276,6 +1276,166 @@
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
 }
 
+/* POS Header Cleanup */
+.pos-body .breadcrumb,
+.pos-body .btn-pos-quick {
+  display: none !important;
+}
+
+/* POS Menu Dropdown Button */
+.btn-pos-menu {
+  background: linear-gradient(135deg, #2a2517, #1c1912) !important;
+  color: #e5b93b !important;
+  border: 1px solid rgba(201, 162, 39, 0.45) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  padding: 7px 14px !important;
+}
+.btn-pos-menu:hover,
+.btn-pos-menu[aria-expanded="true"] {
+  background: linear-gradient(135deg, #c9a227, #a07c15) !important;
+  color: #0d0d0d !important;
+  border-color: transparent !important;
+  box-shadow: 0 3px 12px rgba(201, 162, 39, 0.45) !important;
+}
+.btn-pos-menu::after {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* POS Actions Menu Dropdown */
+.pos-actions-menu {
+  min-width: 300px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #181818;
+  border: 1px solid #333;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+  margin-top: 8px !important;
+  z-index: 1050;
+}
+.pos-actions-menu .dropdown-item {
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #e0e0e0;
+  transition: all 0.15s ease;
+  white-space: normal;
+}
+.pos-actions-menu .dropdown-item:hover,
+.pos-actions-menu .dropdown-item:focus {
+  background: #252525;
+  color: #fff;
+}
+.pos-actions-menu .dropdown-divider {
+  border-color: #2e2e2e;
+  margin: 6px 0;
+}
+.pos-menu-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.pos-menu-icon-wrap.icon-history {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+.pos-menu-icon-wrap.icon-report {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+.pos-menu-icon-wrap.icon-display {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0ea5e9;
+}
+.pos-menu-text {
+  flex: 1;
+}
+.pos-menu-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  line-height: 1.2;
+}
+.pos-menu-desc {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.2;
+}
+.pos-toggle-indicator {
+  font-size: 18px;
+  color: #777;
+}
+
+/* Light Mode Overrides for Menu */
+[data-theme="light"] .btn-pos-menu {
+  background: #fdfaf3 !important;
+  color: #927318 !important;
+  border: 1px solid #d4be88 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="light"] .btn-pos-menu:hover,
+[data-theme="light"] .btn-pos-menu[aria-expanded="true"] {
+  background: linear-gradient(135deg, #c9a227, #a07c15) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+[data-theme="light"] .pos-actions-menu {
+  background: #ffffff;
+  border: 1px solid #e0d5c0;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+[data-theme="light"] .pos-actions-menu .dropdown-item {
+  color: #1a1a1a;
+}
+[data-theme="light"] .pos-actions-menu .dropdown-item:hover,
+[data-theme="light"] .pos-actions-menu .dropdown-item:focus {
+  background: #f7f3ec;
+  color: #000;
+}
+[data-theme="light"] .pos-actions-menu .dropdown-divider {
+  border-color: #e5dac7;
+}
+[data-theme="light"] .pos-menu-desc {
+  color: #71717a;
+}
+
+/* Clear Search Button & Kbd Shortcut */
+.pos-clear-search-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  padding: 0 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+.pos-clear-search-btn:hover {
+  color: #ef4444;
+}
+.pos-search-kbd {
+  background: #252525;
+  color: #c9a227;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  margin-right: 8px;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+[data-theme="light"] .pos-search-kbd {
+  background: #ede5d8;
+  color: #8a6c17;
+  border-color: #d6c6b0;
+}
+
 /* ══════════════════════════════════════════════════════════════════
    PRINT STYLES - Starts from TOP, no empty space
    ══════════════════════════════════════════════════════════════════ */
