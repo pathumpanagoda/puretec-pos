@@ -56,6 +56,8 @@ Route::middleware(['auth', 'tenant.scope', 'tenant.lock'])->group(function () {
         Route::post('/gift-card/validate',      [POSController::class, 'validateGiftCard'])->name('giftcard');
         Route::post('/register/open',           [POSController::class, 'openRegister'])->name('register.open');
         Route::post('/register/{register}/close',[POSController::class, 'closeRegister'])->name('register.close');
+        Route::get('/sales-history',            [POSController::class, 'salesHistory'])->name('sales-history');
+        Route::get('/daily-report',             [POSController::class, 'dailyReport'])->name('daily-report');
     });
 
     // Products — Feature: products

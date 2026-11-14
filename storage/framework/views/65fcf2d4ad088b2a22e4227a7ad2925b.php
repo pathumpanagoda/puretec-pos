@@ -754,6 +754,8 @@ const Routes = {
     registerClose  : '<?php echo e(url("pos/register")); ?>',  // + /{id}/close
     orderReceipt   : '<?php echo e(url("orders")); ?>',  // + /{id}/receipt
     orderInvoice   : '<?php echo e(url("orders")); ?>',  // + /{id}/invoice?size=xx
+    salesHistory   : '<?php echo e(route("pos.sales-history")); ?>',
+    dailyReport    : '<?php echo e(route("pos.daily-report")); ?>',
 };
 
 // Bill-Only Mode Configuration
@@ -1540,6 +1542,51 @@ document.getElementById('completeSaleBtn').addEventListener('click', async () =>
                 PureDB.updateCustomerServerId(data.order.customer.uuid, data.order.customer.id).catch(err => {
                     console.warn('[POS] Could not update local customer server ID:', err);
                 });
+            }
+
+            // Cache order into PureDB for local history, refunds, and reports
+            if (typeof PureDB !== 'undefined' && data.order) {
+                try {
+                    const o = data.order;
+                    const orderToCache = {
+                        id: o.id,
+                        uuid: o.uuid,
+                        order_number: o.order_number,
+                        order_type: o.order_type || 'sale',
+                        status: o.status || 'completed',
+                        sync_status: 'synced',
+                        customer_id: o.customer_id,
+                        customer_name: o.customer?.name || o.customer_name || (currentCustomer ? currentCustomer.name : 'Walk-in Customer'),
+                        customer_phone: o.customer?.phone || (currentCustomer ? currentCustomer.phone : null),
+                        customer_email: o.customer?.email || (currentCustomer ? currentCustomer.email : null),
+                        subtotal: parseFloat(o.subtotal || totals.subtotal || 0),
+                        tax_amount: parseFloat(o.tax_amount || totals.taxAmount || 0),
+                        discount_amount: parseFloat(o.discount_amount || totals.discountAmount || 0),
+                        total_amount: parseFloat(o.total_amount || totals.grandTotal || 0),
+                        paid_amount: parseFloat(o.paid_amount || paymentAmount || totals.grandTotal || 0),
+                        change_amount: parseFloat(o.change_amount || 0),
+                        created_at: o.created_at || new Date().toISOString(),
+                        items: (o.items || []).map(it => ({
+                            product_id: it.product_id,
+                            name: it.product_name || it.name,
+                            product_name: it.product_name || it.name,
+                            sku: it.sku || '',
+                            barcode: it.barcode || '',
+                            quantity: parseFloat(it.quantity || 0),
+                            price: parseFloat(it.unit_price || it.price || 0),
+                            unit_price: parseFloat(it.unit_price || it.price || 0),
+                            total: parseFloat(it.total || 0),
+                        })),
+                        payments: (o.payments || []).map(p => ({
+                            method: p.method,
+                            amount: parseFloat(p.amount || 0),
+                            reference: p.reference_number || p.reference || null,
+                        })),
+                    };
+                    await PureDB.put('orders', orderToCache);
+                } catch (cacheErr) {
+                    console.warn('[POS] Failed caching order to PureDB:', cacheErr);
+                }
             }
 
             showReceiptModal(data.order, totals, paymentAmount);
@@ -3071,7 +3118,69 @@ async function loadSalesHistory() {
     body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div> <p class="mt-2 text-muted">Loading orders...</p></div>';
 
     try {
-        currentSalesHistory = await OfflinePOS.getSalesHistory(50);
+        let serverOrders = [];
+        const isOnline = navigator.onLine && (typeof PureSync === 'undefined' || PureSync.isOnline());
+
+        if (isOnline && typeof Routes !== 'undefined' && Routes.salesHistory) {
+            try {
+                const url = `${Routes.salesHistory}?limit=50${query ? '&q=' + encodeURIComponent(query) : ''}`;
+                const res = await fetch(url, {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.orders)) {
+                        serverOrders = data.orders;
+                        // Cache server orders in PureDB
+                        if (typeof PureDB !== 'undefined' && PureDB.put) {
+                            for (const ord of serverOrders) {
+                                try {
+                                    await PureDB.put('orders', ord);
+                                } catch (_) {}
+                            }
+                        }
+                    }
+                }
+            } catch (netErr) {
+                console.warn('[POS] Failed to fetch sales history from server:', netErr);
+            }
+        }
+
+        // Get local/offline orders from PureDB
+        let localOrders = [];
+        try {
+            localOrders = await OfflinePOS.getSalesHistory(50);
+        } catch (_) {}
+
+        // Merge orders: keep any local pending sync orders, then server orders, deduplicate by UUID
+        const mergedMap = new Map();
+
+        // Local pending sync orders have priority so they show with pending badge
+        localOrders.forEach(o => {
+            if (o.sync_status === 'local' || o.sync_status === 'pending') {
+                mergedMap.set(o.uuid, o);
+            }
+        });
+
+        // Add server orders
+        serverOrders.forEach(o => {
+            if (!mergedMap.has(o.uuid)) {
+                mergedMap.set(o.uuid, o);
+            }
+        });
+
+        // If server returned nothing or offline, include all local orders
+        if (serverOrders.length === 0) {
+            localOrders.forEach(o => {
+                if (!mergedMap.has(o.uuid)) {
+                    mergedMap.set(o.uuid, o);
+                }
+            });
+        }
+
+        currentSalesHistory = Array.from(mergedMap.values());
+        currentSalesHistory.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
         let filtered = currentSalesHistory;
         if (query) {
             filtered = currentSalesHistory.filter(o =>
@@ -3104,7 +3213,7 @@ async function loadSalesHistory() {
                         ${filtered.map(o => {
                             const isReturn = o.order_type === 'return';
                             const isRefunded = o.status === 'refunded';
-                            const isOfflineOnly = o.sync_status === 'pending';
+                            const isOfflineOnly = o.sync_status === 'pending' || o.sync_status === 'local';
                             const itemsCount = (o.items || []).reduce((sum, it) => sum + (parseFloat(it.quantity) || 1), 0);
                             const total = parseFloat(o.total_amount || o.total || 0);
 
@@ -3336,36 +3445,66 @@ async function submitRefund() {
 async function openDailyReportModal() {
     new bootstrap.Modal(document.getElementById('dailyReportModal')).show();
     const body = document.getElementById('dailyReportBody');
-    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Calculating local shift totals...</p></div>';
+    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Calculating daily totals...</p></div>';
 
     try {
         const todayStr = new Date().toISOString().slice(0, 10);
-        const report = await OfflinePOS.getDailyReport(todayStr);
+        let report = null;
+        const isOnline = navigator.onLine && (typeof PureSync === 'undefined' || PureSync.isOnline());
+
+        if (isOnline && typeof Routes !== 'undefined' && Routes.dailyReport) {
+            try {
+                const res = await fetch(`${Routes.dailyReport}?date=${todayStr}`, {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success) {
+                        report = data;
+                    }
+                }
+            } catch (netErr) {
+                console.warn('[POS] Failed to fetch daily report from server:', netErr);
+            }
+        }
+
+        // If offline or server fetch failed, fallback to local PureDB report
+        if (!report) {
+            report = await OfflinePOS.getDailyReport(todayStr);
+        }
+
+        const totals = report.totals ?? report;
+        const payments = report.payments ?? {};
+        const amount = (value) => Number(value || 0).toFixed(2);
+        const orderCount = report.order_count ?? report.total_orders ?? 0;
+        const pendingSyncCount = (typeof PureDB !== 'undefined' && PureDB.getPendingSyncCount)
+            ? await PureDB.getPendingSyncCount()
+            : (report.pending_sync_count ?? report.pending_sync ?? 0);
 
         body.innerHTML = `
             <div class="row g-2 mb-3">
                 <div class="col-6">
                     <div class="p-2 border rounded bg-light text-center">
                         <small class="text-muted d-block">Gross Sales</small>
-                        <strong class="fs-5 text-success">Rs. ${(report.totals.gross_sales || 0).toFixed(2)}</strong>
+                        <strong class="fs-5 text-success">Rs. ${amount(totals.gross_sales)}</strong>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="p-2 border rounded bg-light text-center">
                         <small class="text-muted d-block">Refunds / Returns</small>
-                        <strong class="fs-5 text-danger">- Rs. ${(report.totals.refunds || 0).toFixed(2)}</strong>
+                        <strong class="fs-5 text-danger">- Rs. ${amount(totals.refunds ?? totals.returns_amount)}</strong>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="p-2 border rounded bg-light text-center">
                         <small class="text-muted d-block">Total Discounts</small>
-                        <strong class="fs-6 text-warning">Rs. ${(report.totals.discounts || 0).toFixed(2)}</strong>
+                        <strong class="fs-6 text-warning">Rs. ${amount(totals.discounts)}</strong>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="p-2 border rounded bg-light text-center">
                         <small class="text-muted d-block">Net Sales</small>
-                        <strong class="fs-5 text-primary">Rs. ${(report.totals.net_sales || 0).toFixed(2)}</strong>
+                        <strong class="fs-5 text-primary">Rs. ${amount(totals.net_sales)}</strong>
                     </div>
                 </div>
             </div>
@@ -3375,26 +3514,26 @@ async function openDailyReportModal() {
                 <div class="card-body py-2">
                     <div class="d-flex justify-content-between py-1 border-bottom small">
                         <span><i class="bi bi-cash-stack text-success me-2"></i>Cash</span>
-                        <strong>Rs. ${(report.payments.cash || 0).toFixed(2)}</strong>
+                        <strong>Rs. ${amount(payments.cash)}</strong>
                     </div>
                     <div class="d-flex justify-content-between py-1 border-bottom small">
                         <span><i class="bi bi-credit-card text-primary me-2"></i>Card</span>
-                        <strong>Rs. ${(report.payments.card || 0).toFixed(2)}</strong>
+                        <strong>Rs. ${amount(payments.card)}</strong>
                     </div>
                     <div class="d-flex justify-content-between py-1 border-bottom small">
                         <span><i class="bi bi-phone text-info me-2"></i>Mobile / QR</span>
-                        <strong>Rs. ${(report.payments.mobile || 0).toFixed(2)}</strong>
+                        <strong>Rs. ${amount(payments.mobile ?? payments.mobile_payment)}</strong>
                     </div>
                     <div class="d-flex justify-content-between py-1 small">
                         <span><i class="bi bi-bank text-secondary me-2"></i>Bank Transfer</span>
-                        <strong>Rs. ${(report.payments.bank_transfer || 0).toFixed(2)}</strong>
+                        <strong>Rs. ${amount(payments.bank_transfer)}</strong>
                     </div>
                 </div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light small">
-                <span>Total Orders Today: <strong>${report.order_count || 0}</strong></span>
-                <span>Pending Sync: <strong class="${report.pending_sync_count > 0 ? 'text-warning' : 'text-success'}">${report.pending_sync_count || 0}</strong></span>
+                <span>Total Orders Today: <strong>${orderCount}</strong></span>
+                <span>Pending Sync: <strong class="${pendingSyncCount > 0 ? 'text-warning' : 'text-success'}">${pendingSyncCount}</strong></span>
             </div>
         `;
     } catch (e) {
@@ -3626,6 +3765,19 @@ function showToast(message, type = 'info') {
             if (stats) {
                 showToast(`Synced: ${stats.products || 0} products, ${stats.customers || 0} customers`, 'success');
             }
+        }
+
+        // 4b. Pre-cache recent orders into PureDB for offline history and refunds
+        if (PureSync.isOnline() && typeof Routes !== 'undefined' && Routes.salesHistory) {
+            fetch(`${Routes.salesHistory}?limit=50`, {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+            }).then(r => r.json()).then(async d => {
+                if (d.success && Array.isArray(d.orders) && typeof PureDB !== 'undefined' && PureDB.put) {
+                    for (const ord of d.orders) {
+                        try { await PureDB.put('orders', ord); } catch (_) {}
+                    }
+                }
+            }).catch(() => {});
         }
 
         // 5. Wire up sync status indicator & offline detection

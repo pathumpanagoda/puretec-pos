@@ -752,6 +752,10 @@ const PureDB = (function () {
 
     // ── Order Operations (Offline) ───────────────────────────────
 
+    async function getOrder(uuid) {
+        return await get('orders', uuid);
+    }
+
     async function saveOfflineOrder(order) {
         order.sync_status = 'local';
         order.created_at = order.created_at || new Date().toISOString();
@@ -1192,7 +1196,7 @@ const PureDB = (function () {
         // Meta/Settings
         getMeta, setMeta, getSetting, setSetting,
         // Orders
-        saveOfflineOrder, getLocalOrders, markOrderSynced, markOrderConflict,
+        getOrder, saveOfflineOrder, getLocalOrders, markOrderSynced, markOrderConflict,
         // Hydration
         hydrate, needsHydration,
         // Utility

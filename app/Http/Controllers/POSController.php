@@ -556,4 +556,163 @@ class POSController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get recent sales history for POS modal.
+     */
+    public function salesHistory(Request $request)
+    {
+        $storeId = Auth::user()->store_id;
+        $limit = min((int) $request->get('limit', 50), 100);
+
+        $query = Order::where('store_id', $storeId)
+            ->with(['customer', 'items', 'payments'])
+            ->latest();
+
+        if ($request->filled('q')) {
+            $q = trim($request->get('q'));
+            $query->where(function ($sub) use ($q) {
+                $sub->where('order_number', 'like', "%{$q}%")
+                    ->orWhere('uuid', 'like', "%{$q}%")
+                    ->orWhereHas('customer', function ($c) use ($q) {
+                        $c->where('name', 'like', "%{$q}%")
+                          ->orWhere('phone', 'like', "%{$q}%");
+                    });
+            });
+        }
+
+        $orders = $query->take($limit)->get();
+
+        $formatted = $orders->map(function ($o) {
+            return [
+                'id'              => $o->id,
+                'uuid'            => $o->uuid,
+                'order_number'    => $o->order_number,
+                'order_type'      => $o->order_type ?? 'sale',
+                'status'          => $o->status,
+                'sync_status'     => 'synced',
+                'customer_id'     => $o->customer_id,
+                'customer_name'   => $o->customer?->name ?? 'Walk-in Customer',
+                'customer_phone'  => $o->customer?->phone,
+                'customer_email'  => $o->customer?->email,
+                'subtotal'        => (float) ($o->subtotal ?: $o->total_amount),
+                'tax_amount'      => (float) $o->tax_amount,
+                'discount_amount' => (float) $o->discount_amount,
+                'total_amount'    => (float) $o->total_amount,
+                'paid_amount'     => (float) $o->paid_amount,
+                'change_amount'   => (float) $o->change_amount,
+                'created_at'      => $o->created_at ? $o->created_at->toIso8601String() : now()->toIso8601String(),
+                'items'           => $o->items->map(function ($it) {
+                    return [
+                        'id'              => $it->id,
+                        'product_id'      => $it->product_id,
+                        'name'            => $it->product_name,
+                        'product_name'    => $it->product_name,
+                        'sku'             => $it->sku,
+                        'barcode'         => $it->barcode,
+                        'quantity'        => (float) $it->quantity,
+                        'price'           => (float) $it->unit_price,
+                        'unit_price'      => (float) $it->unit_price,
+                        'discount_amount' => (float) $it->discount_amount,
+                        'tax'             => (float) $it->tax_amount,
+                        'total'           => (float) $it->total,
+                    ];
+                }),
+                'payments'        => $o->payments->map(function ($p) {
+                    return [
+                        'method'    => $p->method,
+                        'amount'    => (float) $p->amount,
+                        'reference' => $p->reference_number,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'orders'  => $formatted,
+        ]);
+    }
+
+    /**
+     * Get daily sales summary report for POS modal.
+     */
+    public function dailyReport(Request $request)
+    {
+        $storeId = Auth::user()->store_id;
+        $date = $request->get('date', now()->toDateString());
+
+        $orders = Order::where('store_id', $storeId)
+            ->whereDate('created_at', $date)
+            ->where('status', '!=', 'cancelled')
+            ->with(['payments', 'items'])
+            ->get();
+
+        $grossSales = 0.0;
+        $totalDiscounts = 0.0;
+        $totalTax = 0.0;
+        $returnsAmount = 0.0;
+        $orderCount = 0;
+        $returnsCount = 0;
+        $payments = [
+            'cash'          => 0.0,
+            'card'          => 0.0,
+            'mobile'        => 0.0,
+            'bank_transfer' => 0.0,
+            'other'         => 0.0,
+        ];
+
+        foreach ($orders as $order) {
+            if ($order->order_type === 'return' || $order->status === 'refunded') {
+                $returnsCount++;
+                $returnsAmount += (float) $order->total_amount;
+            } else {
+                $orderCount++;
+                $grossSales += (float) ($order->subtotal ?: $order->total_amount);
+                $totalDiscounts += (float) $order->discount_amount;
+                $totalTax += (float) $order->tax_amount;
+
+                $changeRemaining = max(0.0, (float) ($order->change_amount ?? 0));
+                foreach ($order->payments as $p) {
+                    $amt = (float) $p->amount;
+                    if ($p->method === 'cash' && $changeRemaining > 0) {
+                        $deduct = min($amt, $changeRemaining);
+                        $amt -= $deduct;
+                        $changeRemaining -= $deduct;
+                    }
+
+                    $methodKey = match ($p->method) {
+                        'cash'                           => 'cash',
+                        'card'                           => 'card',
+                        'mobile', 'mobile_payment', 'qr' => 'mobile',
+                        'bank_transfer', 'bank'          => 'bank_transfer',
+                        default                          => 'other',
+                    };
+                    $payments[$methodKey] += $amt;
+                }
+            }
+        }
+
+        $netSales = max(0.0, $grossSales - $totalDiscounts + $totalTax - $returnsAmount);
+
+        return response()->json([
+            'success'        => true,
+            'date'           => $date,
+            'total_orders'   => $orderCount,
+            'total_returns'  => $returnsCount,
+            'gross_sales'    => round($grossSales, 2),
+            'discounts'      => round($totalDiscounts, 2),
+            'tax'            => round($totalTax, 2),
+            'returns_amount' => round($returnsAmount, 2),
+            'net_sales'      => round($netSales, 2),
+            'payments'       => [
+                'cash'           => round($payments['cash'], 2),
+                'card'           => round($payments['card'], 2),
+                'mobile'         => round($payments['mobile'], 2),
+                'mobile_payment' => round($payments['mobile'], 2),
+                'bank_transfer'  => round($payments['bank_transfer'], 2),
+                'other'          => round($payments['other'], 2),
+            ],
+        ]);
+    }
 }

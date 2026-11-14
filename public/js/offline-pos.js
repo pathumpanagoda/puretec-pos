@@ -204,7 +204,7 @@ const OfflinePOS = (function () {
      * updates original order status, and queues return transaction for sync.
      */
     async function processRefund(refundData) {
-        const originalUuid = refundData.order_uuid;
+        const originalUuid = refundData.order_uuid || refundData.original_order_uuid;
         if (!originalUuid) {
             throw new Error('Original order UUID is required for refund.');
         }

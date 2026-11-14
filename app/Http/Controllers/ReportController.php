@@ -81,13 +81,18 @@ class ReportController extends Controller
 
         // Calculate payment method totals
         foreach ($orders->where('status', 'completed') as $order) {
+            $changeToDeduct = max(0.0, (float) ($order->change_amount ?? 0));
             foreach ($order->payments as $payment) {
+                $amount = (float) $payment->amount;
                 if ($payment->method === 'cash') {
-                    $summary['cash_sales'] += $payment->amount;
+                    $deduct = min($amount, $changeToDeduct);
+                    $amount -= $deduct;
+                    $changeToDeduct -= $deduct;
+                    $summary['cash_sales'] += $amount;
                 } elseif ($payment->method === 'card') {
-                    $summary['card_sales'] += $payment->amount;
+                    $summary['card_sales'] += $amount;
                 } else {
-                    $summary['other_sales'] += $payment->amount;
+                    $summary['other_sales'] += $amount;
                 }
             }
         }
