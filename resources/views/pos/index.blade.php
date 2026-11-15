@@ -65,15 +65,22 @@
                         </div>
                     </button>
                 </li>
+                @if($register)
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button class="dropdown-item pos-menu-item pos-menu-danger d-flex align-items-center gap-3" type="button" onclick="openCloseRegisterModal()">
+                        <div class="pos-menu-icon-wrap icon-end-shift">
+                            <i class="bi bi-stop-circle-fill"></i>
+                        </div>
+                        <div class="pos-menu-text">
+                            <div class="pos-menu-title text-danger">End Shift</div>
+                            <small class="pos-menu-desc">Close register & reconcile cash drawer</small>
+                        </div>
+                    </button>
+                </li>
+                @endif
             </ul>
         </div>
-
-        @if($register)
-        <button class="btn-display-control btn-close-register" onclick="openCloseRegisterModal()" title="Close Register & End Shift">
-            <i class="bi bi-stop-circle"></i>
-            <span>End Shift</span>
-        </button>
-        @endif
     </div>
 </div>
 @endsection
